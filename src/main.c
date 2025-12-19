@@ -13,9 +13,9 @@
 #include <SDL3/SDL_stdinc.h>
 
 #ifdef NDEBUG
-constexpr auto debug = false;
+static constexpr auto debug = false;
 #else
-constexpr auto debug = true;
+static constexpr auto debug = true;
 #endif
 
 static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
