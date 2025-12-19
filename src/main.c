@@ -99,6 +99,7 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, [[maybe_unused]] SDL
 void SDL_AppQuit([[maybe_unused]] void *appstate, [[maybe_unused]] SDL_AppResult result)
 {
 	const app_state_t *state = appstate;
+	SDL_ReleaseWindowFromGPUDevice(state->device, state->window);
 	SDL_DestroyWindow(state->window);
 	SDL_DestroyGPUDevice(state->device);
 
