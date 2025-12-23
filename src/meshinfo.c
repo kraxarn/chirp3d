@@ -1,4 +1,4 @@
-#include "mesh.h"
+#include "meshinfo.h"
 
 size_t mesh_upload_size(const mesh_info_t mesh)
 {
