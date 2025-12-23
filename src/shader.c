@@ -24,7 +24,7 @@ static SDL_GPUShaderFormat shader_format(SDL_GPUDevice *device)
 		return SDL_GPU_SHADERFORMAT_SPIRV;
 	}
 
-	SDL_LogWarn(LOG_CATEGORY_SHADER, "Unsupported shader formats: %d", formats);
+	SDL_SetError("Unsupported shader formats: %d", formats);
 	return SDL_GPU_SHADERFORMAT_INVALID;
 }
 
@@ -43,11 +43,18 @@ SDL_GPUShader *load_shader(SDL_GPUDevice *device, const char *filename,
 	}
 	SDL_free(path);
 
+	const SDL_GPUShaderFormat format = shader_format(device);
+	if (format == SDL_GPU_SHADERFORMAT_INVALID)
+	{
+		SDL_free(data);
+		return nullptr;
+	}
+
 	const SDL_GPUShaderCreateInfo create_info = {
 		.code_size = size,
 		.code = data,
 		.entrypoint = "main0",
-		.format = shader_format(device),
+		.format = format,
 		.stage = stage,
 		.num_samplers = 0,
 		.num_storage_buffers = 0,
