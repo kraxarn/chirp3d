@@ -4,6 +4,15 @@
 
 #include <SDL3/SDL_stdinc.h>
 
+typedef struct gpu_mesh_t
+{
+	SDL_GPUDevice *device;
+	SDL_GPUBuffer *vertex_buffer;
+	SDL_GPUBuffer *index_buffer;
+
+	size_t num_indices;
+} gpu_mesh_t;
+
 gpu_mesh_t *gpu_mesh_create(SDL_GPUDevice *device, const mesh_t mesh)
 {
 	gpu_mesh_t *gpu_mesh = SDL_malloc(sizeof(gpu_mesh_t));
