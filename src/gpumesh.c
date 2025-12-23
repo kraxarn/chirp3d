@@ -116,3 +116,20 @@ void gpu_mesh_destroy(gpu_mesh_t *mesh)
 	SDL_ReleaseGPUBuffer(mesh->device, mesh->index_buffer);
 	SDL_free(mesh);
 }
+
+void gpu_mesh_draw(const gpu_mesh_t *mesh, SDL_GPURenderPass *render_pass)
+{
+	const SDL_GPUBufferBinding vertex_binding = {
+		.buffer = mesh->vertex_buffer,
+		.offset = 0,
+	};
+	SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_binding, 1);
+
+	const SDL_GPUBufferBinding index_binding = {
+		.buffer = mesh->index_buffer,
+		.offset = 0,
+	};
+	SDL_BindGPUIndexBuffer(render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+
+	SDL_DrawGPUIndexedPrimitives(render_pass, mesh->num_indices, 1, 0, 0, 0);
+}
