@@ -13,16 +13,19 @@ typedef struct mesh_t
 	size_t num_indices;
 } mesh_t;
 
-mesh_t *gpu_mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
+mesh_t *mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
 {
 	mesh_t *mesh = SDL_malloc(sizeof(mesh_t));
 
 	mesh->device = device;
 	mesh->num_indices = info.num_indices;
 
+	const size_t vertex_size = sizeof(vertex_t) * info.num_vertices;
+	const size_t index_size = sizeof(mesh_index_t) * info.num_indices;
+
 	const SDL_GPUBufferCreateInfo vertex_buffer_info = {
 		.usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-		.size = mesh_vertex_size(info),
+		.size = vertex_size,
 	};
 	mesh->vertex_buffer = SDL_CreateGPUBuffer(device, &vertex_buffer_info);
 	if (mesh->vertex_buffer == nullptr)
@@ -33,7 +36,7 @@ mesh_t *gpu_mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
 
 	const SDL_GPUBufferCreateInfo index_buffer_info = {
 		.usage = SDL_GPU_BUFFERUSAGE_INDEX,
-		.size = mesh_index_size(info),
+		.size = index_size,
 	};
 	mesh->index_buffer = SDL_CreateGPUBuffer(device, &index_buffer_info);
 	if (mesh->index_buffer == nullptr)
@@ -45,7 +48,7 @@ mesh_t *gpu_mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
 
 	const SDL_GPUTransferBufferCreateInfo transfer_info = {
 		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-		.size = mesh_upload_size(info),
+		.size = vertex_size + index_size,
 	};
 	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(device, &transfer_info);
 	if (transfer_buffer == nullptr)
@@ -66,8 +69,8 @@ mesh_t *gpu_mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
 		return nullptr;
 	}
 
-	SDL_memcpy(transfer_data, info.vertices, mesh_vertex_size(info));
-	SDL_memcpy(transfer_data + mesh_vertex_size(info), info.indices, mesh_index_size(info));
+	SDL_memcpy(transfer_data, info.vertices, vertex_size);
+	SDL_memcpy(transfer_data + vertex_size, info.indices, index_size);
 
 	SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
 
@@ -90,18 +93,18 @@ mesh_t *gpu_mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
 	const SDL_GPUBufferRegion vertex_destination = {
 		.buffer = mesh->vertex_buffer,
 		.offset = 0,
-		.size = mesh_vertex_size(info),
+		.size = vertex_size,
 	};
 	SDL_UploadToGPUBuffer(copy_pass, &vertex_source, &vertex_destination, false);
 
 	const SDL_GPUTransferBufferLocation index_source = {
 		.transfer_buffer = transfer_buffer,
-		.offset = mesh_vertex_size(info),
+		.offset = vertex_size,
 	};
 	const SDL_GPUBufferRegion index_destination = {
 		.buffer = mesh->index_buffer,
 		.offset = 0,
-		.size = mesh_index_size(info),
+		.size = index_size,
 	};
 	SDL_UploadToGPUBuffer(copy_pass, &index_source, &index_destination, false);
 
@@ -119,14 +122,14 @@ mesh_t *gpu_mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
 	return mesh;
 }
 
-void gpu_mesh_destroy(mesh_t *mesh)
+void mesh_destroy(mesh_t *mesh)
 {
 	SDL_ReleaseGPUBuffer(mesh->device, mesh->vertex_buffer);
 	SDL_ReleaseGPUBuffer(mesh->device, mesh->index_buffer);
 	SDL_free(mesh);
 }
 
-void gpu_mesh_draw(const mesh_t *mesh, SDL_GPURenderPass *render_pass)
+void mesh_draw(const mesh_t *mesh, SDL_GPURenderPass *render_pass)
 {
 	const SDL_GPUBufferBinding vertex_binding = {
 		.buffer = mesh->vertex_buffer,

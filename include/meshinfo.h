@@ -21,12 +21,3 @@ typedef struct mesh_info_t
 	const mesh_index_t *indices;
 	const size_t num_indices;
 } mesh_info_t;
-
-[[nodiscard]]
-size_t mesh_upload_size(mesh_info_t mesh);
-
-[[nodiscard]]
-size_t mesh_vertex_size(mesh_info_t mesh);
-
-[[nodiscard]]
-size_t mesh_index_size(mesh_info_t mesh);

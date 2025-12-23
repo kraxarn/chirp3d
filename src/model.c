@@ -65,5 +65,5 @@ mesh_t *create_cube(SDL_GPUDevice *device, [[maybe_unused]] const vector3f_t pos
 		.indices = indices,
 	};
 
-	return gpu_mesh_create(device, mesh_info);
+	return mesh_create(device, mesh_info);
 }
