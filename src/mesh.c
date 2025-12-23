@@ -1,6 +1,6 @@
-#include "gpumesh.h"
-#include "gpu.h"
 #include "mesh.h"
+#include "gpu.h"
+#include "meshinfo.h"
 
 #include <SDL3/SDL_stdinc.h>
 
