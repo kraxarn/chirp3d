@@ -1,5 +1,10 @@
 #include "appstate.h"
+#include "gpu.h"
 #include "logcategory.h"
+#include "math.h"
+#include "matrix.h"
+#include "model.h"
+#include "shader.h"
 
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -12,12 +17,6 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
 
-#ifdef NDEBUG
-static constexpr auto debug = false;
-#else
-static constexpr auto debug = true;
-#endif
-
 static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
 {
 	SDL_LogCritical(LOG_CATEGORY_CORE, "%s: %s", message, SDL_GetError());
@@ -27,8 +26,8 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 	return SDL_APP_FAILURE;
 }
 
-SDL_AppResult SDL_AppInit([[maybe_unused]] void **appstate,
-	[[maybe_unused]] const int argc, [[maybe_unused]] char **argv)
+SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
+	[[maybe_unused]] char **argv)
 {
 #ifdef NDEBUG
 	SDL_SetLogPriorities(SDL_LOG_PRIORITY_WARN);
@@ -63,27 +62,92 @@ SDL_AppResult SDL_AppInit([[maybe_unused]] void **appstate,
 		return fatal_error(nullptr, "Window creation failed");
 	}
 
-	constexpr SDL_GPUShaderFormat format_flags =
-		SDL_GPU_SHADERFORMAT_SPIRV
-		| SDL_GPU_SHADERFORMAT_DXIL
-		| SDL_GPU_SHADERFORMAT_MSL;
-
-	state->device = SDL_CreateGPUDevice(format_flags, debug, nullptr);
+	state->device = create_device(state->window);
 	if (state->device == nullptr)
 	{
-		return fatal_error(nullptr, "GPU context creation failed");
+		return fatal_error(state->window, "GPU context creation failed");
 	}
 
-	if (!SDL_ClaimWindowForGPUDevice(state->device, state->window))
+	const char *device_name = SDL_GetGPUDeviceDriver(state->device);
+	if (device_name != nullptr)
 	{
-		return fatal_error(nullptr, "Context binding failed");
+		char *title = nullptr;
+		SDL_asprintf(&title, "%s (%s)", SDL_GetWindowTitle(state->window), device_name);
+		SDL_SetWindowTitle(state->window, title);
+		SDL_free(title);
 	}
+
+	state->camera = (camera_t){
+		.position = (vector3f_t){.x = 0.F, .y = 20.F, .z = -30.F},
+		.target = vector3f_zero(),
+		.up = (vector3f_t){.x = 0.F, .y = 1.F, .z = 0.F},
+		.fov_y = 5.F,
+		.near_plane = 0.1F,
+		.far_plane = 100.F,
+	};
+
+	SDL_GPUShader *vert_shader = load_shader(state->device, "shaders/cube.vert.msl", SDL_GPU_SHADERSTAGE_VERTEX, 1);
+	if (vert_shader == nullptr)
+	{
+		return fatal_error(state->window, "Failed to load vertex shader");
+	}
+
+	SDL_GPUShader *frag_shader = load_shader(state->device, "shaders/cube.frag.msl", SDL_GPU_SHADERSTAGE_FRAGMENT, 0);
+	if (frag_shader == nullptr)
+	{
+		return fatal_error(state->window, "Failed to load fragment shader");
+	}
+
+	state->pipeline = create_pipeline(state->device, state->window, vert_shader, frag_shader);
+	if (state->pipeline == nullptr)
+	{
+		SDL_ReleaseGPUShader(state->device, vert_shader);
+		SDL_ReleaseGPUShader(state->device, frag_shader);
+		return fatal_error(state->window, "Failed to create pipeline");
+	}
+
+	SDL_ReleaseGPUShader(state->device, vert_shader);
+	SDL_ReleaseGPUShader(state->device, frag_shader);
+
+	const vector3f_t mesh_size = {.x = 10.F, .y = 10.F, .z = 10.F};
+	state->mesh = create_cube(state->device, vector3f_zero(), mesh_size);
 
 	return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppIterate([[maybe_unused]] void *appstate)
+SDL_AppResult SDL_AppIterate(void *appstate)
 {
+	const app_state_t *state = appstate;
+	const SDL_FColor clear_color = {0.1F, 0.1F, 0.1F, 1.F};
+
+	SDL_GPUCommandBuffer *command_buffer = nullptr;
+	SDL_GPURenderPass *render_pass = nullptr;
+	vector2f_t size;
+
+	if (draw_begin(state->device, state->window, clear_color, &command_buffer, &render_pass, &size))
+	{
+		const matrix4x4_t proj = matrix4x4_create_perspective(
+			deg2rad(state->camera.fov_y),
+			size.x / size.y,
+			state->camera.near_plane,
+			state->camera.far_plane
+		);
+		const matrix4x4_t view = matrix4x4_create_look_at(
+			state->camera.position,
+			state->camera.target,
+			state->camera.up
+		);
+		const matrix4x4_t view_proj = matrix4x4_multiply(view, proj);
+
+		SDL_BindGPUGraphicsPipeline(render_pass, state->pipeline);
+		SDL_PushGPUVertexUniformData(command_buffer, 0, &view_proj, sizeof(matrix4x4_t));
+		mesh_draw(state->mesh, render_pass);
+	}
+	if (!draw_end())
+	{
+		return fatal_error(state->window, "Rendering failed");
+	}
+
 	return SDL_APP_CONTINUE;
 }
 
@@ -97,10 +161,15 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, [[maybe_unused]] SDL
 	return SDL_APP_CONTINUE;
 }
 
-void SDL_AppQuit([[maybe_unused]] void *appstate, [[maybe_unused]] SDL_AppResult result)
+void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 {
 	const app_state_t *state = appstate;
+
+	mesh_destroy(state->mesh);
+
+	SDL_ReleaseGPUGraphicsPipeline(state->device, state->pipeline);
 	SDL_ReleaseWindowFromGPUDevice(state->device, state->window);
+
 	SDL_DestroyWindow(state->window);
 	SDL_DestroyGPUDevice(state->device);
 
