@@ -85,3 +85,30 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 
 	return SDL_CreateGPUGraphicsPipeline(device, &create_info);
 }
+
+bool create_mesh_buffers(SDL_GPUDevice *device, const mesh_t mesh,
+	SDL_GPUBuffer **vertex_buffer, SDL_GPUBuffer **index_buffer)
+{
+	const SDL_GPUBufferCreateInfo vertex_buffer_info = {
+		.usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+		.size = mesh_vertex_size(mesh),
+	};
+	*vertex_buffer = SDL_CreateGPUBuffer(device, &vertex_buffer_info);
+	if (*vertex_buffer == nullptr)
+	{
+		return false;
+	}
+
+	const SDL_GPUBufferCreateInfo index_buffer_info = {
+		.usage = SDL_GPU_BUFFERUSAGE_INDEX,
+		.size = mesh_index_size(mesh),
+	};
+	*index_buffer = SDL_CreateGPUBuffer(device, &index_buffer_info);
+	if (*index_buffer == nullptr)
+	{
+		SDL_ReleaseGPUBuffer(device, *vertex_buffer);
+		return false;
+	}
+
+	return true;
+}
