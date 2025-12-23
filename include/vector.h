@@ -1,5 +1,11 @@
 #pragma once
 
+typedef struct vector2f_t
+{
+	float x;
+	float y;
+} vector2f_t;
+
 typedef struct vector3f_t
 {
 	float x;

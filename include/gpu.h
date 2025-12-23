@@ -1,9 +1,22 @@
 #pragma once
 
+#include "vector.h"
+
 #include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_pixels.h>
+#include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
 
+[[nodiscard]]
 SDL_GPUDevice *create_device(SDL_Window *window);
 
+[[nodiscard]]
 SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *window,
 	SDL_GPUShader *vertex_shader, SDL_GPUShader *fragment_shader);
+
+bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, SDL_FColor clear_color,
+	SDL_GPUCommandBuffer **command_buffer, SDL_GPURenderPass **render_pass, vector2f_t *size);
+
+void push_vertex_uniform_data(Uint32 index, const void *data, Uint32 length);
+
+bool draw_end();
