@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math.h"
+#include "vector.h"
 
 typedef struct camera_t
 {
