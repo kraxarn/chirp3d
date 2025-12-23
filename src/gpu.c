@@ -1,5 +1,5 @@
 #include "gpu.h"
-#include "mesh.h"
+#include "meshinfo.h"
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_video.h>

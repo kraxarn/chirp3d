@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gpumesh.h"
+#include "mesh.h"
 #include "vector.h"
 
 #include <SDL3/SDL_gpu.h>
