@@ -15,11 +15,11 @@ typedef struct vertex_t
 
 typedef struct mesh_info_t
 {
-	vertex_t *vertices;
-	size_t num_vertices;
+	const vertex_t *vertices;
+	const size_t num_vertices;
 
-	mesh_index_t *indices;
-	size_t num_indices;
+	const mesh_index_t *indices;
+	const size_t num_indices;
 } mesh_info_t;
 
 [[nodiscard]]
