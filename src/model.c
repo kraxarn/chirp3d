@@ -2,9 +2,9 @@
 #include "mesh.h"
 #include "vector.h"
 
-mesh_t create_cube([[maybe_unused]] const vector3f_t position, [[maybe_unused]] const vector3f_t size)
+mesh_info_t create_cube([[maybe_unused]] const vector3f_t position, [[maybe_unused]] const vector3f_t size)
 {
-	mesh_t mesh;
+	mesh_info_t mesh;
 
 	const vertex_t vertices[] = {
 		(vertex_t){
@@ -67,7 +67,7 @@ mesh_t create_cube([[maybe_unused]] const vector3f_t position, [[maybe_unused]] 
 	return mesh;
 }
 
-void mesh_destroy(const mesh_t mesh)
+void mesh_destroy(const mesh_info_t mesh)
 {
 	SDL_free(mesh.indices);
 	SDL_free(mesh.vertices);

@@ -13,20 +13,20 @@ typedef struct vertex_t
 	SDL_FColor color;
 } vertex_t;
 
-typedef struct mesh_t
+typedef struct mesh_info_t
 {
 	vertex_t *vertices;
 	size_t num_vertices;
 
 	mesh_index_t *indices;
 	size_t num_indices;
-} mesh_t;
+} mesh_info_t;
 
 [[nodiscard]]
-size_t mesh_upload_size(mesh_t mesh);
+size_t mesh_upload_size(mesh_info_t mesh);
 
 [[nodiscard]]
-size_t mesh_vertex_size(mesh_t mesh);
+size_t mesh_vertex_size(mesh_info_t mesh);
 
 [[nodiscard]]
-size_t mesh_index_size(mesh_t mesh);
+size_t mesh_index_size(mesh_info_t mesh);

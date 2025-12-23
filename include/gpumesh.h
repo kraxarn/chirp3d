@@ -6,7 +6,7 @@
 
 typedef struct gpu_mesh_t gpu_mesh_t;
 
-gpu_mesh_t *gpu_mesh_create(SDL_GPUDevice *device, mesh_t mesh);
+gpu_mesh_t *gpu_mesh_create(SDL_GPUDevice *device, mesh_info_t info);
 
 void gpu_mesh_destroy(gpu_mesh_t *mesh);
 

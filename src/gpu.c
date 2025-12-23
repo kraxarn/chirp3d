@@ -86,7 +86,7 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 	return SDL_CreateGPUGraphicsPipeline(device, &create_info);
 }
 
-bool create_mesh_buffers(SDL_GPUDevice *device, const mesh_t mesh,
+bool create_mesh_buffers(SDL_GPUDevice *device, const mesh_info_t mesh,
 	SDL_GPUBuffer **vertex_buffer, SDL_GPUBuffer **index_buffer)
 {
 	const SDL_GPUBufferCreateInfo vertex_buffer_info = {
