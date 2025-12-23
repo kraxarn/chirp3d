@@ -1,11 +1,13 @@
 #include "model.h"
+#include "gpumesh.h"
 #include "mesh.h"
 #include "vector.h"
 
-mesh_info_t create_cube([[maybe_unused]] const vector3f_t position, [[maybe_unused]] const vector3f_t size)
-{
-	mesh_info_t mesh;
+#include <SDL3/SDL_gpu.h>
 
+mesh_t *create_cube(SDL_GPUDevice *device, [[maybe_unused]] const vector3f_t position,
+	[[maybe_unused]] const vector3f_t size)
+{
 	const vertex_t vertices[] = {
 		(vertex_t){
 			.position = (vector3f_t){.x = 0.000000, .y = 0.000000, .z = 1.000000},
@@ -41,10 +43,6 @@ mesh_info_t create_cube([[maybe_unused]] const vector3f_t position, [[maybe_unus
 		},
 	};
 
-	mesh.num_vertices = SDL_arraysize(vertices);
-	mesh.vertices = SDL_malloc(sizeof(vertex_t) * mesh.num_vertices);
-	SDL_memcpy(mesh.vertices, vertices, sizeof(vertex_t) * mesh.num_vertices);
-
 	const mesh_index_t indices[] = {
 		0, 1, 2,
 		0, 2, 3,
@@ -60,15 +58,12 @@ mesh_info_t create_cube([[maybe_unused]] const vector3f_t position, [[maybe_unus
 		0, 5, 1,
 	};
 
-	mesh.num_indices = SDL_arraysize(indices);
-	mesh.indices = SDL_malloc(sizeof(mesh_index_t) * mesh.num_indices);
-	SDL_memcpy(mesh.indices, indices, sizeof(mesh_index_t) * mesh.num_indices);
+	const mesh_info_t mesh_info = {
+		.num_vertices = SDL_arraysize(vertices),
+		.vertices = vertices,
+		.num_indices = SDL_arraysize(indices),
+		.indices = indices,
+	};
 
-	return mesh;
-}
-
-void mesh_destroy(const mesh_info_t mesh)
-{
-	SDL_free(mesh.indices);
-	SDL_free(mesh.vertices);
+	return gpu_mesh_create(device, mesh_info);
 }

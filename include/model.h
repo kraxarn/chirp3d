@@ -1,9 +1,9 @@
 #pragma once
 
-#include "mesh.h"
+#include "gpumesh.h"
 #include "vector.h"
 
-[[nodiscard]]
-mesh_info_t create_cube(vector3f_t position, vector3f_t size);
+#include <SDL3/SDL_gpu.h>
 
-void mesh_destroy(mesh_info_t mesh);
+[[nodiscard]]
+mesh_t *create_cube(SDL_GPUDevice *device, vector3f_t position, vector3f_t size);
