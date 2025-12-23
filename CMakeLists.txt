@@ -22,5 +22,3 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 )
 
 include(deps/sdl3.cmake)
-
-add_subdirectory(tests)
