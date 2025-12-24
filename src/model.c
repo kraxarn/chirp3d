@@ -5,40 +5,51 @@
 
 #include <SDL3/SDL_gpu.h>
 
-mesh_t *create_cube(SDL_GPUDevice *device, [[maybe_unused]] const vector3f_t position,
-	[[maybe_unused]] const vector3f_t size)
+mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t position, const vector3f_t size)
 {
+	const vector3f_t min = {
+		.x = position.x - (size.x / 2.F),
+		.y = position.y - (size.y / 2.F),
+		.z = position.z - (size.z / 2.F),
+	};
+
+	const vector3f_t max = {
+		.x = position.x + (size.x / 2.F),
+		.y = position.y + (size.y / 2.F),
+		.z = position.z + (size.z / 2.F),
+	};
+
 	const vertex_t vertices[] = {
 		(vertex_t){
-			.position = (vector3f_t){.x = 0.000000, .y = 0.000000, .z = 1.000000},
+			.position = (vector3f_t){.x = min.x, .y = min.y, .z = max.z},
 			.color = (SDL_FColor){.r = 1.F, .g = 0.F, .b = 0.F, .a = 1.F},
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = 1.000000, .y = 0.000000, .z = 1.000000},
+			.position = (vector3f_t){.x = max.x, .y = min.y, .z = max.z},
 			.color = (SDL_FColor){.r = 0.F, .g = 1.F, .b = 0.F, .a = 1.F},
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = 1.000000, .y = 1.000000, .z = 1.000000},
+			.position = (vector3f_t){.x = max.x, .y = max.y, .z = max.z},
 			.color = (SDL_FColor){.r = 0.F, .g = 0.F, .b = 1.F, .a = 1.F},
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = 0.000000, .y = 1.000000, .z = 1.000000},
+			.position = (vector3f_t){.x = min.x, .y = max.y, .z = max.z},
 			.color = (SDL_FColor){.r = 1.F, .g = 1.F, .b = 0.F, .a = 1.F},
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = 0.000000, .y = 0.000000, .z = 0.000000},
+			.position = (vector3f_t){.x = min.x, .y = min.y, .z = min.z},
 			.color = (SDL_FColor){.r = 0.F, .g = 1.F, .b = 1.F, .a = 1.F},
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = 1.000000, .y = 0.000000, .z = 0.000000},
+			.position = (vector3f_t){.x = max.x, .y = min.y, .z = min.z},
 			.color = (SDL_FColor){.r = 1.F, .g = 0.F, .b = 1.F, .a = 1.F},
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = 1.000000, .y = 1.000000, .z = 0.000000},
+			.position = (vector3f_t){.x = max.x, .y = max.y, .z = min.z},
 			.color = (SDL_FColor){.r = 1.F, .g = 1.F, .b = 1.F, .a = 1.F},
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = 0.000000, .y = 1.000000, .z = 0.000000},
+			.position = (vector3f_t){.x = min.x, .y = max.y, .z = min.z},
 			.color = (SDL_FColor){.r = 0.F, .g = 0.F, .b = 0.F, .a = 1.F},
 		},
 	};
