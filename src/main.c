@@ -178,11 +178,22 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, [[maybe_unused]] SDL_Event *event)
+SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 {
 	if (event->type == SDL_EVENT_QUIT)
 	{
 		return SDL_APP_SUCCESS;
+	}
+
+	const app_state_t *state = appstate;
+
+	if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == SDL_BUTTON_LEFT)
+	{
+		SDL_SetWindowRelativeMouseMode(state->window, true);
+	}
+	else if (event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_ESCAPE)
+	{
+		SDL_SetWindowRelativeMouseMode(state->window, false);
 	}
 
 	return SDL_APP_CONTINUE;
