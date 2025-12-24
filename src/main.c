@@ -81,7 +81,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		.position = (vector3f_t){.x = 0.F, .y = 20.F, .z = -30.F},
 		.target = vector3f_zero(),
 		.up = (vector3f_t){.x = 0.F, .y = 1.F, .z = 0.F},
-		.fov_y = 5.F,
+		.fov_y = 45.F,
 		.near_plane = 0.1F,
 		.far_plane = 100.F,
 	};
