@@ -86,13 +86,34 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		.far_plane = 100.F,
 	};
 
-	SDL_GPUShader *vert_shader = load_shader(state->device, "shaders/cube.vert.msl", SDL_GPU_SHADERSTAGE_VERTEX, 1);
+	const char *vert_filename;
+	const char *frag_filename;
+
+	switch (shader_format(state->device))
+	{
+		case SDL_GPU_SHADERFORMAT_MSL:
+			vert_filename = "shaders/msl/simple.vert.msl";
+			frag_filename = "shaders/msl/simple.frag.msl";
+			break;
+
+		case SDL_GPU_SHADERFORMAT_SPIRV:
+			vert_filename = "shaders/spv/simple.vert.spv";
+			frag_filename = "shaders/spv/simple.frag.spv";
+			break;
+
+		default:
+			return fatal_error(state->window, "Unknown shader format");
+	}
+
+	SDL_GPUShader *vert_shader = load_shader(state->device, vert_filename,
+		SDL_GPU_SHADERSTAGE_VERTEX, 1);
 	if (vert_shader == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load vertex shader");
 	}
 
-	SDL_GPUShader *frag_shader = load_shader(state->device, "shaders/cube.frag.msl", SDL_GPU_SHADERSTAGE_FRAGMENT, 0);
+	SDL_GPUShader *frag_shader = load_shader(state->device, frag_filename,
+		SDL_GPU_SHADERSTAGE_FRAGMENT, 0);
 	if (frag_shader == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load fragment shader");

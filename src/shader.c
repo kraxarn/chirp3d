@@ -5,7 +5,7 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
 
-static SDL_GPUShaderFormat shader_format(SDL_GPUDevice *device)
+SDL_GPUShaderFormat shader_format(SDL_GPUDevice *device)
 {
 	const SDL_GPUShaderFormat formats = SDL_GetGPUShaderFormats(device);
 
