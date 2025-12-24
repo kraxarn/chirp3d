@@ -101,6 +101,11 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 			frag_filename = "shaders/spv/simple.frag.spv";
 			break;
 
+		case SDL_GPU_SHADERFORMAT_DXIL:
+			vert_filename = "shaders/dxil/simple.vert.dxil";
+			frag_filename = "shaders/dxil/simple.frag.dxil";
+			break;
+
 		default:
 			return fatal_error(state->window, "Unknown shader format");
 	}
