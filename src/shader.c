@@ -1,9 +1,7 @@
 #include "shader.h"
-#include "logcategory.h"
 
 #include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_gpu.h>
-#include <SDL3/SDL_log.h>
 
 SDL_GPUShaderFormat shader_format(SDL_GPUDevice *device)
 {
@@ -26,6 +24,18 @@ SDL_GPUShaderFormat shader_format(SDL_GPUDevice *device)
 
 	SDL_SetError("Unsupported shader formats: %d", formats);
 	return SDL_GPU_SHADERFORMAT_INVALID;
+}
+
+[[nodiscard]]
+static const char *entrypoint(const SDL_GPUShaderFormat shader_format)
+{
+	// For some reason, MSL shaders get a "main0" entrypoint (???)
+	if (shader_format == SDL_GPU_SHADERFORMAT_MSL)
+	{
+		return "main0";
+	}
+
+	return "main";
 }
 
 SDL_GPUShader *load_shader(SDL_GPUDevice *device, const char *filename,
@@ -53,7 +63,7 @@ SDL_GPUShader *load_shader(SDL_GPUDevice *device, const char *filename,
 	const SDL_GPUShaderCreateInfo create_info = {
 		.code_size = size,
 		.code = data,
-		.entrypoint = "main0",
+		.entrypoint = entrypoint(format),
 		.format = format,
 		.stage = stage,
 		.num_samplers = 0,
