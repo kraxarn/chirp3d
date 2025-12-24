@@ -124,6 +124,11 @@ mesh_t *mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
 
 void mesh_destroy(mesh_t *mesh)
 {
+	if (mesh == nullptr)
+	{
+		return;
+	}
+
 	SDL_ReleaseGPUBuffer(mesh->device, mesh->vertex_buffer);
 	SDL_ReleaseGPUBuffer(mesh->device, mesh->index_buffer);
 	SDL_free(mesh);
