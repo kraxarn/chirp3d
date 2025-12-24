@@ -107,7 +107,8 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 			break;
 
 		default:
-			return fatal_error(state->window, "Unknown shader format");
+			SDL_SetError("Unknown shader format: %d", shader_format(state->device));
+			return fatal_error(state->window, "Failed to find valid shaders");
 	}
 
 	SDL_GPUShader *vert_shader = load_shader(state->device, vert_filename,
