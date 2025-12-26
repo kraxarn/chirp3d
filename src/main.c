@@ -116,18 +116,18 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	switch (shader_format(state->device))
 	{
 		case SDL_GPU_SHADERFORMAT_MSL:
-			vert_filename = "shaders/msl/gouraud.vert.msl";
-			frag_filename = "shaders/msl/gouraud.frag.msl";
+			vert_filename = "shaders/msl/simple.vert.msl";
+			frag_filename = "shaders/msl/simple.frag.msl";
 			break;
 
 		case SDL_GPU_SHADERFORMAT_SPIRV:
-			vert_filename = "shaders/spv/gouraud.vert.spv";
-			frag_filename = "shaders/spv/gouraud.frag.spv";
+			vert_filename = "shaders/spv/simple.vert.spv";
+			frag_filename = "shaders/spv/simple.frag.spv";
 			break;
 
 		case SDL_GPU_SHADERFORMAT_DXIL:
-			vert_filename = "shaders/dxil/gouraud.vert.dxil";
-			frag_filename = "shaders/dxil/gouraud.frag.dxil";
+			vert_filename = "shaders/dxil/simple.vert.dxil";
+			frag_filename = "shaders/dxil/simple.frag.dxil";
 			break;
 
 		default:
