@@ -82,12 +82,6 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 		.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
 		.vertex_shader = vertex_shader,
 		.fragment_shader = fragment_shader,
-		.depth_stencil_state = (SDL_GPUDepthStencilState){
-			// ?
-			.enable_depth_test = true,
-			.enable_depth_write = true,
-			.compare_op = SDL_GPU_COMPAREOP_LESS,
-		},
 	};
 
 	return SDL_CreateGPUGraphicsPipeline(device, &create_info);
