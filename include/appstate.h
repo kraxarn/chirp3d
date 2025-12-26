@@ -13,4 +13,6 @@ typedef struct app_state_t
 	SDL_GPUGraphicsPipeline *pipeline;
 	mesh_t *mesh;
 	camera_t camera;
+	Uint64 last_update;
+	float current_rotation;
 } app_state_t;

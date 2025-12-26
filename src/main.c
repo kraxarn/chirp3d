@@ -16,6 +16,7 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_timer.h>
 
 static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
 {
@@ -51,6 +52,9 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		return fatal_error(nullptr, "Memory allocation failed");
 	}
 	*appstate = state;
+
+	state->last_update = SDL_GetTicks();
+	state->current_rotation = 0.F;
 
 	constexpr auto window_w = 1280;
 	constexpr auto window_h = 720;
@@ -162,7 +166,17 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 SDL_AppResult SDL_AppIterate(void *appstate)
 {
-	const app_state_t *state = appstate;
+	app_state_t *state = appstate;
+
+	constexpr float rotation_speed = 32.F / 1000.F;
+
+	const Uint64 current_update = SDL_GetTicks();
+	const Uint64 elapsed = current_update - state->last_update;
+	state->last_update = current_update;
+
+	state->current_rotation = SDL_fmodf(state->current_rotation + (rotation_speed * (float) elapsed), 360.F);
+	const matrix4x4_t local_transform = matrix4x4_create_rotation_y(deg2rad(state->current_rotation));
+
 	const SDL_FColor clear_color = {0.1F, 0.1F, 0.1F, 1.F};
 
 	SDL_GPUCommandBuffer *command_buffer = nullptr;
@@ -183,9 +197,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			state->camera.up
 		);
 		const matrix4x4_t view_proj = matrix4x4_multiply(view, proj);
+		const matrix4x4_t mesh_mat = matrix4x4_multiply(local_transform, view_proj);
 
 		SDL_BindGPUGraphicsPipeline(render_pass, state->pipeline);
-		SDL_PushGPUVertexUniformData(command_buffer, 0, &view_proj, sizeof(matrix4x4_t));
+		SDL_PushGPUVertexUniformData(command_buffer, 0, &mesh_mat, sizeof(matrix4x4_t));
 		mesh_draw(state->mesh, render_pass);
 	}
 	if (!draw_end())
