@@ -42,7 +42,7 @@ SDL_GPUShader *load_shader(SDL_GPUDevice *device, const char *filename,
 	const SDL_GPUShaderStage stage, const int num_uniform_buffers)
 {
 	char *path = nullptr;
-	SDL_asprintf(&path, "%s%s", SDL_GetBasePath(), filename);
+	SDL_asprintf(&path, "%sresources/%s", SDL_GetBasePath(), filename);
 
 	size_t size = 0;
 	Uint8 *data = SDL_LoadFile(path, &size);
