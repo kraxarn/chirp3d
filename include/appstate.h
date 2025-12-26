@@ -12,6 +12,5 @@ typedef struct app_state_t
 	SDL_GPUDevice *device;
 	SDL_GPUGraphicsPipeline *pipeline;
 	mesh_t *mesh;
-	float dt;
 	camera_t camera;
 } app_state_t;
