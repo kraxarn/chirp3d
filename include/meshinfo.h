@@ -20,4 +20,7 @@ typedef struct mesh_info_t
 
 	const mesh_index_t *indices;
 	const size_t num_indices;
+
+	const vector3f_t *normals;
+	const size_t num_normals;
 } mesh_info_t;

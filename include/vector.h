@@ -17,6 +17,9 @@ typedef struct vector3f_t
 vector3f_t vector3f_zero();
 
 [[nodiscard]]
+vector3f_t vector3f_add(vector3f_t vec1, vector3f_t vec2);
+
+[[nodiscard]]
 vector3f_t vector3f_sub(vector3f_t vec1, vector3f_t vec2);
 
 [[nodiscard]]

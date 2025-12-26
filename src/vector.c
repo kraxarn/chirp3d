@@ -11,6 +11,15 @@ vector3f_t vector3f_zero()
 	};
 }
 
+vector3f_t vector3f_add(const vector3f_t vec1, const vector3f_t vec2)
+{
+	return (vector3f_t){
+		.x = vec1.x + vec2.x,
+		.y = vec1.y + vec2.y,
+		.z = vec1.z + vec2.z,
+	};
+}
+
 vector3f_t vector3f_sub(const vector3f_t vec1, const vector3f_t vec2)
 {
 	return (vector3f_t){
