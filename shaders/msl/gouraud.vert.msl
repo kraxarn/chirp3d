@@ -1,0 +1,51 @@
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+struct point_light
+{
+    float3 position;
+    float4 color;
+    float4 ambient;
+};
+
+struct type_uniforms
+{
+    float4x4 mvp;
+    float4 color;
+    float3 camera_position;
+    point_light lights[2];
+};
+
+struct main0_out
+{
+    float4 out_var_COLOR [[user(locn0)]];
+    float4 gl_Position [[position]];
+};
+
+struct main0_in
+{
+    float3 in_var_POSITION [[attribute(0)]];
+    float3 in_var_NORMAL [[attribute(1)]];
+};
+
+vertex main0_out main0(main0_in in [[stage_in]], constant type_uniforms& uniforms [[buffer(0)]])
+{
+    main0_out out = {};
+    float4 _47;
+    _47 = float4(0.0);
+    for (int _50 = 0; _50 < 2; )
+    {
+        float3 _57 = fast::normalize(uniforms.lights[_50].position - in.in_var_POSITION);
+        _47 += (((uniforms.lights[_50].ambient + (uniforms.lights[_50].color * precise::max(dot(in.in_var_NORMAL, _57), 0.0))) + (uniforms.lights[_50].color * (0.5 * powr(precise::max(dot(fast::normalize(uniforms.camera_position - in.in_var_POSITION), reflect(-_57, in.in_var_NORMAL)), 0.0), 64.0)))) * uniforms.color);
+        _50++;
+        continue;
+    }
+    float4 _81 = _47;
+    _81.w = 1.0;
+    out.gl_Position = uniforms.mvp * float4(in.in_var_POSITION, 1.0);
+    out.out_var_COLOR = _81;
+    return out;
+}
+
