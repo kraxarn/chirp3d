@@ -5,9 +5,14 @@
 
 #include <SDL3/SDL_gpu.h>
 
-static void compute_normals(const vertex_t *vertices, const size_t num_vertices,
-	const mesh_index_t *indices, const size_t num_indicies, vector3f_t *normals)
+static void compute_normals(vertex_t *vertices, const size_t num_vertices,
+	const mesh_index_t *indices, const size_t num_indicies)
 {
+	for (size_t i = 0; i < num_vertices; i++)
+	{
+		vertices[i].normal = vector3f_zero();
+	}
+
 	for (size_t i = 0; i < num_indicies; i += 3)
 	{
 		const mesh_index_t mi0 = indices[i];
@@ -22,14 +27,14 @@ static void compute_normals(const vertex_t *vertices, const size_t num_vertices,
 		const vector3f_t me2 = vector3f_sub(mv2.position, mv0.position);
 		const vector3f_t normal = vector3f_normalize(vector3f_cross(me1, me2));
 
-		normals[mi0] = vector3f_add(normals[mi0], normal);
-		normals[mi1] = vector3f_add(normals[mi1], normal);
-		normals[mi2] = vector3f_add(normals[mi2], normal);
+		vertices[mi0].normal = vector3f_add(vertices[mi0].normal, normal);
+		vertices[mi1].normal = vector3f_add(vertices[mi1].normal, normal);
+		vertices[mi2].normal = vector3f_add(vertices[mi2].normal, normal);
 	}
 
 	for (size_t i = 0; i < num_vertices; i++)
 	{
-		normals[i] = vector3f_normalize(normals[i]);
+		vertices[i].normal = vector3f_normalize(vertices[i].normal);
 	}
 }
 
@@ -47,7 +52,7 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t position, const vect
 		.z = position.z + (size.z / 2.F),
 	};
 
-	const vertex_t vertices[] = {
+	vertex_t vertices[] = {
 		(vertex_t){
 			.position = (vector3f_t){.x = min.x, .y = min.y, .z = max.z},
 			.color = (SDL_FColor){.r = 1.F, .g = 0.F, .b = 0.F, .a = 1.F},
@@ -97,12 +102,9 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t position, const vect
 		0, 5, 1,
 	};
 
-	vector3f_t normals[SDL_arraysize(vertices)];
-	SDL_zeroa(normals);
 	compute_normals(
 		vertices, SDL_arraysize(vertices),
-		indices, SDL_arraysize(indices),
-		normals
+		indices, SDL_arraysize(indices)
 	);
 
 	const mesh_info_t mesh_info = {
@@ -110,8 +112,6 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t position, const vect
 		.vertices = vertices,
 		.num_indices = SDL_arraysize(indices),
 		.indices = indices,
-		.num_normals = SDL_arraysize(normals),
-		.normals = normals,
 	};
 
 	return mesh_create(device, mesh_info);
