@@ -80,6 +80,9 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 			},
 		},
 		.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+		.rasterizer_state = (SDL_GPURasterizerState){
+			.cull_mode = SDL_GPU_CULLMODE_BACK,
+		},
 		.vertex_shader = vertex_shader,
 		.fragment_shader = fragment_shader,
 	};
