@@ -5,6 +5,7 @@
 #include "matrix.h"
 #include "model.h"
 #include "shader.h"
+#include "uniformdata.h"
 
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -175,9 +176,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	state->last_update = current_update;
 
 	state->current_rotation = SDL_fmodf(state->current_rotation + (rotation_speed * (float) elapsed), 360.F);
-	const matrix4x4_t local_transform = matrix4x4_create_rotation_y(deg2rad(state->current_rotation));
+	const matrix4x4_t mesh_proj = matrix4x4_create_rotation_y(deg2rad(state->current_rotation));
 
-	const SDL_FColor clear_color = {0.1F, 0.1F, 0.1F, 1.F};
+	const SDL_FColor clear_color = {.r = 0.F, .g = 0.F, .b = 0.F, .a = 1.F};
 
 	SDL_GPUCommandBuffer *command_buffer = nullptr;
 	SDL_GPURenderPass *render_pass = nullptr;
@@ -197,10 +198,14 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			state->camera.up
 		);
 		const matrix4x4_t view_proj = matrix4x4_multiply(view, proj);
-		const matrix4x4_t mesh_mat = matrix4x4_multiply(local_transform, view_proj);
+
+		const vertex_uniform_data_t vertex_data = {
+			.mvp = matrix4x4_multiply(mesh_proj, view_proj),
+			.color = (SDL_FColor){.r = 0.6F, .g = 0.6F, .b = 0.6F, .a = 1.F}
+		};
 
 		SDL_BindGPUGraphicsPipeline(render_pass, state->pipeline);
-		SDL_PushGPUVertexUniformData(command_buffer, 0, &mesh_mat, sizeof(matrix4x4_t));
+		SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
 		mesh_draw(state->mesh, render_pass);
 	}
 	if (!draw_end())

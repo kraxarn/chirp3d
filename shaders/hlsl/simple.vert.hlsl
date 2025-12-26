@@ -1,6 +1,7 @@
 cbuffer uniforms : register(b0, space1)
 {
-	float4x4 mvp : packoffset(c0);
+	float4x4 mvp;
+	float4   color;
 };
 
 struct vs_input
@@ -20,7 +21,7 @@ vs_output main(vs_input input)
 	vs_output output;
 
 	output.position = mul(mvp, float4(input.position, 1.0));
-	output.color = input.color;
+	output.color = color;
 
 	return output;
 }

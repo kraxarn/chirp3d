@@ -6,6 +6,7 @@ using namespace metal;
 struct type_uniforms
 {
     float4x4 mvp;
+    float4 color;
 };
 
 struct main0_out
@@ -17,14 +18,13 @@ struct main0_out
 struct main0_in
 {
     float3 in_var_POSITION [[attribute(0)]];
-    float4 in_var_COLOR [[attribute(1)]];
 };
 
 vertex main0_out main0(main0_in in [[stage_in]], constant type_uniforms& uniforms [[buffer(0)]])
 {
     main0_out out = {};
     out.gl_Position = uniforms.mvp * float4(in.in_var_POSITION, 1.0);
-    out.out_var_COLOR = in.in_var_COLOR;
+    out.out_var_COLOR = uniforms.color;
     return out;
 }
 
