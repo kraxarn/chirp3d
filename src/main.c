@@ -167,7 +167,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 	const point_light_t lights[] = {
 		(point_light_t){
-			.position = (vector3f_t){.x = 0.F, .y = 20.F, .z = 0.F},
+			.position = (vector4f_t){.x = 0.F, .y = 20.F, .z = 0.F},
 			.color = (SDL_FColor){.r = 0.8F, .g = 0.8F, .b = 1.F, .a = 1.F},
 			.ambient = (SDL_FColor){
 				.r = 0.8F * ambient_light,
@@ -177,7 +177,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 			},
 		},
 		(point_light_t){
-			.position = (vector3f_t){.x = 0.F, .y = -20.F, .z = 0.F},
+			.position = (vector4f_t){.x = 0.F, .y = -20.F, .z = 0.F},
 			.color = (SDL_FColor){.r = 0.2F, .g = 0.2F, .b = 1.F, .a = 1.F},
 			.ambient = (SDL_FColor){
 				.r = 0.2F * ambient_light,

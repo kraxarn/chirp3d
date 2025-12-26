@@ -13,6 +13,14 @@ typedef struct vector3f_t
 	float z;
 } vector3f_t;
 
+typedef struct vector4f_t
+{
+	float x;
+	float y;
+	float z;
+	float w;
+} vector4f_t;
+
 [[nodiscard]]
 vector3f_t vector3f_zero();
 

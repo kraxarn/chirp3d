@@ -6,7 +6,7 @@
 
 typedef struct point_light_t
 {
-	vector3f_t position;
+	vector4f_t position;
 	SDL_FColor color;
 	SDL_FColor ambient;
 } point_light_t;
