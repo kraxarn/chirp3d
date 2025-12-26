@@ -1,13 +1,10 @@
 #!/bin/bash
 
-# GLSL -> SPIR-V
-glslang -V -o "spv/simple.frag.spv" "glsl/simple.frag.glsl"
-glslang -V -o "spv/simple.vert.spv" "glsl/simple.vert.glsl"
+name="simple"
+formats=("spv" "msl" "dxil")
 
-# SPIR-V -> MSL
-shadercross "spv/simple.frag.spv" -o "msl/simple.frag.msl"
-shadercross "spv/simple.vert.spv" -o "msl/simple.vert.msl"
-
-# SPIR-V -> DXIL
-shadercross "spv/simple.frag.spv" -o "dxil/simple.frag.dxil"
-shadercross "spv/simple.vert.spv" -o "dxil/simple.vert.dxil"
+for format in "${formats[@]}"
+do
+	shadercross "hlsl/$name.frag.hlsl" -o "$format/$name.frag.$format"
+    shadercross "hlsl/$name.vert.hlsl" -o "$format/$name.vert.$format"
+done
