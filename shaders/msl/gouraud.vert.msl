@@ -5,7 +5,7 @@ using namespace metal;
 
 struct point_light
 {
-    float3 position;
+    float4 position;
     float4 color;
     float4 ambient;
 };
@@ -14,7 +14,7 @@ struct type_uniforms
 {
     float4x4 mvp;
     float4 color;
-    float3 camera_position;
+    float4 camera_position;
     point_light lights[2];
 };
 
@@ -33,19 +33,19 @@ struct main0_in
 vertex main0_out main0(main0_in in [[stage_in]], constant type_uniforms& uniforms [[buffer(0)]])
 {
     main0_out out = {};
-    float4 _47;
-    _47 = float4(0.0);
-    for (int _50 = 0; _50 < 2; )
+    float4 _46;
+    _46 = float4(0.0);
+    for (int _49 = 0; _49 < 2; )
     {
-        float3 _57 = fast::normalize(uniforms.lights[_50].position - in.in_var_POSITION);
-        _47 += (((uniforms.lights[_50].ambient + (uniforms.lights[_50].color * precise::max(dot(in.in_var_NORMAL, _57), 0.0))) + (uniforms.lights[_50].color * (0.5 * powr(precise::max(dot(fast::normalize(uniforms.camera_position - in.in_var_POSITION), reflect(-_57, in.in_var_NORMAL)), 0.0), 64.0)))) * uniforms.color);
-        _50++;
+        float3 _60 = fast::normalize(float3(uniforms.lights[_49].position.xyz) - in.in_var_POSITION);
+        _46 += (((uniforms.lights[_49].ambient + (uniforms.lights[_49].color * precise::max(dot(in.in_var_NORMAL, _60), 0.0))) + (uniforms.lights[_49].color * (0.5 * powr(precise::max(dot(fast::normalize(float3(uniforms.camera_position.xyz) - in.in_var_POSITION), reflect(-_60, in.in_var_NORMAL)), 0.0), 64.0)))) * uniforms.color);
+        _49++;
         continue;
     }
-    float4 _81 = _47;
-    _81.w = 1.0;
+    float4 _88 = _46;
+    _88.w = 1.0;
     out.gl_Position = uniforms.mvp * float4(in.in_var_POSITION, 1.0);
-    out.out_var_COLOR = _81;
+    out.out_var_COLOR = _88;
     return out;
 }
 

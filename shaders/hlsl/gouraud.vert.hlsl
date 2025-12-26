@@ -1,6 +1,6 @@
 struct point_light
 {
-	float3 position : POSITION;
+	float4 position : POSITION;
 	float4 color    : COLOR;
 	float4 ambient  : COLOR;
 };
@@ -9,7 +9,7 @@ cbuffer uniforms : register(b0, space1)
 {
 	float4x4    mvp;
 	float4      color;
-	float3      camera_position;
+	float4      camera_position;
 	point_light lights[2];
 };
 
@@ -35,11 +35,11 @@ vs_output main(vs_input input)
 	float4 result = float4(0, 0, 0, 0);
 	for (int i = 0; i < 2; i++)
 	{
-		float3 light_dir = normalize(lights[i].position - input.position);
+		float3 light_dir = normalize((float3) lights[i].position - input.position);
 		float diff = max(dot(input.normal, light_dir), 0.F);
 		float4 diffuse = diff * lights[i].color;
 
-		float3 view_dir = normalize(camera_position - input.position);
+		float3 view_dir = normalize((float3) camera_position - input.position);
 		float3 reflect_dir = reflect(-light_dir, input.normal);
 		float spec = pow(max(dot(view_dir, reflect_dir), 0.F), 64.F);
 		float4 specular = 0.5F * spec * lights[i].color;
