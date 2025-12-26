@@ -13,6 +13,12 @@ SDL_GPUDevice *create_device(SDL_Window *window);
 SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *window,
 	SDL_GPUShader *vertex_shader, SDL_GPUShader *fragment_shader);
 
+[[nodiscard]]
+char *gpu_driver_names();
+
+[[nodiscard]]
+char *shader_format_names(SDL_GPUDevice *device);
+
 bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, SDL_FColor clear_color,
 	SDL_GPUCommandBuffer **command_buffer, SDL_GPURenderPass **render_pass, vector2f_t *size);
 

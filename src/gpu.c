@@ -95,6 +95,76 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 	return SDL_CreateGPUGraphicsPipeline(device, &create_info);
 }
 
+char *gpu_driver_names()
+{
+	// "vulkan, metal, direct3d12"
+	constexpr size_t gpu_drivers_len = 25;
+
+	char *gpu_drivers = SDL_malloc(sizeof(char) * (gpu_drivers_len + 1));
+	if (gpu_drivers == nullptr)
+	{
+		return nullptr;
+	}
+
+	for (auto i = 0; i < SDL_GetNumGPUDrivers(); i++)
+	{
+		SDL_strlcat(gpu_drivers, SDL_GetGPUDriver(i), gpu_drivers_len);
+		if (i < SDL_GetNumGPUDrivers() - 1)
+		{
+			SDL_strlcat(gpu_drivers, ", ", gpu_drivers_len);
+		}
+	}
+
+	gpu_drivers[SDL_strlen(gpu_drivers)] = '\0';
+	return gpu_drivers;
+}
+
+char *shader_format_names(SDL_GPUDevice *device)
+{
+	// "Invalid, Private, SPIR-V, DXBC, DXIL, MSL, metallib"
+	constexpr size_t shader_formats_len = 51;
+
+	char *shader_formats = SDL_malloc(sizeof(char) * (shader_formats_len + 1));
+	if (shader_formats == nullptr)
+	{
+		return nullptr;
+	}
+
+	const SDL_GPUShaderFormat shader_format = SDL_GetGPUShaderFormats(device);
+
+	if (shader_format == SDL_GPU_SHADERFORMAT_INVALID)
+	{
+		SDL_strlcat(shader_formats, "invalid, ", shader_formats_len);
+	}
+	if ((shader_format & SDL_GPU_SHADERFORMAT_PRIVATE) > 0)
+	{
+		SDL_strlcat(shader_formats, "private, ", shader_formats_len);
+	}
+	if ((shader_format & SDL_GPU_SHADERFORMAT_SPIRV) > 0)
+	{
+		SDL_strlcat(shader_formats, "spir-v, ", shader_formats_len);
+	}
+	if ((shader_format & SDL_GPU_SHADERFORMAT_DXBC) > 0)
+	{
+		SDL_strlcat(shader_formats, "dxbc, ", shader_formats_len);
+	}
+	if ((shader_format & SDL_GPU_SHADERFORMAT_DXIL) > 0)
+	{
+		SDL_strlcat(shader_formats, "dxil, ", shader_formats_len);
+	}
+	if ((shader_format & SDL_GPU_SHADERFORMAT_MSL) > 0)
+	{
+		SDL_strlcat(shader_formats, "msl, ", shader_formats_len);
+	}
+	if ((shader_format & SDL_GPU_SHADERFORMAT_METALLIB) > 0)
+	{
+		SDL_strlcat(shader_formats, "metallib, ", shader_formats_len);
+	}
+
+	shader_formats[SDL_strlen(shader_formats) - 2] = '\0';
+	return shader_formats;
+}
+
 bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, const SDL_FColor clear_color,
 	SDL_GPUCommandBuffer **command_buffer, SDL_GPURenderPass **render_pass, vector2f_t *size)
 {

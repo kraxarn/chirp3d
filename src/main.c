@@ -26,66 +26,6 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 	return SDL_APP_FAILURE;
 }
 
-static void print_gpu_drivers()
-{
-	// "vulkan, metal, direct3d12"
-	constexpr size_t gpu_drivers_len = 25;
-
-	char gpu_drivers[gpu_drivers_len + 1];
-	for (auto i = 0; i < SDL_GetNumGPUDrivers(); i++)
-	{
-		SDL_strlcat(gpu_drivers, SDL_GetGPUDriver(i), gpu_drivers_len);
-		if (i < SDL_GetNumGPUDrivers() - 1)
-		{
-			SDL_strlcat(gpu_drivers, ", ", gpu_drivers_len);
-		}
-	}
-
-	SDL_LogDebug(LOG_CATEGORY_CORE, "Available GPU drivers: %s", gpu_drivers);
-}
-
-static void print_shader_formats(SDL_GPUDevice *device)
-{
-	// "Invalid, Private, SPIR-V, DXBC, DXIL, MSL, metallib"
-	constexpr size_t shader_formats_len = 51;
-
-	char shader_formats[shader_formats_len + 1];
-	const SDL_GPUShaderFormat shader_format = SDL_GetGPUShaderFormats(device);
-
-	if (shader_format == SDL_GPU_SHADERFORMAT_INVALID)
-	{
-		SDL_strlcat(shader_formats, "invalid, ", shader_formats_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_PRIVATE) > 0)
-	{
-		SDL_strlcat(shader_formats, "private, ", shader_formats_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_SPIRV) > 0)
-	{
-		SDL_strlcat(shader_formats, "spir-v, ", shader_formats_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_DXBC) > 0)
-	{
-		SDL_strlcat(shader_formats, "dxbc, ", shader_formats_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_DXIL) > 0)
-	{
-		SDL_strlcat(shader_formats, "dxil, ", shader_formats_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_MSL) > 0)
-	{
-		SDL_strlcat(shader_formats, "msl, ", shader_formats_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_METALLIB) > 0)
-	{
-		SDL_strlcat(shader_formats, "metallib, ", shader_formats_len);
-	}
-
-	shader_formats[SDL_strlen(shader_formats) - 2] = '\0';
-	SDL_LogDebug(LOG_CATEGORY_CORE, "Available shader formats for %s: %s",
-		SDL_GetGPUDeviceDriver(device), shader_formats);
-}
-
 SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	[[maybe_unused]] char **argv)
 {
@@ -139,8 +79,20 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 	if (SDL_GetLogPriority(LOG_CATEGORY_CORE) >= SDL_LOG_PRIORITY_VERBOSE)
 	{
-		print_gpu_drivers();
-		print_shader_formats(state->device);
+		char *gpu_drivers = gpu_driver_names();
+		if (gpu_drivers != nullptr)
+		{
+			SDL_LogDebug(LOG_CATEGORY_CORE, "Available GPU drivers: %s", gpu_drivers);
+			SDL_free(gpu_drivers);
+		}
+
+		char *shader_formats = shader_format_names(state->device);
+		if (shader_formats != nullptr)
+		{
+			SDL_LogDebug(LOG_CATEGORY_CORE, "Available shader formats for %s: %s",
+				SDL_GetGPUDeviceDriver(state->device), shader_formats);
+			SDL_free(shader_formats);
+		}
 	}
 
 	state->camera = (camera_t){
