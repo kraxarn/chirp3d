@@ -22,6 +22,26 @@ matrix4x4_t matrix4x4_multiply(const matrix4x4_t mat1, const matrix4x4_t mat2)
 	return result;
 }
 
+matrix4x4_t matrix4x4_create_rotation_x(const float radians)
+{
+	return (matrix4x4_t){
+		1, 0, 0, 0,
+		0, SDL_cosf(radians), SDL_sinf(radians), 0,
+		0, -SDL_sinf(radians), SDL_cosf(radians), 0,
+		0, 0, 0, 1,
+	};
+}
+
+matrix4x4_t matrix4x4_create_rotation_y(const float radians)
+{
+	return (matrix4x4_t){
+		SDL_cosf(radians), 0, -SDL_sinf(radians), 0,
+		0, 1, 0, 0,
+		SDL_sinf(radians), 0, SDL_cosf(radians), 0,
+		0, 0, 0, 1,
+	};
+}
+
 matrix4x4_t matrix4x4_create_rotation_z(const float radians)
 {
 	return (matrix4x4_t){

@@ -13,6 +13,12 @@ typedef struct matrix4x4_t
 matrix4x4_t matrix4x4_multiply(matrix4x4_t mat1, matrix4x4_t mat2);
 
 [[nodiscard]]
+matrix4x4_t matrix4x4_create_rotation_x(float radians);
+
+[[nodiscard]]
+matrix4x4_t matrix4x4_create_rotation_y(float radians);
+
+[[nodiscard]]
 matrix4x4_t matrix4x4_create_rotation_z(float radians);
 
 [[nodiscard]]
