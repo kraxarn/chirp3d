@@ -163,35 +163,6 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	const vector3f_t mesh_size = {.x = 10.F, .y = 10.F, .z = 10.F};
 	state->mesh = create_cube(state->device, vector3f_zero(), mesh_size);
 
-	constexpr auto ambient_light = 0.15F;
-
-	const point_light_t lights[] = {
-		(point_light_t){
-			.position = (vector4f_t){.x = 0.F, .y = 20.F, .z = 0.F},
-			.color = (SDL_FColor){.r = 0.8F, .g = 0.8F, .b = 1.F, .a = 1.F},
-			.ambient = (SDL_FColor){
-				.r = 0.8F * ambient_light,
-				.g = 0.8F * ambient_light,
-				.b = 1.F * ambient_light,
-				.a = 1.F,
-			},
-		},
-		(point_light_t){
-			.position = (vector4f_t){.x = 0.F, .y = -20.F, .z = 0.F},
-			.color = (SDL_FColor){.r = 0.2F, .g = 0.2F, .b = 1.F, .a = 1.F},
-			.ambient = (SDL_FColor){
-				.r = 0.2F * ambient_light,
-				.g = 0.2F * ambient_light,
-				.b = 1.F * ambient_light,
-				.a = 1.F,
-			},
-		},
-	};
-
-	state->num_lights = SDL_arraysize(lights);
-	state->lights = SDL_malloc(sizeof(point_light_t) * state->num_lights);
-	SDL_memcpy(state->lights, lights, sizeof(point_light_t) * state->num_lights);
-
 	return SDL_APP_CONTINUE;
 }
 
