@@ -1,5 +1,6 @@
 #include "appstate.h"
 #include "gpu.h"
+#include "image.h"
 #include "logcategory.h"
 #include "math.h"
 #include "matrix.h"
@@ -14,6 +15,7 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
+#include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
@@ -161,6 +163,23 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 	const vector3f_t mesh_size = {.x = 10.F, .y = 10.F, .z = 10.F};
 	state->mesh = create_cube(state->device, vector3f_zero(), mesh_size);
+
+	char *texture_path = nullptr;
+	SDL_asprintf(&texture_path, "%sresources/textures/wall.qoi", SDL_GetBasePath());
+	SDL_Surface *texture = load_qoi(texture_path);
+	if (texture == nullptr)
+	{
+		SDL_free(texture_path);
+		return fatal_error(state->window, "Failed to load texture");
+	}
+	SDL_free(texture_path);
+
+	if (!mesh_set_texture(state->mesh, texture))
+	{
+		SDL_DestroySurface(texture);
+		return fatal_error(state->window, "Failed to set mesh texture");
+	}
+	SDL_DestroySurface(texture);
 
 	return SDL_APP_CONTINUE;
 }
