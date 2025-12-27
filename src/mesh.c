@@ -9,6 +9,8 @@ typedef struct mesh_t
 	SDL_GPUDevice *device;
 	SDL_GPUBuffer *vertex_buffer;
 	SDL_GPUBuffer *index_buffer;
+	SDL_GPUTexture *texture;
+	SDL_GPUSampler *sampler;
 
 	size_t num_indices;
 } mesh_t;
@@ -19,6 +21,8 @@ mesh_t *mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
 
 	mesh->device = device;
 	mesh->num_indices = info.num_indices;
+	mesh->texture = nullptr;
+	mesh->sampler = nullptr;
 
 	const size_t vertex_size = sizeof(vertex_t) * info.num_vertices;
 	const size_t index_size = sizeof(mesh_index_t) * info.num_indices;
@@ -129,9 +133,108 @@ void mesh_destroy(mesh_t *mesh)
 		return;
 	}
 
+	if (mesh->texture != nullptr)
+	{
+		SDL_ReleaseGPUTexture(mesh->device, mesh->texture);
+		SDL_ReleaseGPUSampler(mesh->device, mesh->sampler);
+	}
+
 	SDL_ReleaseGPUBuffer(mesh->device, mesh->vertex_buffer);
 	SDL_ReleaseGPUBuffer(mesh->device, mesh->index_buffer);
 	SDL_free(mesh);
+}
+
+bool mesh_set_texture(mesh_t *mesh, const SDL_Surface *texture)
+{
+	if (mesh->texture != nullptr)
+	{
+		SDL_ReleaseGPUTexture(mesh->device, mesh->texture);
+		SDL_ReleaseGPUSampler(mesh->device, mesh->sampler);
+	}
+
+	const SDL_GPUSamplerCreateInfo sampler_info = {
+		.min_filter = SDL_GPU_FILTER_NEAREST,
+		.mag_filter = SDL_GPU_FILTER_NEAREST,
+		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
+		.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+	};
+
+	mesh->sampler = SDL_CreateGPUSampler(mesh->device, &sampler_info);
+	if (mesh->sampler == nullptr)
+	{
+		return false;
+	}
+
+	const SDL_GPUTextureCreateInfo texture_info = {
+		.type = SDL_GPU_TEXTURETYPE_2D,
+		.format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+		.width = texture->w,
+		.height = texture->h,
+		.layer_count_or_depth = 1,
+		.num_levels = 1,
+		.sample_count = SDL_GPU_SAMPLECOUNT_1,
+		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+	};
+
+	mesh->texture = SDL_CreateGPUTexture(mesh->device, &texture_info);
+	if (mesh->texture == nullptr)
+	{
+		return false;
+	}
+
+	const SDL_GPUTransferBufferCreateInfo buffer_info = {
+		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+		.size = texture->w * texture->h * 4,
+	};
+
+	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(mesh->device, &buffer_info);
+	if (transfer_buffer == nullptr)
+	{
+		return false;
+	}
+
+	void *transfer_data = SDL_MapGPUTransferBuffer(mesh->device, transfer_buffer, false);
+	if (transfer_data == nullptr)
+	{
+		SDL_ReleaseGPUTransferBuffer(mesh->device, transfer_buffer);
+		return false;
+	}
+
+	SDL_memcpy(transfer_data, texture->pixels, (size_t) (texture->w * texture->h * 4));
+	SDL_UnmapGPUTransferBuffer(mesh->device, transfer_buffer);
+
+	SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(mesh->device);
+	if (command_buffer == nullptr)
+	{
+		return false;
+	}
+
+	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
+
+	const SDL_GPUTextureTransferInfo source = {
+		.transfer_buffer = transfer_buffer,
+		.offset = 0,
+	};
+	const SDL_GPUTextureRegion destination = {
+		.texture = mesh->texture,
+		.w = texture->w,
+		.h = texture->h,
+		.d = 1,
+	};
+	SDL_UploadToGPUTexture(copy_pass, &source, &destination, false);
+
+	SDL_EndGPUCopyPass(copy_pass);
+	if (!SDL_SubmitGPUCommandBuffer(command_buffer))
+	{
+		SDL_ReleaseGPUTransferBuffer(mesh->device, transfer_buffer);
+		return false;
+	}
+
+	SDL_ReleaseGPUTransferBuffer(mesh->device, transfer_buffer);
+
+	return true;
 }
 
 void mesh_draw(const mesh_t *mesh, SDL_GPURenderPass *render_pass)
@@ -147,6 +250,15 @@ void mesh_draw(const mesh_t *mesh, SDL_GPURenderPass *render_pass)
 		.offset = 0,
 	};
 	SDL_BindGPUIndexBuffer(render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+
+	if (mesh->texture != nullptr)
+	{
+		const SDL_GPUTextureSamplerBinding binding = {
+			.texture = mesh->texture,
+			.sampler = mesh->sampler,
+		};
+		SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
+	}
 
 	SDL_DrawGPUIndexedPrimitives(render_pass, mesh->num_indices, 1, 0, 0, 0);
 }
