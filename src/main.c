@@ -188,7 +188,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 {
 	app_state_t *state = appstate;
 
-	constexpr float rotation_speed = 32.F / 1000.F;
+	constexpr float rotation_speed = 64.F / 1000.F;
 
 	const Uint64 current_update = SDL_GetTicks();
 	const Uint64 elapsed = current_update - state->last_update;
