@@ -38,20 +38,15 @@ static const char *entrypoint(const SDL_GPUShaderFormat shader_format)
 	return "main";
 }
 
-SDL_GPUShader *load_shader(SDL_GPUDevice *device, const char *filename, const SDL_GPUShaderStage stage,
+SDL_GPUShader *load_shader(SDL_GPUDevice *device, SDL_IOStream *source, const SDL_GPUShaderStage stage,
 	const int num_samplers, const int num_uniform_buffers)
 {
-	char *path = nullptr;
-	SDL_asprintf(&path, "%sresources/%s", SDL_GetBasePath(), filename);
-
 	size_t size = 0;
-	Uint8 *data = SDL_LoadFile(path, &size);
+	Uint8 *data = SDL_LoadFile_IO(source, &size, true);
 	if (data == nullptr)
 	{
-		SDL_free(path);
 		return nullptr;
 	}
-	SDL_free(path);
 
 	const SDL_GPUShaderFormat format = shader_format(device);
 	if (format == SDL_GPU_SHADERFORMAT_INVALID)
@@ -73,11 +68,6 @@ SDL_GPUShader *load_shader(SDL_GPUDevice *device, const char *filename, const SD
 	};
 
 	SDL_GPUShader *shader = SDL_CreateGPUShader(device, &create_info);
-	if (shader == nullptr)
-	{
-		SDL_free(data);
-		return nullptr;
-	}
 	SDL_free(data);
 
 	return shader;

@@ -1,6 +1,7 @@
 #include "image.h"
 
 #include <SDL3/SDL_error.h>
+#include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_surface.h>
 
 #define QOI_MALLOC(sz) SDL_malloc(sz)
@@ -13,10 +14,10 @@
 
 static constexpr auto channels = 4;
 
-SDL_Surface *load_qoi(const char *path)
+SDL_Surface *load_qoi(SDL_IOStream *source)
 {
 	size_t size = 0;
-	void *data = SDL_LoadFile(path, &size);
+	void *data = SDL_LoadFile_IO(source, &size, true);
 
 	qoi_desc desc;
 	void *pixels = qoi_decode(data, (int) size, &desc, channels);

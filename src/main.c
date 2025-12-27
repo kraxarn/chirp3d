@@ -5,6 +5,7 @@
 #include "math.h"
 #include "matrix.h"
 #include "model.h"
+#include "resources.h"
 #include "shader.h"
 #include "uniformdata.h"
 
@@ -15,7 +16,6 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
-#include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
@@ -111,24 +111,24 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		.far_plane = 100.F,
 	};
 
-	const char *vert_filename;
-	const char *frag_filename;
+	SDL_IOStream *vert_source;
+	SDL_IOStream *frag_source;
 
 	switch (shader_format(state->device))
 	{
 		case SDL_GPU_SHADERFORMAT_MSL:
-			vert_filename = "shaders/msl/default.vert.msl";
-			frag_filename = "shaders/msl/default.frag.msl";
+			vert_source = SDL_IOFromConstMem(shader_default_vert_msl, sizeof(shader_default_vert_msl));
+			frag_source = SDL_IOFromConstMem(shader_default_frag_msl, sizeof(shader_default_frag_msl));
 			break;
 
 		case SDL_GPU_SHADERFORMAT_SPIRV:
-			vert_filename = "shaders/spv/default.vert.spv";
-			frag_filename = "shaders/spv/default.frag.spv";
+			vert_source = SDL_IOFromConstMem(shader_default_vert_spv, sizeof(shader_default_vert_spv));
+			frag_source = SDL_IOFromConstMem(shader_default_frag_spv, sizeof(shader_default_frag_spv));
 			break;
 
 		case SDL_GPU_SHADERFORMAT_DXIL:
-			vert_filename = "shaders/dxil/default.vert.dxil";
-			frag_filename = "shaders/dxil/default.frag.dxil";
+			vert_source = SDL_IOFromConstMem(shader_default_vert_dxil, sizeof(shader_default_vert_dxil));
+			frag_source = SDL_IOFromConstMem(shader_default_frag_dxil, sizeof(shader_default_frag_dxil));
 			break;
 
 		default:
@@ -136,14 +136,14 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 			return fatal_error(state->window, "Failed to find valid shaders");
 	}
 
-	SDL_GPUShader *vert_shader = load_shader(state->device, vert_filename,
+	SDL_GPUShader *vert_shader = load_shader(state->device, vert_source,
 		SDL_GPU_SHADERSTAGE_VERTEX, 0, 1);
 	if (vert_shader == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load vertex shader");
 	}
 
-	SDL_GPUShader *frag_shader = load_shader(state->device, frag_filename,
+	SDL_GPUShader *frag_shader = load_shader(state->device, frag_source,
 		SDL_GPU_SHADERSTAGE_FRAGMENT, 1, 0);
 	if (frag_shader == nullptr)
 	{
@@ -164,15 +164,12 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	const vector3f_t mesh_size = {.x = 10.F, .y = 10.F, .z = 10.F};
 	state->mesh = create_cube(state->device, vector3f_zero(), mesh_size);
 
-	char *texture_path = nullptr;
-	SDL_asprintf(&texture_path, "%sresources/textures/wall.qoi", SDL_GetBasePath());
-	SDL_Surface *texture = load_qoi(texture_path);
+	SDL_IOStream *texture_stream = SDL_IOFromConstMem(texture_wall_qoi, sizeof(texture_wall_qoi));
+	SDL_Surface *texture = load_qoi(texture_stream);
 	if (texture == nullptr)
 	{
-		SDL_free(texture_path);
 		return fatal_error(state->window, "Failed to load texture");
 	}
-	SDL_free(texture_path);
 
 	if (!mesh_set_texture(state->mesh, texture))
 	{
