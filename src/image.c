@@ -11,23 +11,25 @@
 #define QOI_IMPLEMENTATION
 #include "qoi.h"
 
+static constexpr auto channels = 4;
+
 SDL_Surface *load_qoi(const char *path)
 {
 	size_t size = 0;
 	void *data = SDL_LoadFile(path, &size);
 
 	qoi_desc desc;
-	void *pixels = qoi_decode(data, size, &desc, 4);
+	void *pixels = qoi_decode(data, (int) size, &desc, channels);
+	SDL_free(data);
+
 	if (pixels == nullptr)
 	{
 		SDL_SetError("Failed to decode image data");
-		SDL_free(data);
 		return nullptr;
 	}
-	SDL_free(data);
 
 	SDL_Surface *surface = SDL_CreateSurfaceFrom((int) desc.width, (int) desc.height,
-		SDL_PIXELFORMAT_RGBA32, pixels, (int) (desc.width * desc.channels));
+		SDL_PIXELFORMAT_RGBA32, pixels, (int) desc.width * channels);
 
 	SDL_free(pixels);
 	return surface;
