@@ -4,7 +4,6 @@
 #include "math.h"
 #include "matrix.h"
 #include "model.h"
-#include "pointlight.h"
 #include "shader.h"
 #include "uniformdata.h"
 
@@ -249,7 +248,6 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	const app_state_t *state = appstate;
 
 	mesh_destroy(state->mesh);
-	SDL_free(state->lights);
 
 	SDL_ReleaseGPUGraphicsPipeline(state->device, state->pipeline);
 	SDL_ReleaseWindowFromGPUDevice(state->device, state->window);
