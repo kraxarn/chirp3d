@@ -21,5 +21,7 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 	ENGINE_VERSION="${PROJECT_VERSION}"
 )
 
+include(resources.cmake)
+
 include(deps/sdl3.cmake)
 include(deps/qoi.cmake)
