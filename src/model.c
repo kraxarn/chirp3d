@@ -55,53 +55,117 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t position, const vect
 	};
 
 	vertex_t vertices[] = {
+		// Front (+z)
 		(vertex_t){
-			.position = (vector3f_t){.x = min.x, .y = min.y, .z = max.z},
-			.color = (SDL_FColor){.r = 1.F, .g = 0.F, .b = 0.F, .a = 1.F},
+			.position = (vector3f_t){min.x, min.y, max.z},
+			.tex_coord = (vector2f_t){0.F, 1.F}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = max.x, .y = min.y, .z = max.z},
-			.color = (SDL_FColor){.r = 0.F, .g = 1.F, .b = 0.F, .a = 1.F},
+			.position = (vector3f_t){max.x, min.y, max.z},
+			.tex_coord = (vector2f_t){1.F, 1.F}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = max.x, .y = max.y, .z = max.z},
-			.color = (SDL_FColor){.r = 0.F, .g = 0.F, .b = 1.F, .a = 1.F},
+			.position = (vector3f_t){max.x, max.y, max.z},
+			.tex_coord = (vector2f_t){1.F, 0.F}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = min.x, .y = max.y, .z = max.z},
-			.color = (SDL_FColor){.r = 1.F, .g = 1.F, .b = 0.F, .a = 1.F},
+			.position = (vector3f_t){min.x, max.y, max.z},
+			.tex_coord = (vector2f_t){0.F, 0.F}
+		},
+		// Back (-z)
+		(vertex_t){
+			.position = (vector3f_t){max.x, min.y, min.z},
+			.tex_coord = (vector2f_t){0.F, 1.F}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = min.x, .y = min.y, .z = min.z},
-			.color = (SDL_FColor){.r = 0.F, .g = 1.F, .b = 1.F, .a = 1.F},
+			.position = (vector3f_t){min.x, min.y, min.z},
+			.tex_coord = (vector2f_t){1.F, 1.F}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = max.x, .y = min.y, .z = min.z},
-			.color = (SDL_FColor){.r = 1.F, .g = 0.F, .b = 1.F, .a = 1.F},
+			.position = (vector3f_t){min.x, max.y, min.z},
+			.tex_coord = (vector2f_t){1.F, 0.F}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = max.x, .y = max.y, .z = min.z},
-			.color = (SDL_FColor){.r = 1.F, .g = 1.F, .b = 1.F, .a = 1.F},
+			.position = (vector3f_t){max.x, max.y, min.z},
+			.tex_coord = (vector2f_t){0.F, 0.F}
+		},
+		// Right (+x)
+		(vertex_t){
+			.position = (vector3f_t){max.x, min.y, max.z},
+			.tex_coord = (vector2f_t){0.F, 1.F}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = min.x, .y = max.y, .z = min.z},
-			.color = (SDL_FColor){.r = 0.F, .g = 0.F, .b = 0.F, .a = 1.F},
+			.position = (vector3f_t){max.x, min.y, min.z},
+			.tex_coord = (vector2f_t){1.F, 1.F}
+		},
+		(vertex_t){
+			.position = (vector3f_t){max.x, max.y, min.z},
+			.tex_coord = (vector2f_t){1.F, 0.F}
+		},
+		(vertex_t){
+			.position = (vector3f_t){max.x, max.y, max.z},
+			.tex_coord = (vector2f_t){0.F, 0.F}
+		},
+		// Left (-x)
+		(vertex_t){
+			.position = (vector3f_t){min.x, min.y, min.z},
+			.tex_coord = (vector2f_t){0.F, 1.F}
+		},
+		(vertex_t){
+			.position = (vector3f_t){min.x, min.y, max.z},
+			.tex_coord = (vector2f_t){1.F, 1.F}
+		},
+		(vertex_t){
+			.position = (vector3f_t){min.x, max.y, max.z},
+			.tex_coord = (vector2f_t){1.F, 0.F}
+		},
+		(vertex_t){
+			.position = (vector3f_t){min.x, max.y, min.z},
+			.tex_coord = (vector2f_t){0.F, 0.F}
+		},
+		// Top (+y)
+		(vertex_t){
+			.position = (vector3f_t){min.x, max.y, max.z},
+			.tex_coord = (vector2f_t){0.F, 1.F}
+		},
+		(vertex_t){
+			.position = (vector3f_t){max.x, max.y, max.z},
+			.tex_coord = (vector2f_t){1.F, 1.F}
+		},
+		(vertex_t){
+			.position = (vector3f_t){max.x, max.y, min.z},
+			.tex_coord = (vector2f_t){1.F, 0.F}
+		},
+		(vertex_t){
+			.position = (vector3f_t){min.x, max.y, min.z},
+			.tex_coord = (vector2f_t){0.F, 0.F}
+		},
+		// Bottom (-y)
+		(vertex_t){
+			.position = (vector3f_t){min.x, min.y, min.z},
+			.tex_coord = (vector2f_t){0.F, 1.F}
+		},
+		(vertex_t){
+			.position = (vector3f_t){max.x, min.y, min.z},
+			.tex_coord = (vector2f_t){1.F, 1.F}
+		},
+		(vertex_t){
+			.position = (vector3f_t){max.x, min.y, max.z},
+			.tex_coord = (vector2f_t){1.F, 0.F}
+		},
+		(vertex_t){
+			.position = (vector3f_t){min.x, min.y, max.z},
+			.tex_coord = (vector2f_t){0.F, 0.F}
 		},
 	};
 
 	const mesh_index_t indices[] = {
-		0, 1, 2,
-		0, 2, 3,
-		1, 5, 6,
-		1, 6, 2,
-		4, 6, 5,
-		4, 7, 6,
-		4, 0, 3,
-		4, 3, 7,
-		3, 2, 6,
-		3, 6, 7,
-		0, 4, 5,
-		0, 5, 1,
+		0, 1, 2, 0, 2, 3,       // Front
+		4, 5, 6, 4, 6, 7,       // Back
+		8, 9, 10, 8, 10, 11,    // Right
+		12, 13, 14, 12, 14, 15, // Left
+		16, 17, 18, 16, 18, 19, // Top
+		20, 21, 22, 20, 22, 23, // Bottom
 	};
 
 	const mesh_info_t mesh_info = {
