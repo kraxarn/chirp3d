@@ -2,10 +2,10 @@ include(FetchContent)
 
 FetchContent_Declare(sdl
 	GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-	GIT_TAG release-3.2.28
+	GIT_TAG prerelease-3.3.6
 )
 
-find_package(SDL3 QUIET)
+find_package(SDL3 3.4 QUIET)
 
 if (SDL3_FOUND)
 	message(STATUS "Using system sdl3")
