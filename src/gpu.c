@@ -53,6 +53,8 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 					.format = SDL_GetGPUSwapchainTextureFormat(device, window),
 				}
 			},
+			.has_depth_stencil_target = true,
+			.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
 		},
 		.vertex_input_state = (SDL_GPUVertexInputState){
 			.num_vertex_buffers = 1,
@@ -81,7 +83,13 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 		},
 		.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
 		.rasterizer_state = (SDL_GPURasterizerState){
-			.cull_mode = SDL_GPU_CULLMODE_BACK,
+			.fill_mode = SDL_GPU_FILLMODE_FILL,
+			.cull_mode = SDL_GPU_CULLMODE_NONE,
+		},
+		.depth_stencil_state = (SDL_GPUDepthStencilState){
+			.enable_depth_test = true,
+			.enable_depth_write = true,
+			.compare_op = SDL_GPU_COMPAREOP_LESS,
 		},
 		.vertex_shader = vertex_shader,
 		.fragment_shader = fragment_shader,
