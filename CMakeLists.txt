@@ -22,3 +22,4 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 )
 
 include(deps/sdl3.cmake)
+include(deps/qoi.cmake)
