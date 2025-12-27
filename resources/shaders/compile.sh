@@ -1,6 +1,6 @@
 #!/bin/bash
 
-names=("simple" "gouraud")
+names=("simple")
 formats=("spv" "msl" "dxil")
 
 for name in "${names[@]}"
