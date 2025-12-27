@@ -1,9 +1,12 @@
+Texture2D<float4> Texture : register(t0, space2);
+SamplerState Sampler : register(s0, space2);
+
 struct fs_input
 {
-	float4 color : COLOR;
+	float2 tex_coord : TEXCOORD0;
 };
 
-float4 main(fs_input input) : SV_TARGET
+float4 main(fs_input input) : SV_Target0
 {
-	return input.color;
+	return Texture.Sample(Sampler, input.tex_coord);
 }
