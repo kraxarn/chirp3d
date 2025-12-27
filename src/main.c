@@ -136,14 +136,14 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	}
 
 	SDL_GPUShader *vert_shader = load_shader(state->device, vert_filename,
-		SDL_GPU_SHADERSTAGE_VERTEX, 1);
+		SDL_GPU_SHADERSTAGE_VERTEX, 0, 1);
 	if (vert_shader == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load vertex shader");
 	}
 
 	SDL_GPUShader *frag_shader = load_shader(state->device, frag_filename,
-		SDL_GPU_SHADERSTAGE_FRAGMENT, 0);
+		SDL_GPU_SHADERSTAGE_FRAGMENT, 1, 0);
 	if (frag_shader == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load fragment shader");

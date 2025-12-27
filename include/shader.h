@@ -6,5 +6,5 @@
 SDL_GPUShaderFormat shader_format(SDL_GPUDevice *device);
 
 [[nodiscard]]
-SDL_GPUShader *load_shader(SDL_GPUDevice *device, const char *filename,
-	SDL_GPUShaderStage stage, int num_uniform_buffers);
+SDL_GPUShader *load_shader(SDL_GPUDevice *device, const char *filename, SDL_GPUShaderStage stage,
+	int num_samplers, int num_uniform_buffers);

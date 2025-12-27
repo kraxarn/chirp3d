@@ -38,8 +38,8 @@ static const char *entrypoint(const SDL_GPUShaderFormat shader_format)
 	return "main";
 }
 
-SDL_GPUShader *load_shader(SDL_GPUDevice *device, const char *filename,
-	const SDL_GPUShaderStage stage, const int num_uniform_buffers)
+SDL_GPUShader *load_shader(SDL_GPUDevice *device, const char *filename, const SDL_GPUShaderStage stage,
+	const int num_samplers, const int num_uniform_buffers)
 {
 	char *path = nullptr;
 	SDL_asprintf(&path, "%sresources/%s", SDL_GetBasePath(), filename);
@@ -66,7 +66,7 @@ SDL_GPUShader *load_shader(SDL_GPUDevice *device, const char *filename,
 		.entrypoint = entrypoint(format),
 		.format = format,
 		.stage = stage,
-		.num_samplers = 0,
+		.num_samplers = num_samplers,
 		.num_storage_buffers = 0,
 		.num_storage_textures = 0,
 		.num_uniform_buffers = num_uniform_buffers,
