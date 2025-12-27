@@ -197,7 +197,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	state->current_rotation = SDL_fmodf(state->current_rotation + (rotation_speed * (float) elapsed), 360.F);
 	const matrix4x4_t mesh_proj = matrix4x4_create_rotation_y(deg2rad(state->current_rotation));
 
-	const SDL_FColor clear_color = {.r = 0.F, .g = 0.F, .b = 0.F, .a = 1.F};
+	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 
 	SDL_GPUCommandBuffer *command_buffer = nullptr;
 	SDL_GPURenderPass *render_pass = nullptr;
