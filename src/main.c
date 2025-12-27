@@ -221,16 +221,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		);
 		const matrix4x4_t view_proj = matrix4x4_multiply(view, proj);
 
-		vertex_uniform_data_t vertex_data = {
+		const vertex_uniform_data_t vertex_data = {
 			.mvp = matrix4x4_multiply(mesh_proj, view_proj),
-			.color = (SDL_FColor){.r = 0.6F, .g = 0.6F, .b = 0.6F, .a = 1.F},
-			.camera_position = (vector4f_t){
-				.x = state->camera.position.x,
-				.y = state->camera.position.y,
-				.z = state->camera.position.z,
-			},
 		};
-		SDL_memcpy(vertex_data.lights, state->lights, sizeof(point_light_t) * state->num_lights);
 
 		SDL_BindGPUGraphicsPipeline(render_pass, state->pipeline);
 		SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
