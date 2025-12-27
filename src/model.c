@@ -5,6 +5,7 @@
 
 #include <SDL3/SDL_gpu.h>
 
+#if 0
 static void compute_normals(vertex_t *vertices, const size_t num_vertices,
 	const mesh_index_t *indices, const size_t num_indicies)
 {
@@ -37,6 +38,7 @@ static void compute_normals(vertex_t *vertices, const size_t num_vertices,
 		vertices[i].normal = vector3f_normalize(vertices[i].normal);
 	}
 }
+#endif
 
 mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t position, const vector3f_t size)
 {
@@ -101,11 +103,6 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t position, const vect
 		0, 4, 5,
 		0, 5, 1,
 	};
-
-	compute_normals(
-		vertices, SDL_arraysize(vertices),
-		indices, SDL_arraysize(indices)
-	);
 
 	const mesh_info_t mesh_info = {
 		.num_vertices = SDL_arraysize(vertices),
