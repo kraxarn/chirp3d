@@ -169,13 +169,12 @@ bool mesh_set_texture(mesh_t *mesh, const SDL_Surface *texture)
 
 	const SDL_GPUTextureCreateInfo texture_info = {
 		.type = SDL_GPU_TEXTURETYPE_2D,
-		.format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+		.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
 		.width = texture->w,
 		.height = texture->h,
 		.layer_count_or_depth = 1,
 		.num_levels = 1,
-		.sample_count = SDL_GPU_SAMPLECOUNT_1,
-		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
 	};
 
 	mesh->texture = SDL_CreateGPUTexture(mesh->device, &texture_info);
