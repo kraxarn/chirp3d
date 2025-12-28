@@ -4,6 +4,7 @@
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
+#include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
 
 static constexpr SDL_GPUShaderFormat shader_formats =
@@ -25,12 +26,22 @@ static SDL_GPUTexture *swapchain_texture = nullptr;
 static Uint32 swapchain_texture_width = 0;
 static Uint32 swapchain_texture_height = 0;
 
-SDL_GPUDevice *create_device(SDL_Window *window)
+SDL_GPUDevice *create_device(SDL_Window *window, SDL_Renderer **renderer)
 {
 	SDL_GPUDevice *device = SDL_CreateGPUDevice(shader_formats, debug_mode, nullptr);
 	if (device == nullptr)
 	{
 		return nullptr;
+	}
+
+	if (renderer != nullptr)
+	{
+		*renderer = SDL_CreateGPURenderer(device, window);
+		if (*renderer == nullptr)
+		{
+			SDL_DestroyGPUDevice(device);
+			return nullptr;
+		}
 	}
 
 	if (!SDL_ClaimWindowForGPUDevice(device, window))
