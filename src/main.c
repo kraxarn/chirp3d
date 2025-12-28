@@ -21,6 +21,8 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_timer.h>
 
+static constexpr auto mouse_sensitivity = 0.075F;
+
 static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
 {
 	SDL_LogCritical(LOG_CATEGORY_CORE, "%s: %s", message, SDL_GetError());
@@ -241,7 +243,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 		return SDL_APP_SUCCESS;
 	}
 
-	const app_state_t *state = appstate;
+	app_state_t *state = appstate;
 
 	if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == SDL_BUTTON_LEFT)
 	{
@@ -250,6 +252,12 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 	else if (event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_ESCAPE)
 	{
 		SDL_SetWindowRelativeMouseMode(state->window, false);
+	}
+
+	if (event->type == SDL_EVENT_MOUSE_MOTION && (int) SDL_GetWindowRelativeMouseMode(state->window))
+	{
+		state->camera.target.x -= event->motion.xrel * mouse_sensitivity;
+		state->camera.target.y -= event->motion.yrel * mouse_sensitivity;
 	}
 
 	return SDL_APP_CONTINUE;
