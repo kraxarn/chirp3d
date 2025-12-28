@@ -100,6 +100,7 @@ char *gpu_driver_names()
 	{
 		return nullptr;
 	}
+	gpu_drivers[0] = '\0';
 
 	for (auto i = 0; i < SDL_GetNumGPUDrivers(); i++)
 	{
@@ -124,6 +125,7 @@ char *shader_format_names(SDL_GPUDevice *device)
 	{
 		return nullptr;
 	}
+	shader_formats[0] = '\0';
 
 	const SDL_GPUShaderFormat shader_format = SDL_GetGPUShaderFormats(device);
 
