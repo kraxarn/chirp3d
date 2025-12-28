@@ -69,7 +69,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		return fatal_error(nullptr, "Window creation failed");
 	}
 
-	state->device = create_device(state->window, nullptr);
+	state->device = create_device(state->window, &state->renderer);
 	if (state->device == nullptr)
 	{
 		return fatal_error(state->window, "GPU context creation failed");
