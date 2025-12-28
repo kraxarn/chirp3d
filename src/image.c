@@ -32,6 +32,6 @@ SDL_Surface *load_qoi(SDL_IOStream *source)
 	SDL_Surface *surface = SDL_CreateSurfaceFrom((int) desc.width, (int) desc.height,
 		SDL_PIXELFORMAT_RGBA32, pixels, (int) desc.width * channels);
 
-	SDL_free(pixels);
+	surface->flags &= SDL_SURFACE_PREALLOCATED;
 	return surface;
 }
