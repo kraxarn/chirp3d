@@ -43,8 +43,7 @@ SDL_GPUDevice *create_device(SDL_Window *window, SDL_Renderer **renderer)
 			return nullptr;
 		}
 	}
-
-	if (!SDL_ClaimWindowForGPUDevice(device, window))
+	else if (!SDL_ClaimWindowForGPUDevice(device, window))
 	{
 		SDL_DestroyGPUDevice(device);
 		return nullptr;
