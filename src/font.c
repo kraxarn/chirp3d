@@ -129,10 +129,10 @@ static bool upload_mesh_data(font_t *font)
 	}
 
 	const vertex_t vertices[] = {
-		(vertex_t){-1, 1, 0, 0, 0},
-		(vertex_t){1, 1, 0, 1, 0},
-		(vertex_t){1, -1, 0, 1, 1},
-		(vertex_t){-1, -1, 0, 0, 1},
+		(vertex_t){-1, 1, 0, 0, 1},
+		(vertex_t){1, 1, 0, 1, 1},
+		(vertex_t){1, -1, 0, 1, 0},
+		(vertex_t){-1, -1, 0, 0, 0},
 	};
 
 	const mesh_index_t indices[] = {
