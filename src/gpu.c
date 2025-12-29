@@ -26,7 +26,7 @@ static SDL_GPUTexture *swapchain_texture = nullptr;
 static Uint32 swapchain_texture_width = 0;
 static Uint32 swapchain_texture_height = 0;
 
-SDL_GPUDevice *create_device(SDL_Window *window, SDL_Renderer **renderer)
+SDL_GPUDevice *create_device(SDL_Window *window)
 {
 	SDL_GPUDevice *device = SDL_CreateGPUDevice(shader_formats, debug_mode, nullptr);
 	if (device == nullptr)
@@ -34,16 +34,7 @@ SDL_GPUDevice *create_device(SDL_Window *window, SDL_Renderer **renderer)
 		return nullptr;
 	}
 
-	if (renderer != nullptr)
-	{
-		*renderer = SDL_CreateGPURenderer(device, window);
-		if (*renderer == nullptr)
-		{
-			SDL_DestroyGPUDevice(device);
-			return nullptr;
-		}
-	}
-	else if (!SDL_ClaimWindowForGPUDevice(device, window))
+	if (!SDL_ClaimWindowForGPUDevice(device, window))
 	{
 		SDL_DestroyGPUDevice(device);
 		return nullptr;

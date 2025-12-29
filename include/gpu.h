@@ -4,11 +4,10 @@
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_pixels.h>
-#include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
 
 [[nodiscard]]
-SDL_GPUDevice *create_device(SDL_Window *window, SDL_Renderer **renderer);
+SDL_GPUDevice *create_device(SDL_Window *window);
 
 [[nodiscard]]
 SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *window,

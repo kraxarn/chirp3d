@@ -12,7 +12,6 @@ typedef struct app_state_t
 	SDL_Window *window;
 	SDL_GPUDevice *device;
 	SDL_GPUGraphicsPipeline *pipeline;
-	SDL_Renderer *renderer;
 	mesh_t *mesh;
 	camera_t camera;
 	Uint64 last_update;
