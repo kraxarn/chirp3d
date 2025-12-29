@@ -62,6 +62,16 @@ matrix4x4_t matrix4x4_create_translation(const vector3f_t vec)
 	};
 }
 
+matrix4x4_t matrix4x4_create_scale(const vector3f_t vec)
+{
+	return (matrix4x4_t){
+		vec.x, 0, 0, 0,
+		0, vec.y, 0, 0,
+		0, 0, vec.z, 0,
+		0, 0, 0, 1,
+	};
+}
+
 matrix4x4_t matrix4x4_create_perspective(const float fov, const float aspect, const float near, const float far)
 {
 	const float num = 1.F / SDL_tanf(fov * 0.5F);

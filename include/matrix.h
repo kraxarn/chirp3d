@@ -25,6 +25,9 @@ matrix4x4_t matrix4x4_create_rotation_z(float radians);
 matrix4x4_t matrix4x4_create_translation(vector3f_t vec);
 
 [[nodiscard]]
+matrix4x4_t matrix4x4_create_scale(vector3f_t vec);
+
+[[nodiscard]]
 matrix4x4_t matrix4x4_create_perspective(float fov, float aspect, float near, float far);
 
 [[nodiscard]]
