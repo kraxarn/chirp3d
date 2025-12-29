@@ -409,12 +409,16 @@ static bool font_bake(font_t *font, const Uint8 *data)
 		SDL_DestroySurface(surfaces[i]);
 	}
 
-	if (!upload_mesh_data(font) || !upload_atlas(font, atlas))
+	SDL_Surface *gpu_atlas = SDL_ConvertSurface(atlas, SDL_PIXELFORMAT_ABGR8888);
+	SDL_DestroySurface(atlas);
+
+	if (gpu_atlas == nullptr || !upload_mesh_data(font) || !upload_atlas(font, gpu_atlas))
 	{
-		SDL_DestroySurface(atlas);
+		SDL_DestroySurface(gpu_atlas);
 		return false;
 	}
-	SDL_DestroySurface(atlas);
+
+	SDL_DestroySurface(gpu_atlas);
 
 	const Uint64 end = SDL_GetTicks();
 	SDL_LogDebug(LOG_CATEGORY_FONT, "Baked font in %lld ms", end - start);
