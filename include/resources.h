@@ -2,6 +2,11 @@
 
 #include <SDL3/SDL_stdinc.h>
 
+const Uint8 font_monogram_ttf[] =
+{
+#embed FONT_MONOGRAM_TTF_PATH
+};
+
 const Uint8 shader_default_vert_dxil[] =
 {
 #embed SHADER_DEFAULT_VERT_DXIL_PATH

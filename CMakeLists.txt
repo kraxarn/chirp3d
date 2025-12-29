@@ -25,3 +25,4 @@ include(resources.cmake)
 
 include(deps/sdl3.cmake)
 include(deps/qoi.cmake)
+include(deps/stb.cmake)
