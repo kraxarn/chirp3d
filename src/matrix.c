@@ -74,6 +74,17 @@ matrix4x4_t matrix4x4_create_perspective(const float fov, const float aspect, co
 	};
 }
 
+matrix4x4_t matrix4x4_create_orthographic(const float left, const float right,
+	const float bottom, const float top, const float near, const float far)
+{
+	return (matrix4x4_t){
+		2.F / (right - left), 0, 0, 0,
+		0, 2.F / (top - bottom), 0, 0,
+		0, 0, 1.F / (near - far), 0,
+		(left + right) / (left - right), (top + bottom) / (bottom - top), near / (near - far), 1,
+	};
+}
+
 matrix4x4_t matrix4x4_create_look_at(const vector3f_t camera_position,
 	const vector3f_t camera_target, const vector3f_t camera_up)
 {

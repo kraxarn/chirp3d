@@ -28,4 +28,7 @@ matrix4x4_t matrix4x4_create_translation(vector3f_t vec);
 matrix4x4_t matrix4x4_create_perspective(float fov, float aspect, float near, float far);
 
 [[nodiscard]]
+matrix4x4_t matrix4x4_create_orthographic(float left, float right, float bottom, float top, float near, float far);
+
+[[nodiscard]]
 matrix4x4_t matrix4x4_create_look_at(vector3f_t camera_position, vector3f_t camera_target, vector3f_t camera_up);
