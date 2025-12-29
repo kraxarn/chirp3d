@@ -52,6 +52,15 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 			.color_target_descriptions = (SDL_GPUColorTargetDescription[]){
 				(SDL_GPUColorTargetDescription){
 					.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+					.blend_state = (SDL_GPUColorTargetBlendState){
+						.enable_blend = true,
+						.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+						.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+						.color_blend_op = SDL_GPU_BLENDOP_ADD,
+						.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+						.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+						.alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+					},
 				}
 			},
 		},
