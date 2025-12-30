@@ -1,6 +1,8 @@
 #include "font.h"
 #include "logcategory.h"
+#include "matrix.h"
 #include "meshinfo.h"
+#include "uniformdata.h"
 
 #include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_error.h>
@@ -62,6 +64,9 @@ typedef struct font_t
 	SDL_GPUSampler *sampler;
 } font_t;
 
+static constexpr size_t num_vertices = 4;
+static constexpr size_t num_indices = 6;
+
 static bool build_palette(SDL_Surface *surface, const SDL_Color color)
 {
 	constexpr auto color_count = 256; // INDEX8
@@ -86,9 +91,6 @@ static bool build_palette(SDL_Surface *surface, const SDL_Color color)
 
 static bool upload_mesh_data(font_t *font)
 {
-	constexpr size_t num_vertices = 4;
-	constexpr size_t num_indices = 6;
-
 	constexpr size_t vertex_size = sizeof(vertex_t) * num_vertices;
 	constexpr size_t index_size = sizeof(mesh_index_t) * num_indices;
 
@@ -453,12 +455,17 @@ font_t *font_create(SDL_GPUDevice *device, SDL_IOStream *source, const SDL_Color
 	return font;
 }
 
-void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass,
-	const vector2f_t position, const float text_size, const char *text)
+void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffer *command_buffer,
+	const vector2f_t swapchain_size, const vector2f_t position, const float text_size, const char *text)
 {
 	auto offset_x = 0.F;
 	auto offset_y = 0.F;
 	const float scale = text_size / (float) font_size;
+
+	const matrix4x4_t view = matrix4x4_create_orthographic(
+		0.F, swapchain_size.x, swapchain_size.y, 0.F,
+		0.F, -1.F
+	);
 
 	const size_t text_length = SDL_strlen(text);
 	for (size_t i = 0; i < text_length; i++)
@@ -509,7 +516,15 @@ void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass,
 		};
 		SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 
-		SDL_DrawGPUIndexedPrimitives(render_pass, 6, 1, 0, 0, 0);
+		const matrix4x4_t m_scale = matrix4x4_create_scale((vector3f_t){.x = 128.0F, .y = 128.F, .z = 1.F});
+		const matrix4x4_t m_pos = matrix4x4_create_translation((vector3f_t){.x = 128.F, .y = 128.F, .z = 0.F});
+
+		const vertex_uniform_data_t vertex_data = {
+			.mvp = matrix4x4_multiply(matrix4x4_multiply(m_scale, m_pos), view),
+		};
+		SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
+
+		SDL_DrawGPUIndexedPrimitives(render_pass, num_indices, 1, 0, 0, 0);
 
 		const int width = glyph->advance_x == 0 ? rect->w : glyph->advance_x;
 		offset_x += (float) width * scale;
