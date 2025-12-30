@@ -37,4 +37,4 @@ jobs:
           name: chirp3d-linux-x64
           path: |
             ${{runner.workspace}}/chirp3d/build/chirp3d
-            ${{runner.workspace}}/chirp3d/build/_deps/sdl-build/libSDL3.so
+            ${{runner.workspace}}/chirp3d/build/_deps
