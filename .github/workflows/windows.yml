@@ -1,0 +1,36 @@
+name: Windows
+
+# VS 2022 (2026?) doesn't support C23
+# (but the included version of gcc does)
+
+on: [ push, pull_request ]
+
+env:
+  BUILD_TYPE: Release
+  CMAKE_GENERATOR: "MinGW Makefiles"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: true
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}\build
+
+      - name: Configure CMake
+        run: cmake -B build -G "${{env.CMAKE_GENERATOR}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: Build
+        run: cmake --build build --config ${{env.BUILD_TYPE}}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chirp3d-windows-x64
+          path: |
+            ${{runner.workspace}}\chirp3d\build\chirp3d.exe
+            ${{runner.workspace}}\chirp3d\build\_deps\sdl-build\SDL3.dll
