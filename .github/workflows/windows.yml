@@ -23,9 +23,6 @@ jobs:
           platform: 'x64'
           cc: '1'
 
-      - name: Install dependencies
-        run: choco install -y ninja
-
       - name: Create Build Environment
         run: cmake -E make_directory ${{runner.workspace}}\build
 
