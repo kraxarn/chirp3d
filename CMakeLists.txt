@@ -27,6 +27,16 @@ include(deps/sdl3.cmake)
 include(deps/qoi.cmake)
 include(deps/stb.cmake)
 
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	# macOS
+	MACOSX_BUNDLE TRUE
+	MACOSX_BUNDLE_GUI_IDENTIFIER "com.kraxarn.${PROJECT_NAME}"
+	MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+	MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+	# Windows
+	WIN32_EXECUTABLE TRUE
+)
+
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
 	include(CheckIPOSupported)
 	check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error)
