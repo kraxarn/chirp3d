@@ -1,4 +1,5 @@
 #include "appstate.h"
+#include "font.h"
 #include "gpu.h"
 #include "image.h"
 #include "logcategory.h"
@@ -102,6 +103,19 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 				SDL_GetGPUDeviceDriver(state->device), shader_formats);
 			SDL_free(shader_formats);
 		}
+	}
+
+	SDL_IOStream *font_source = SDL_IOFromConstMem(font_monogram_ttf, sizeof(font_monogram_ttf));
+	if (font_source == nullptr)
+	{
+		return fatal_error(nullptr, "Failed to load font data");
+	}
+
+	const SDL_Color font_color = {.r = 0xf5, .g = 0xf5, .b = 0xf5, .a = SDL_ALPHA_OPAQUE};
+	state->font = font_create(state->device, font_source, font_color);
+	if (state->font == nullptr)
+	{
+		return fatal_error(nullptr, "Failed to load font");
 	}
 
 	state->camera = (camera_t){
@@ -268,6 +282,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	const app_state_t *state = appstate;
 
 	mesh_destroy(state->mesh);
+	font_destroy(state->font);
 
 	SDL_ReleaseGPUGraphicsPipeline(state->device, state->pipeline);
 	SDL_ReleaseWindowFromGPUDevice(state->device, state->window);
