@@ -60,6 +60,7 @@ typedef struct font_t
 	SDL_GPUDevice *device;
 	SDL_GPUBuffer *vertex_buffer;
 	SDL_GPUBuffer *index_buffer;
+	SDL_GPUBuffer *glyph_buffer;
 	SDL_GPUTexture *texture;
 	SDL_GPUSampler *sampler;
 } font_t;
@@ -183,7 +184,7 @@ static bool upload_mesh_data(font_t *font)
 	return SDL_SubmitGPUCommandBuffer(command_buffer);
 }
 
-static bool upload_atlas(font_t *font, SDL_Surface *atlas)
+static bool upload_atlas(font_t *font, const SDL_Surface *atlas)
 {
 	const SDL_GPUSamplerCreateInfo sampler_info = {
 		.min_filter = SDL_GPU_FILTER_NEAREST,
@@ -267,6 +268,83 @@ static bool upload_atlas(font_t *font, SDL_Surface *atlas)
 	SDL_ReleaseGPUTransferBuffer(font->device, transfer_buffer);
 
 	return true;
+}
+
+static bool upload_atlas_data(font_t *font, const vector2f_t atlas_size)
+{
+	vector2f_t coordinates[num_vertices * ascii_size];
+
+	for (auto i = 0; i < ascii_size; i++)
+	{
+		const glyph_info_t *glyph = font->glyphs + i;
+		const SDL_Rect *rect = &glyph->rect;
+
+		const float x0 = ((float) rect->x - (float) glyph_padding) / atlas_size.x;
+		const float y0 = ((float) rect->y - (float) glyph_padding) / atlas_size.y;
+		const float x1 = x0 + (((float) rect->w + ((float) glyph_padding * 2.F)) / atlas_size.x);
+		const float y1 = y0 + (((float) rect->h + ((float) glyph_padding * 2.F)) / atlas_size.y);
+
+		const size_t idx = i * num_vertices;
+		coordinates[idx + 0] = (vector2f_t){.x = x0, .y = y1};
+		coordinates[idx + 1] = (vector2f_t){.x = x1, .y = y1};
+		coordinates[idx + 2] = (vector2f_t){.x = x1, .y = y0};
+		coordinates[idx + 3] = (vector2f_t){.x = x0, .y = y0};
+	}
+
+	const SDL_GPUBufferCreateInfo buffer_info = {
+		.usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+		.size = sizeof(coordinates),
+	};
+	font->glyph_buffer = SDL_CreateGPUBuffer(font->device, &buffer_info);
+	if (font->glyph_buffer == nullptr)
+	{
+		return false;
+	}
+
+	const SDL_GPUTransferBufferCreateInfo transfer_info = {
+		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+		.size = sizeof(coordinates),
+	};
+	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(font->device, &transfer_info);
+	if (transfer_buffer == nullptr)
+	{
+		return false;
+	}
+
+	void *transfer_data = SDL_MapGPUTransferBuffer(font->device, transfer_buffer, false);
+	if (transfer_data == nullptr)
+	{
+		SDL_ReleaseGPUTransferBuffer(font->device, transfer_buffer);
+		return false;
+	}
+
+	SDL_memcpy(transfer_data, coordinates, sizeof(coordinates));
+
+	SDL_UnmapGPUTransferBuffer(font->device, transfer_buffer);
+
+	SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(font->device);
+	if (command_buffer == nullptr)
+	{
+		return false;
+	}
+
+	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
+
+	const SDL_GPUTransferBufferLocation source = {
+		.transfer_buffer = transfer_buffer,
+		.offset = 0,
+	};
+	const SDL_GPUBufferRegion destination = {
+		.buffer = font->glyph_buffer,
+		.offset = 0,
+		.size = sizeof(coordinates),
+	};
+	SDL_UploadToGPUBuffer(copy_pass, &source, &destination, false);
+
+	SDL_EndGPUCopyPass(copy_pass);
+	SDL_ReleaseGPUTransferBuffer(font->device, transfer_buffer);
+
+	return SDL_SubmitGPUCommandBuffer(command_buffer);
 }
 
 static bool font_bake(font_t *font, const Uint8 *data)
@@ -414,7 +492,17 @@ static bool font_bake(font_t *font, const Uint8 *data)
 	SDL_Surface *gpu_atlas = SDL_ConvertSurface(atlas, SDL_PIXELFORMAT_ABGR8888);
 	SDL_DestroySurface(atlas);
 
-	if (gpu_atlas == nullptr || !upload_mesh_data(font) || !upload_atlas(font, gpu_atlas))
+	if (gpu_atlas == nullptr)
+	{
+		return false;
+	}
+
+	const vector2f_t atlas_size = {
+		.x = (float) gpu_atlas->w,
+		.y = (float) gpu_atlas->h,
+	};
+
+	if (!upload_mesh_data(font) || !upload_atlas(font, gpu_atlas) || !upload_atlas_data(font, atlas_size))
 	{
 		SDL_DestroySurface(gpu_atlas);
 		return false;
@@ -542,6 +630,7 @@ void font_destroy(font_t *font)
 	SDL_ReleaseGPUSampler(font->device, font->sampler);
 	SDL_ReleaseGPUBuffer(font->device, font->vertex_buffer);
 	SDL_ReleaseGPUBuffer(font->device, font->index_buffer);
+	SDL_ReleaseGPUBuffer(font->device, font->glyph_buffer);
 
 	SDL_free(font);
 }
