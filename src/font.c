@@ -421,7 +421,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 	SDL_DestroySurface(gpu_atlas);
 
 	const Uint64 end = SDL_GetTicks();
-	SDL_LogDebug(LOG_CATEGORY_FONT, "Baked font in %lld ms", end - start);
+	SDL_LogDebug(LOG_CATEGORY_FONT, "Baked font in %llu ms", end - start);
 
 	return true;
 }
