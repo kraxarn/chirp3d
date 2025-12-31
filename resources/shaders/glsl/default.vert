@@ -14,7 +14,7 @@ void main() {
 	gl_Position = mvp * vec4(in_position, 1.0);
 
 	// TODO: This is probably not a good check
-	if (tex_uv[0].x > 0 && tex_uv[0].y > 0) {
+	if (tex_uv[1].x > 0 && tex_uv[1].y > 0) {
 		out_tex_coord = tex_uv[gl_VertexIndex];
 	} else {
 		out_tex_coord = in_tex_coord;
