@@ -222,10 +222,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	constexpr float rotation_speed = 64.F / 1000.F;
 
 	const Uint64 current_update = SDL_GetTicks();
-	const Uint64 elapsed = current_update - state->last_update;
+	state->dt = (float) (current_update - state->last_update);
 	state->last_update = current_update;
 
-	state->current_rotation = SDL_fmodf(state->current_rotation + (rotation_speed * (float) elapsed), 360.F);
+	state->current_rotation = SDL_fmodf(state->current_rotation + (rotation_speed * state->dt), 360.F);
 	const matrix4x4_t mesh_proj = matrix4x4_multiply(
 		matrix4x4_create_rotation_x(deg2rad(state->current_rotation)),
 		matrix4x4_create_rotation_y(deg2rad(state->current_rotation))
@@ -260,8 +260,16 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
 		mesh_draw(state->mesh, render_pass);
 
+		static constexpr size_t debug_text_len = 256;
+		static char debug_text[debug_text_len];
+		SDL_snprintf(debug_text, debug_text_len,
+			"- debug mode -\nFPS: %.0f\nRenderer: %s",
+			1000.F / state->dt,
+			SDL_GetGPUDeviceDriver(state->device)
+		);
+
 		font_draw_text(state->font, render_pass, command_buffer, size,
-			(vector2f_t){.x = 128.F, .y = 128.F}, 24, "bird");
+			(vector2f_t){.x = 16.F, .y = 16.F}, 32, debug_text);
 	}
 	if (!draw_end())
 	{
