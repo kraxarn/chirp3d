@@ -533,19 +533,6 @@ void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUC
 			continue;
 		}
 
-		SDL_FRect src = {
-			.x = (float) rect->x - (float) glyph_padding,
-			.y = (float) rect->y - (float) glyph_padding,
-			.w = ((float) rect->w + ((float) glyph_padding * 2.F)),
-			.h = ((float) rect->h + ((float) glyph_padding * 2.F)),
-		};
-		SDL_FRect dst = {
-			.x = position.x + offset_x + ((float) glyph->offset_x * scale),
-			.y = position.y + offset_y + ((float) glyph->offset_y * scale),
-			.w = ((float) rect->w + ((float) glyph_padding * 2.F)) * scale,
-			.h = ((float) rect->h + ((float) glyph_padding * 2.F)) * scale,
-		};
-
 		const SDL_GPUBufferBinding vertex_binding = {
 			.buffer = font->vertex_buffer,
 			.offset = 0,
