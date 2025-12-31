@@ -259,6 +259,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		SDL_BindGPUGraphicsPipeline(render_pass, state->pipeline);
 		SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
 		mesh_draw(state->mesh, render_pass);
+
+		font_draw_text(state->font, render_pass, command_buffer, size,
+			(vector2f_t){.x = 128.F, .y = 128.F}, 24, "bird");
 	}
 	if (!draw_end())
 	{

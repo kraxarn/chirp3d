@@ -6,6 +6,7 @@ using namespace metal;
 struct UniformData
 {
     float4x4 mvp;
+    float4 tex_uv[4];
 };
 
 struct main0_out
@@ -20,11 +21,28 @@ struct main0_in
     float2 in_tex_coord [[attribute(1)]];
 };
 
-vertex main0_out main0(main0_in in [[stage_in]], constant UniformData& _19 [[buffer(0)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant UniformData& _22 [[buffer(0)]], uint gl_VertexIndex [[vertex_id]])
 {
     main0_out out = {};
-    out.gl_Position = _19.mvp * float4(in.in_position, 1.0);
-    out.out_tex_coord = in.in_tex_coord;
+    out.gl_Position = _22.mvp * float4(in.in_position, 1.0);
+    bool _45 = _22.tex_uv[0].x > 0.0;
+    bool _51;
+    if (_45)
+    {
+        _51 = _22.tex_uv[0].y > 0.0;
+    }
+    else
+    {
+        _51 = _45;
+    }
+    if (_51)
+    {
+        out.out_tex_coord = _22.tex_uv[int(gl_VertexIndex)].xy;
+    }
+    else
+    {
+        out.out_tex_coord = in.in_tex_coord;
+    }
     return out;
 }
 
