@@ -1,10 +1,19 @@
 #pragma once
 
+constexpr auto std140 = 16;
+
 typedef struct vector2f_t
 {
 	float x;
 	float y;
 } vector2f_t;
+
+typedef struct vector2f_aligned_t
+{
+	alignas(std140)
+	float x;
+	float y;
+} vector2f_aligned_t;
 
 typedef struct vector3f_t
 {
