@@ -551,14 +551,16 @@ void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUC
 		};
 		SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 
+		const float font_size_scale = (float) rect->w / (float) rect->h;
+		const float font_height = (text_size - ((float) glyph_padding * 2.F)) / 2.F;
+
 		const matrix4x4_t m_scale = matrix4x4_create_scale((vector3f_t){
-			.x = text_size,
-			.y = text_size,
+			.x = font_height * font_size_scale,
+			.y = font_height,
 			.z = 1.F,
 		});
 		const matrix4x4_t m_pos = matrix4x4_create_translation((vector3f_t){
-			// .x = position.x + offset_x + ((float) glyph->offset_x * scale),
-			.x = position.x + (offset_x * 3.5F),
+			.x = position.x + offset_x + ((float) glyph->offset_x * scale),
 			.y = position.y + offset_y + ((float) glyph->offset_y * scale),
 			.z = 0.F,
 		});
