@@ -33,6 +33,37 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 	return SDL_APP_FAILURE;
 }
 
+static void log_gpu_info(SDL_GPUDevice *device)
+{
+	const SDL_PropertiesID props = SDL_GetGPUDeviceProperties(device);
+
+	const char *name = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_NAME_STRING, nullptr);
+	if (name != nullptr)
+	{
+		SDL_LogDebug(LOG_CATEGORY_CORE, "GPU name: %s", name);
+	}
+
+	const char *driver_name = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_DRIVER_NAME_STRING, nullptr);
+	if (driver_name != nullptr)
+	{
+		SDL_LogDebug(LOG_CATEGORY_CORE, "GPU driver: %s", driver_name);
+	}
+
+	const char *driver_info = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_DRIVER_INFO_STRING, nullptr);
+	if (driver_info != nullptr)
+	{
+		SDL_LogDebug(LOG_CATEGORY_CORE, "GPU driver version: %s", driver_info);
+	}
+	else
+	{
+		const char *driver_version = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_DRIVER_VERSION_STRING, nullptr);
+		if (driver_version != nullptr)
+		{
+			SDL_LogDebug(LOG_CATEGORY_CORE, "GPU driver version: %s", driver_version);
+		}
+	}
+}
+
 SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	[[maybe_unused]] char **argv)
 {
@@ -86,6 +117,8 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		SDL_SetWindowTitle(state->window, title);
 		SDL_free(title);
 	}
+
+	log_gpu_info(state->device);
 
 	if (SDL_GetLogPriority(LOG_CATEGORY_CORE) >= SDL_LOG_PRIORITY_VERBOSE)
 	{
