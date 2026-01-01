@@ -308,10 +308,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 #endif
 			"%s %s\n"
 			"FPS     : %u\n"
-			"Renderer: %s (%d)\n",
+			"Renderer: %s",
 			ENGINE_NAME, ENGINE_VERSION,
 			state->time.fps,
-			SDL_GetGPUDeviceDriver(state->device), SDL_GetNumGPUDrivers()
+			SDL_GetGPUDeviceDriver(state->device)
 		);
 
 		font_draw_text(state->font, render_pass, command_buffer, size,
