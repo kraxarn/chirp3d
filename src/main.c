@@ -310,9 +310,13 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 #endif
 			"%s %s\n"
 			"FPS     : %u\n"
+			"Video   : %s\n"
+			"Audio   : %s\n"
 			"Renderer: %s",
 			ENGINE_NAME, ENGINE_VERSION,
 			state->time.fps,
+			SDL_GetCurrentVideoDriver(),
+			SDL_GetCurrentAudioDriver(),
 			gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device))
 		);
 
