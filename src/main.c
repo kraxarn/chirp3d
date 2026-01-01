@@ -296,9 +296,15 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		static constexpr size_t debug_text_len = 256;
 		static char debug_text[debug_text_len];
 		SDL_snprintf(debug_text, debug_text_len,
-			"- debug mode -\nFPS: %.0f\nRenderer: %s",
+#ifndef NDEBUG
+			"- debug mode -\n"
+#endif
+			"%s %s\n"
+			"FPS     : %.0f\n"
+			"Renderer: %s (%d)\n",
+			ENGINE_NAME, ENGINE_VERSION,
 			1000.F / state->dt,
-			SDL_GetGPUDeviceDriver(state->device)
+			SDL_GetGPUDeviceDriver(state->device), SDL_GetNumGPUDrivers()
 		);
 
 		font_draw_text(state->font, render_pass, command_buffer, size,
