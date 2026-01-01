@@ -492,7 +492,7 @@ void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUC
 			constexpr auto line_spacing = 2.F;
 
 			offset_x = 0.F;
-			offset_y += font_size + line_spacing;
+			offset_y += text_size + line_spacing;
 			continue;
 		}
 
