@@ -11,6 +11,7 @@
 #include "resources.h"
 #include "shader.h"
 #include "uniformdata.h"
+#include "videodriver.h"
 
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -316,7 +317,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			"Renderer: %s",
 			ENGINE_NAME, ENGINE_VERSION,
 			state->time.fps,
-			SDL_GetCurrentVideoDriver(),
+			video_driver_display_name(SDL_GetCurrentVideoDriver()),
 			audio_driver_display_name(SDL_GetCurrentAudioDriver()),
 			gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device))
 		);

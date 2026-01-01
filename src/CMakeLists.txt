@@ -11,4 +11,5 @@ target_sources(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/model.c
 	${CMAKE_CURRENT_SOURCE_DIR}/shader.c
 	${CMAKE_CURRENT_SOURCE_DIR}/vector.c
+	${CMAKE_CURRENT_SOURCE_DIR}/videodriver.c
 )
