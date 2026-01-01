@@ -52,7 +52,7 @@ typedef struct glyph_info_t
 
 typedef struct font_t
 {
-	float size;
+	Uint16 size;
 	SDL_Color color;
 	glyph_info_t glyphs[ascii_size];
 	vector2f_aligned_t uv_coordinates[num_vertices * ascii_size];
@@ -127,21 +127,23 @@ static bool upload_mesh_data(font_t *font)
 		return false;
 	}
 
+	const auto font_size = (float) font->size;
+
 	const vertex_t vertices[] = {
 		(vertex_t){
-			.position = (vector3f_t){.x = -font->size, .y = font->size, .z = 0},
+			.position = (vector3f_t){.x = -font_size, .y = font_size, .z = 0},
 			.tex_coord = (vector2f_t){.x = 0, .y = 1}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = font->size, .y = font->size, .z = 0},
+			.position = (vector3f_t){.x = font_size, .y = font_size, .z = 0},
 			.tex_coord = (vector2f_t){.x = 1, .y = 1}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = font->size, .y = -font->size, .z = 0},
+			.position = (vector3f_t){.x = font_size, .y = -font_size, .z = 0},
 			.tex_coord = (vector2f_t){1, 0}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = -font->size, .y = -font->size, .z = 0},
+			.position = (vector3f_t){.x = -font_size, .y = -font_size, .z = 0},
 			.tex_coord = (vector2f_t){0, 0}
 		},
 	};
@@ -440,7 +442,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 	return true;
 }
 
-font_t *font_create(SDL_GPUDevice *device, SDL_IOStream *source, const float font_size, const SDL_Color color)
+font_t *font_create(SDL_GPUDevice *device, SDL_IOStream *source, const Uint16 font_size, const SDL_Color color)
 {
 	font_t *font = SDL_malloc(sizeof(font_t));
 	if (font == nullptr)
@@ -492,7 +494,7 @@ void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUC
 			constexpr auto line_spacing = 2.F;
 
 			offset_x = 0.F;
-			offset_y += font->size + line_spacing;
+			offset_y += (float) font->size + line_spacing;
 			continue;
 		}
 
@@ -520,8 +522,8 @@ void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUC
 			.z = 1.F,
 		});
 		const matrix4x4_t m_pos = matrix4x4_create_translation((vector3f_t){
-			.x = position.x + (font->size / 2.F) + offset_x + (float) glyph->offset.x,
-			.y = position.y + (font->size / 2.F) + offset_y + (float) glyph->offset.y,
+			.x = position.x + ((float) font->size / 2.F) + offset_x + (float) glyph->offset.x,
+			.y = position.y + ((float) font->size / 2.F) + offset_y + (float) glyph->offset.y,
 			.z = 0.F,
 		});
 
