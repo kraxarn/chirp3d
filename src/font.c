@@ -451,7 +451,7 @@ static float display_scale(SDL_Window *window)
 		return scale;
 	}
 
-	SDL_LogWarn(LOG_CATEGORY_FONT, "Failed to get display scale: %s");
+	SDL_LogWarn(LOG_CATEGORY_FONT, "Failed to get display scale: %s", SDL_GetError());
 	return 1.F;
 }
 
