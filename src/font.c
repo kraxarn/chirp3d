@@ -37,8 +37,7 @@
 static constexpr auto ascii_begin = 32;
 static constexpr auto ascii_size = 95;
 
-static constexpr auto font_size = 32;
-
+static constexpr auto atlas_font_size = 32;
 static constexpr auto atlas_width = 512;
 static constexpr auto atlas_height = 256;
 
@@ -130,19 +129,19 @@ static bool upload_mesh_data(font_t *font)
 
 	const vertex_t vertices[] = {
 		(vertex_t){
-			.position = (vector3f_t){.x = -font_size, .y = font_size, .z = 0},
+			.position = (vector3f_t){.x = -atlas_font_size, .y = atlas_font_size, .z = 0},
 			.tex_coord = (vector2f_t){.x = 0, .y = 1}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = font_size, .y = font_size, .z = 0},
+			.position = (vector3f_t){.x = atlas_font_size, .y = atlas_font_size, .z = 0},
 			.tex_coord = (vector2f_t){.x = 1, .y = 1}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = font_size, .y = -font_size, .z = 0},
+			.position = (vector3f_t){.x = atlas_font_size, .y = -atlas_font_size, .z = 0},
 			.tex_coord = (vector2f_t){1, 0}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = -font_size, .y = -font_size, .z = 0},
+			.position = (vector3f_t){.x = -atlas_font_size, .y = -atlas_font_size, .z = 0},
 			.tex_coord = (vector2f_t){0, 0}
 		},
 	};
@@ -283,16 +282,16 @@ static void build_atlas_data(vector2f_aligned_t *coordinates)
 {
 	for (auto i = 0; i < ascii_size; i++)
 	{
-		constexpr int atlas_tile_size = atlas_width / font_size;
+		constexpr int atlas_tile_size = atlas_width / atlas_font_size;
 
 		const vector2f_t top_left = {
-			.x = ((float) (i % atlas_tile_size) * font_size) / (float) atlas_width,
-			.y = ((float) (i / atlas_tile_size) * font_size) / (float) atlas_height,
+			.x = ((float) (i % atlas_tile_size) * atlas_font_size) / (float) atlas_width,
+			.y = ((float) (i / atlas_tile_size) * atlas_font_size) / (float) atlas_height,
 		};
 
 		const vector2f_t bottom_right = {
-			.x = top_left.x + ((float) font_size / (float) atlas_width),
-			.y = top_left.y + ((float) font_size / (float) atlas_height),
+			.x = top_left.x + ((float) atlas_font_size / (float) atlas_width),
+			.y = top_left.y + ((float) atlas_font_size / (float) atlas_height),
 		};
 
 		const size_t idx = i * num_vertices;
@@ -325,7 +324,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 		return false;
 	}
 
-	const float scale = stbtt_ScaleForPixelHeight(&font_info, (float) font_size);
+	const float scale = stbtt_ScaleForPixelHeight(&font_info, (float) atlas_font_size);
 
 	int ascent;
 	int descent;
@@ -359,7 +358,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 		{
 			glyph->size = (vector2i_t){
 				.x = glyph->advance_x,
-				.y = font_size,
+				.y = atlas_font_size,
 			};
 		}
 		else
@@ -378,7 +377,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 			};
 		}
 
-		if (glyph->size.x > font_size || glyph->size.y > font_size)
+		if (glyph->size.x > atlas_font_size || glyph->size.y > atlas_font_size)
 		{
 			SDL_DestroySurface(atlas);
 			return SDL_SetError("Glyph %d too large: %dx%d", codepoint, glyph->size.x, glyph->size.y);
@@ -397,12 +396,12 @@ static bool font_bake(font_t *font, const Uint8 *data)
 			glyph->size.x, scale, scale, codepoint
 		);
 
-		constexpr int atlas_tile_size = atlas_width / font_size;
+		constexpr int atlas_tile_size = atlas_width / atlas_font_size;
 
 		vector2i_t src;
 		const vector2i_t dst = {
-			.x = (i % atlas_tile_size) * font_size,
-			.y = ((i / atlas_tile_size) * font_size),
+			.x = (i % atlas_tile_size) * atlas_font_size,
+			.y = ((i / atlas_tile_size) * atlas_font_size),
 		};
 
 		for (src.y = 0; src.y < surface->h; src.y++)
@@ -472,7 +471,7 @@ void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUC
 {
 	auto offset_x = 0.F;
 	auto offset_y = 0.F;
-	const float scale = text_size / (float) font_size;
+	const float scale = text_size / (float) atlas_font_size;
 
 	const matrix4x4_t view = matrix4x4_create_orthographic(
 		0.F, swapchain_size.x, swapchain_size.y, 0.F,
