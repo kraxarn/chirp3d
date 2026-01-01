@@ -442,6 +442,18 @@ static bool font_bake(font_t *font, const Uint8 *data)
 	return true;
 }
 
+static float display_scale(SDL_Window *window)
+{
+	const float scale = SDL_GetWindowDisplayScale(window);
+	if (scale > 0.F)
+	{
+		return scale;
+	}
+
+	SDL_LogWarn(LOG_CATEGORY_FONT, "Failed to get display scale: %s");
+	return 1.F;
+}
+
 font_t *font_create(SDL_Window *window, SDL_GPUDevice *device,
 	SDL_IOStream *source, const Uint16 font_size, const SDL_Color color)
 {
@@ -452,7 +464,7 @@ font_t *font_create(SDL_Window *window, SDL_GPUDevice *device,
 	}
 
 	// TODO: We don't necessarily always have the same scale
-	font->size = (Uint16) ((float) font_size * SDL_GetWindowDisplayScale(window));
+	font->size = (Uint16) ((float) font_size * display_scale(window));
 
 	font->device = device;
 	font->color = color;
