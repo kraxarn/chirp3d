@@ -26,6 +26,7 @@
 #include <SDL3/SDL_timer.h>
 
 static constexpr auto mouse_sensitivity = 0.075F;
+static constexpr auto move_speed = 1.5F;
 
 static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
 {
@@ -355,6 +356,45 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 	{
 		state->camera.target.x -= event->motion.xrel * mouse_sensitivity;
 		state->camera.target.y -= event->motion.yrel * mouse_sensitivity;
+	}
+
+	if (event->type == SDL_EVENT_KEY_DOWN && (int) SDL_GetWindowRelativeMouseMode(state->window))
+	{
+		switch (event->key.key)
+		{
+			case SDLK_W:
+				state->camera.position.z += move_speed;
+				state->camera.target.z += move_speed;
+				break;
+
+			case SDLK_S:
+				state->camera.position.z -= move_speed;
+				state->camera.target.z -= move_speed;
+				break;
+
+			case SDLK_A:
+				state->camera.position.x += move_speed;
+				state->camera.target.x += move_speed;
+				break;
+
+			case SDLK_D:
+				state->camera.position.x -= move_speed;
+				state->camera.target.x -= move_speed;
+				break;
+
+			case SDLK_Q:
+				state->camera.position.y += move_speed;
+				state->camera.target.y += move_speed;
+				break;
+
+			case SDLK_E:
+				state->camera.position.y -= move_speed;
+				state->camera.target.y -= move_speed;
+				break;
+
+			default:
+				break;
+		}
 	}
 
 	return SDL_APP_CONTINUE;
