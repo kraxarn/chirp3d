@@ -37,8 +37,9 @@
 static constexpr auto ascii_begin = 32;
 static constexpr auto ascii_size = 95;
 
-static constexpr auto atlas_width = 512;
-static constexpr auto atlas_height = 256;
+// TODO: These should be dynamic
+static constexpr auto atlas_width = 1024;
+static constexpr auto atlas_height = 1024;
 
 static constexpr size_t num_vertices = 4;
 static constexpr size_t num_indices = 6;
