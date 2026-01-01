@@ -1,4 +1,5 @@
 #include "appstate.h"
+#include "audiodriver.h"
 #include "font.h"
 #include "gpu.h"
 #include "gpudevicedriver.h"
@@ -316,7 +317,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			ENGINE_NAME, ENGINE_VERSION,
 			state->time.fps,
 			SDL_GetCurrentVideoDriver(),
-			SDL_GetCurrentAudioDriver(),
+			audio_driver_display_name(SDL_GetCurrentAudioDriver()),
 			gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device))
 		);
 

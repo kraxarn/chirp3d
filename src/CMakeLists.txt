@@ -1,4 +1,5 @@
 target_sources(${PROJECT_NAME} PRIVATE
+	${CMAKE_CURRENT_SOURCE_DIR}/audiodriver.c
 	${CMAKE_CURRENT_SOURCE_DIR}/font.c
 	${CMAKE_CURRENT_SOURCE_DIR}/gpu.c
 	${CMAKE_CURRENT_SOURCE_DIR}/gpudevicedriver.c
