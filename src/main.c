@@ -1,6 +1,7 @@
 #include "appstate.h"
 #include "font.h"
 #include "gpu.h"
+#include "gpudevicedriver.h"
 #include "image.h"
 #include "logcategory.h"
 #include "math.h"
@@ -311,7 +312,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			"Renderer: %s",
 			ENGINE_NAME, ENGINE_VERSION,
 			state->time.fps,
-			SDL_GetGPUDeviceDriver(state->device)
+			gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device))
 		);
 
 		font_draw_text(state->font, render_pass, command_buffer, size,
