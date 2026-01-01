@@ -442,7 +442,8 @@ static bool font_bake(font_t *font, const Uint8 *data)
 	return true;
 }
 
-font_t *font_create(SDL_GPUDevice *device, SDL_IOStream *source, const Uint16 font_size, const SDL_Color color)
+font_t *font_create(SDL_Window *window, SDL_GPUDevice *device,
+	SDL_IOStream *source, const Uint16 font_size, const SDL_Color color)
 {
 	font_t *font = SDL_malloc(sizeof(font_t));
 	if (font == nullptr)
@@ -450,8 +451,10 @@ font_t *font_create(SDL_GPUDevice *device, SDL_IOStream *source, const Uint16 fo
 		return nullptr;
 	}
 
+	// TODO: We don't necessarily always have the same scale
+	font->size = (Uint16) ((float) font_size * SDL_GetWindowDisplayScale(window));
+
 	font->device = device;
-	font->size = font_size;
 	font->color = color;
 
 	const Uint8 *font_data = SDL_LoadFile_IO(source, nullptr, true);

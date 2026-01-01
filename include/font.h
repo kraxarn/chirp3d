@@ -10,7 +10,8 @@
 typedef struct font_t font_t;
 
 [[nodiscard]]
-font_t *font_create(SDL_GPUDevice *device, SDL_IOStream *source, Uint16 font_size, SDL_Color color);
+font_t *font_create(SDL_Window *window, SDL_GPUDevice *device,
+	SDL_IOStream *source, Uint16 font_size, SDL_Color color);
 
 void font_destroy(font_t *font);
 
