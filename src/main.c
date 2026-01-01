@@ -257,6 +257,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		matrix4x4_create_rotation_y(deg2rad(state->current_rotation))
 	);
 
+	if (state->time.fps == 0)
+	{
+		state->time.fps = 1'000.F / (float) state->dt;
+	}
+
 	state->time.count++;
 	state->time.duration += state->dt;
 	if (state->time.duration >= 1'000)
