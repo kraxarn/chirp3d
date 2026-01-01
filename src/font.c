@@ -37,7 +37,6 @@
 static constexpr auto ascii_begin = 32;
 static constexpr auto ascii_size = 95;
 
-static constexpr auto atlas_font_size = 32;
 static constexpr auto atlas_width = 512;
 static constexpr auto atlas_height = 256;
 
@@ -53,6 +52,7 @@ typedef struct glyph_info_t
 
 typedef struct font_t
 {
+	float size;
 	SDL_Color color;
 	glyph_info_t glyphs[ascii_size];
 	vector2f_aligned_t uv_coordinates[num_vertices * ascii_size];
@@ -129,19 +129,19 @@ static bool upload_mesh_data(font_t *font)
 
 	const vertex_t vertices[] = {
 		(vertex_t){
-			.position = (vector3f_t){.x = -atlas_font_size, .y = atlas_font_size, .z = 0},
+			.position = (vector3f_t){.x = -font->size, .y = font->size, .z = 0},
 			.tex_coord = (vector2f_t){.x = 0, .y = 1}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = atlas_font_size, .y = atlas_font_size, .z = 0},
+			.position = (vector3f_t){.x = font->size, .y = font->size, .z = 0},
 			.tex_coord = (vector2f_t){.x = 1, .y = 1}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = atlas_font_size, .y = -atlas_font_size, .z = 0},
+			.position = (vector3f_t){.x = font->size, .y = -font->size, .z = 0},
 			.tex_coord = (vector2f_t){1, 0}
 		},
 		(vertex_t){
-			.position = (vector3f_t){.x = -atlas_font_size, .y = -atlas_font_size, .z = 0},
+			.position = (vector3f_t){.x = -font->size, .y = -font->size, .z = 0},
 			.tex_coord = (vector2f_t){0, 0}
 		},
 	};
@@ -278,20 +278,21 @@ static bool upload_atlas(font_t *font, const SDL_Surface *atlas)
 	return true;
 }
 
-static void build_atlas_data(vector2f_aligned_t *coordinates)
+static void build_atlas_data(const float font_size, vector2f_aligned_t *coordinates)
 {
 	for (auto i = 0; i < ascii_size; i++)
 	{
-		constexpr int atlas_tile_size = atlas_width / atlas_font_size;
+		// TODO: Should probably always be power of 2
+		const int atlas_tile_size = atlas_width / (int) font_size;
 
 		const vector2f_t top_left = {
-			.x = ((float) (i % atlas_tile_size) * atlas_font_size) / (float) atlas_width,
-			.y = ((float) (i / atlas_tile_size) * atlas_font_size) / (float) atlas_height,
+			.x = ((float) (i % atlas_tile_size) * font_size) / (float) atlas_width,
+			.y = ((float) (i / atlas_tile_size) * font_size) / (float) atlas_height,
 		};
 
 		const vector2f_t bottom_right = {
-			.x = top_left.x + ((float) atlas_font_size / (float) atlas_width),
-			.y = top_left.y + ((float) atlas_font_size / (float) atlas_height),
+			.x = top_left.x + ((float) font_size / (float) atlas_width),
+			.y = top_left.y + ((float) font_size / (float) atlas_height),
 		};
 
 		const size_t idx = i * num_vertices;
@@ -324,7 +325,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 		return false;
 	}
 
-	const float scale = stbtt_ScaleForPixelHeight(&font_info, (float) atlas_font_size);
+	const float scale = stbtt_ScaleForPixelHeight(&font_info, font->size);
 
 	int ascent;
 	int descent;
@@ -358,7 +359,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 		{
 			glyph->size = (vector2i_t){
 				.x = glyph->advance_x,
-				.y = atlas_font_size,
+				.y = font->size,
 			};
 		}
 		else
@@ -377,7 +378,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 			};
 		}
 
-		if (glyph->size.x > atlas_font_size || glyph->size.y > atlas_font_size)
+		if (glyph->size.x > font->size || glyph->size.y > font->size)
 		{
 			SDL_DestroySurface(atlas);
 			return SDL_SetError("Glyph %d too large: %dx%d", codepoint, glyph->size.x, glyph->size.y);
@@ -396,12 +397,12 @@ static bool font_bake(font_t *font, const Uint8 *data)
 			glyph->size.x, scale, scale, codepoint
 		);
 
-		constexpr int atlas_tile_size = atlas_width / atlas_font_size;
+		const int atlas_tile_size = atlas_width / (int) font->size;
 
 		vector2i_t src;
 		const vector2i_t dst = {
-			.x = (i % atlas_tile_size) * atlas_font_size,
-			.y = ((i / atlas_tile_size) * atlas_font_size),
+			.x = (i % atlas_tile_size) * font->size,
+			.y = ((i / atlas_tile_size) * font->size),
 		};
 
 		for (src.y = 0; src.y < surface->h; src.y++)
@@ -431,7 +432,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 		return false;
 	}
 
-	build_atlas_data(font->uv_coordinates);
+	build_atlas_data(font->size, font->uv_coordinates);
 
 	const Uint64 end = SDL_GetTicks();
 	SDL_LogDebug(LOG_CATEGORY_FONT, "Baked font in %llu ms", end - start);
@@ -439,7 +440,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 	return true;
 }
 
-font_t *font_create(SDL_GPUDevice *device, SDL_IOStream *source, const SDL_Color color)
+font_t *font_create(SDL_GPUDevice *device, SDL_IOStream *source, const float font_size, const SDL_Color color)
 {
 	font_t *font = SDL_malloc(sizeof(font_t));
 	if (font == nullptr)
@@ -448,6 +449,7 @@ font_t *font_create(SDL_GPUDevice *device, SDL_IOStream *source, const SDL_Color
 	}
 
 	font->device = device;
+	font->size = font_size;
 	font->color = color;
 
 	const Uint8 *font_data = SDL_LoadFile_IO(source, nullptr, true);
@@ -467,11 +469,10 @@ font_t *font_create(SDL_GPUDevice *device, SDL_IOStream *source, const SDL_Color
 }
 
 void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffer *command_buffer,
-	const vector2f_t swapchain_size, const vector2f_t position, const float text_size, const char *text)
+	const vector2f_t swapchain_size, const vector2f_t position, const char *text)
 {
 	auto offset_x = 0.F;
 	auto offset_y = 0.F;
-	const float scale = text_size / (float) atlas_font_size;
 
 	const matrix4x4_t view = matrix4x4_create_orthographic(
 		0.F, swapchain_size.x, swapchain_size.y, 0.F,
@@ -491,7 +492,7 @@ void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUC
 			constexpr auto line_spacing = 2.F;
 
 			offset_x = 0.F;
-			offset_y += text_size + line_spacing;
+			offset_y += font->size + line_spacing;
 			continue;
 		}
 
@@ -514,13 +515,13 @@ void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUC
 		SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 
 		const matrix4x4_t m_scale = matrix4x4_create_scale((vector3f_t){
-			.x = scale / 2.F,
-			.y = scale / 2.F,
+			.x = 0.5F,
+			.y = 0.5F,
 			.z = 1.F,
 		});
 		const matrix4x4_t m_pos = matrix4x4_create_translation((vector3f_t){
-			.x = position.x + (text_size / 2.F) + offset_x + ((float) glyph->offset.x * scale),
-			.y = position.y + (text_size / 2.F) + offset_y + ((float) glyph->offset.y * scale),
+			.x = position.x + (font->size / 2.F) + offset_x + (float) glyph->offset.x,
+			.y = position.y + (font->size / 2.F) + offset_y + (float) glyph->offset.y,
 			.z = 0.F,
 		});
 
@@ -538,7 +539,7 @@ void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUC
 		SDL_DrawGPUIndexedPrimitives(render_pass, num_indices, 1, 0, 0, 0);
 
 		const int width = glyph->advance_x == 0 ? glyph->size.x : glyph->advance_x;
-		offset_x += (float) width * scale;
+		offset_x += (float) width;
 	}
 }
 

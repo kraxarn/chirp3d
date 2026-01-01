@@ -156,8 +156,9 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		return fatal_error(nullptr, "Failed to load font data");
 	}
 
+	constexpr auto font_size = 24.F;
 	const SDL_Color font_color = {.r = 0xf5, .g = 0xf5, .b = 0xf5, .a = SDL_ALPHA_OPAQUE};
-	state->font = font_create(state->device, font_source, font_color);
+	state->font = font_create(state->device, font_source, font_size, font_color);
 	if (state->font == nullptr)
 	{
 		return fatal_error(nullptr, "Failed to load font");
@@ -316,7 +317,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		);
 
 		font_draw_text(state->font, render_pass, command_buffer, size,
-			(vector2f_t){.x = 16.F, .y = 16.F}, 32, debug_text);
+			(vector2f_t){.x = 16.F, .y = 16.F}, debug_text);
 	}
 	if (!draw_end())
 	{
