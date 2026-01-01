@@ -15,6 +15,12 @@ typedef struct vector2f_aligned_t
 	float y;
 } vector2f_aligned_t;
 
+typedef struct vector2i_t
+{
+	int x;
+	int y;
+} vector2i_t;
+
 typedef struct vector3f_t
 {
 	float x;
