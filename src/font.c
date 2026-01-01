@@ -520,8 +520,8 @@ void font_draw_text(const font_t *font, SDL_GPURenderPass *render_pass, SDL_GPUC
 			.z = 1.F,
 		});
 		const matrix4x4_t m_pos = matrix4x4_create_translation((vector3f_t){
-			.x = position.x + (text_size / 2.F) + offset_x + (float) glyph->offset.x,
-			.y = position.y + (text_size / 2.F) + offset_y + (float) glyph->offset.y,
+			.x = position.x + (text_size / 2.F) + offset_x + ((float) glyph->offset.x * scale),
+			.y = position.y + (text_size / 2.F) + offset_y + ((float) glyph->offset.y * scale),
 			.z = 0.F,
 		});
 
