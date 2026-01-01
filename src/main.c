@@ -248,7 +248,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	constexpr float rotation_speed = 64.F / 1000.F;
 
 	const Uint64 current_update = SDL_GetTicks();
-	state->dt = (float) (current_update - state->last_update);
+	state->dt = current_update - state->last_update;
 	state->last_update = current_update;
 
 	state->current_rotation = SDL_fmodf(state->current_rotation + (rotation_speed * state->dt), 360.F);
@@ -256,6 +256,15 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		matrix4x4_create_rotation_x(deg2rad(state->current_rotation)),
 		matrix4x4_create_rotation_y(deg2rad(state->current_rotation))
 	);
+
+	state->time.count++;
+	state->time.duration += state->dt;
+	if (state->time.duration >= 1'000)
+	{
+		state->time.fps = state->time.count;
+		state->time.count = 0;
+		state->time.duration = 0;
+	}
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 
@@ -293,10 +302,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			"- debug mode -\n"
 #endif
 			"%s %s\n"
-			"FPS     : %.0f\n"
+			"FPS     : %u\n"
 			"Renderer: %s (%d)\n",
 			ENGINE_NAME, ENGINE_VERSION,
-			1000.F / state->dt,
+			state->time.fps,
 			SDL_GetGPUDeviceDriver(state->device), SDL_GetNumGPUDrivers()
 		);
 

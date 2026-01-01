@@ -7,6 +7,13 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_video.h>
 
+typedef struct time_info_t
+{
+	Uint16 fps;
+	Uint16 count;
+	Uint16 duration;
+} time_info_t;
+
 typedef struct app_state_t
 {
 	SDL_Window *window;
@@ -16,6 +23,7 @@ typedef struct app_state_t
 	mesh_t *mesh;
 	camera_t camera;
 	Uint64 last_update;
-	float dt;
+	time_info_t time;
+	Uint64 dt;
 	float current_rotation;
 } app_state_t;
