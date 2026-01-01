@@ -40,26 +40,19 @@ static void log_gpu_info(SDL_GPUDevice *device)
 	const char *name = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_NAME_STRING, nullptr);
 	if (name != nullptr)
 	{
-		SDL_LogDebug(LOG_CATEGORY_CORE, "GPU name: %s", name);
+		SDL_LogDebug(LOG_CATEGORY_CORE, "GPU: %s", name);
 	}
 
 	const char *driver_name = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_DRIVER_NAME_STRING, nullptr);
 	if (driver_name != nullptr)
 	{
-		SDL_LogDebug(LOG_CATEGORY_CORE, "GPU driver: %s", driver_name);
-	}
+		const char *driver_version = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_DRIVER_INFO_STRING,
+			SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_DRIVER_VERSION_STRING, nullptr)
+		);
 
-	const char *driver_info = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_DRIVER_INFO_STRING, nullptr);
-	if (driver_info != nullptr)
-	{
-		SDL_LogDebug(LOG_CATEGORY_CORE, "GPU driver version: %s", driver_info);
-	}
-	else
-	{
-		const char *driver_version = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_DRIVER_VERSION_STRING, nullptr);
 		if (driver_version != nullptr)
 		{
-			SDL_LogDebug(LOG_CATEGORY_CORE, "GPU driver version: %s", driver_version);
+			SDL_LogDebug(LOG_CATEGORY_CORE, "Driver: %s %s", driver_name, driver_version);
 		}
 	}
 }
