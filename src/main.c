@@ -65,7 +65,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	[[maybe_unused]] char **argv)
 {
 #ifdef NDEBUG
-	SDL_SetLogPriorities(SDL_LOG_PRIORITY_WARN);
+	SDL_SetLogPriorities(SDL_LOG_PRIORITY_INFO);
 #else
 	SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
 #endif
