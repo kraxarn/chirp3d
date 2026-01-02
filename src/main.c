@@ -315,12 +315,16 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			"FPS     : %u\n"
 			"Video   : %s\n"
 			"Audio   : %s\n"
-			"Renderer: %s",
+			"Renderer: %s\n"
+			"Camera  : %6.2f %6.2f %6.2f\n"
+			"Target  : %6.2f %6.2f %6.2f",
 			ENGINE_NAME, ENGINE_VERSION,
 			state->time.fps,
 			video_driver_display_name(SDL_GetCurrentVideoDriver()),
 			audio_driver_display_name(SDL_GetCurrentAudioDriver()),
-			gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device))
+			gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device)),
+			state->camera.position.x, state->camera.position.y, state->camera.position.z,
+			state->camera.target.x, state->camera.target.y, state->camera.target.z
 		);
 
 		font_draw_text(state->font, render_pass, command_buffer, size,
