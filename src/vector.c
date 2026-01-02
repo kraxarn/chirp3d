@@ -52,3 +52,9 @@ vector3f_t vector3f_cross(const vector3f_t vec1, const vector3f_t vec2)
 		.z = (vec1.x * vec2.y) - (vec2.x * vec1.y),
 	};
 }
+
+char *vector3f_str(const vector3f_t vec, char *str, const size_t max_len)
+{
+	SDL_snprintf(str, max_len, "%6.2f %6.2f %6.2f", vec.x, vec.y, vec.z);
+	return str;
+}
