@@ -24,6 +24,7 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_timer.h>
+#include <SDL3/SDL_version.h>
 
 static constexpr auto mouse_sensitivity = 0.075F;
 static constexpr auto move_speed = 1.5F;
@@ -39,6 +40,7 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 
 static void log_gpu_info(SDL_GPUDevice *device)
 {
+#if SDL_VERSION_ATLEAST(3, 4, 0)
 	const SDL_PropertiesID props = SDL_GetGPUDeviceProperties(device);
 
 	const char *name = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_NAME_STRING, nullptr);
@@ -59,6 +61,7 @@ static void log_gpu_info(SDL_GPUDevice *device)
 			SDL_LogDebug(LOG_CATEGORY_CORE, "Driver: %s %s", driver_name, driver_version);
 		}
 	}
+#endif
 }
 
 SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,

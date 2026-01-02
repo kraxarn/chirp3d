@@ -5,7 +5,7 @@ FetchContent_Declare(sdl
 	GIT_TAG release-3.4.0
 )
 
-find_package(SDL3 3.4 QUIET)
+find_package(SDL3 3.2 QUIET)
 
 if (SDL3_FOUND)
 	message(STATUS "Using system sdl3")
