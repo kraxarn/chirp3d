@@ -467,6 +467,15 @@ font_t *font_create(SDL_Window *window, SDL_GPUDevice *device,
 	// TODO: We don't necessarily always have the same scale
 	font->size = (Uint16) ((float) font_size * display_scale(window));
 
+	// TODO: Failsafe until we have dynamic atlas sizing
+	constexpr Uint16 max_font_size = 100;
+	if (font->size > max_font_size)
+	{
+		SDL_free(font);
+		SDL_SetError("Font size too large (%u > %u)", font->size, max_font_size);
+		return nullptr;
+	}
+
 	font->device = device;
 	font->color = color;
 
