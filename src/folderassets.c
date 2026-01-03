@@ -38,8 +38,15 @@ static bool set_metadata_property(const toml_datum_t table, const char *key)
 
 static void *load([[maybe_unused]] assets_t *assets, [[maybe_unused]] const char *path)
 {
-	SDL_SetError("Not implemented");
-	return nullptr;
+	const folder_assets_t *folder_assets = assets->data;
+
+	char *full_path = nullptr;
+	SDL_asprintf(&full_path, "%s/%s", folder_assets->basepath, path);
+
+	void *data = SDL_LoadFile(full_path, nullptr);
+	SDL_free(full_path);
+
+	return data;
 }
 
 static void cleanup(assets_t *assets)
