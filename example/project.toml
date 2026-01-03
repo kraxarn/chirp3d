@@ -1,0 +1,20 @@
+[project.metadata]
+name = "chirp3d example"
+version = "1.0.0"
+identifier = "com.kraxarn.chirp3d_example"
+creator = "kraxarn"
+copyright = "Copyright (c) 2026 kraxarn"
+url = "https://github.com/kraxarn/chirp3d"
+type = "game"
+
+[project.window]
+title = "chirp3d example"
+size = [1280, 720]
+fullscreen = false
+icon = ""
+
+[project.run]
+map = "test"
+
+[assets.maps]
+test = "assets/maps/test.map"
