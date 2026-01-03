@@ -1,4 +1,5 @@
 #include "appstate.h"
+#include "assets.h"
 #include "audiodriver.h"
 #include "font.h"
 #include "gpu.h"
@@ -64,8 +65,7 @@ static void log_gpu_info(SDL_GPUDevice *device)
 #endif
 }
 
-SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
-	[[maybe_unused]] char **argv)
+SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 {
 #ifdef NDEBUG
 	SDL_SetLogPriorities(SDL_LOG_PRIORITY_INFO);
@@ -73,23 +73,35 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
 #endif
 
-	// TODO: Set these from the game, not engine
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_NAME_STRING, ENGINE_NAME);
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_VERSION_STRING, ENGINE_VERSION);
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_IDENTIFIER_STRING, ENGINE_IDENTIFIER);
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");
-
-	if (!SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO))
-	{
-		return fatal_error(nullptr, "Initialisation failed");
-	}
-
 	app_state_t *state = SDL_calloc(1, sizeof(app_state_t));
 	if (state == nullptr)
 	{
 		return fatal_error(nullptr, "Memory allocation failed");
 	}
 	*appstate = state;
+
+	if (argc == 2)
+	{
+		state->assets = assets_create_from_folder(argv[1]);
+		if (state->assets == nullptr)
+		{
+			return fatal_error(state->window, "Failed to load assets");
+		}
+	}
+	else
+	{
+		state->assets = nullptr;
+
+		SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_NAME_STRING, ENGINE_NAME);
+		SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_VERSION_STRING, ENGINE_VERSION);
+		SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_IDENTIFIER_STRING, ENGINE_IDENTIFIER);
+		SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");
+	}
+
+	if (!SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO))
+	{
+		return fatal_error(nullptr, "Initialisation failed");
+	}
 
 	state->last_update = SDL_GetTicks();
 	state->current_rotation = 0.F;
@@ -402,6 +414,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 
 	mesh_destroy(state->mesh);
 	font_destroy(state->font);
+	assets_destroy(state->assets);
 
 	SDL_ReleaseGPUGraphicsPipeline(state->device, state->pipeline);
 	SDL_ReleaseWindowFromGPUDevice(state->device, state->window);

@@ -27,6 +27,7 @@ include(resources.cmake)
 include(deps/sdl3.cmake)
 include(deps/qoi.cmake)
 include(deps/stb.cmake)
+include(deps/tomlc17.cmake)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	# macOS

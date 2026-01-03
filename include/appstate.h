@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assets.h"
 #include "camera.h"
 #include "font.h"
 #include "mesh.h"
@@ -21,6 +22,7 @@ typedef struct app_state_t
 	SDL_GPUGraphicsPipeline *pipeline;
 	font_t *font;
 	mesh_t *mesh;
+	assets_t *assets;
 	camera_t camera;
 	Uint64 last_update;
 	time_info_t time;
