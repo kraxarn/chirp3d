@@ -82,6 +82,8 @@ assets_t *assets_create_from_folder(const char *path)
 		return nullptr;
 	}
 
+	assets->type = TYPE_FOLDER;
+
 	const toml_datum_t table = toml_result.toptab;
 
 	const toml_datum_t project = toml_get(table, "project");
