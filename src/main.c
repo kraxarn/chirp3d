@@ -21,6 +21,7 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
+#include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
@@ -80,22 +81,11 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 	*appstate = state;
 
-	if (argc == 2)
+	const char *assets_path = argc == 2 ? argv[1] : SDL_GetBasePath();
+	state->assets = assets_create_from_folder(assets_path);
+	if (state->assets == nullptr)
 	{
-		state->assets = assets_create_from_folder(argv[1]);
-		if (state->assets == nullptr)
-		{
-			return fatal_error(state->window, "Failed to load assets");
-		}
-	}
-	else
-	{
-		state->assets = nullptr;
-
-		SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_NAME_STRING, ENGINE_NAME);
-		SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_VERSION_STRING, ENGINE_VERSION);
-		SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_IDENTIFIER_STRING, ENGINE_IDENTIFIER);
-		SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");
+		return fatal_error(state->window, "Failed to load assets");
 	}
 
 	if (!SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO))
