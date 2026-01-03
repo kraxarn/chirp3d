@@ -7,6 +7,11 @@
 #include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_stdinc.h>
 
+typedef struct folder_assets_t
+{
+	char *basepath;
+} folder_assets_t;
+
 static bool set_metadata_property(const toml_datum_t table, const char *key)
 {
 	const toml_datum_t value = toml_get(table, key);
@@ -39,6 +44,10 @@ static void *load([[maybe_unused]] assets_t *assets, [[maybe_unused]] const char
 
 static void cleanup(assets_t *assets)
 {
+	folder_assets_t *data = assets->data;
+
+	SDL_free(data->basepath);
+	SDL_free(data);
 }
 
 assets_t *assets_create_from_folder(const char *path)
@@ -80,8 +89,19 @@ assets_t *assets_create_from_folder(const char *path)
 		return nullptr;
 	}
 
+	folder_assets_t *folder_assets = SDL_malloc(sizeof(folder_assets_t));
+	if (folder_assets == nullptr)
+	{
+		toml_free(toml_result);
+		return nullptr;
+	}
+	assets->data = folder_assets;
+
 	assets->load = load;
 	assets->cleanup = cleanup;
+
+	folder_assets->basepath = nullptr;
+	SDL_asprintf(&folder_assets->basepath, "%s/assets", path);
 
 	const toml_datum_t table = toml_result.toptab;
 
