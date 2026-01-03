@@ -7,18 +7,6 @@
 #include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_stdinc.h>
 
-typedef enum assets_type_t
-{
-	TYPE_INVALID = 0,
-	TYPE_FOLDER  = 1,
-	TYPE_FILE    = 2,
-} assets_type_t;
-
-typedef struct assets_t
-{
-	assets_type_t type;
-} assets_t;
-
 static bool set_metadata_property(const toml_datum_t table, const char *key)
 {
 	const toml_datum_t value = toml_get(table, key);
@@ -41,6 +29,16 @@ static bool set_metadata_property(const toml_datum_t table, const char *key)
 
 	SDL_free(name);
 	return true;
+}
+
+static void *load([[maybe_unused]] assets_t *assets, [[maybe_unused]] const char *path)
+{
+	SDL_SetError("Not implemented");
+	return nullptr;
+}
+
+static void cleanup(assets_t *assets)
+{
 }
 
 assets_t *assets_create_from_folder(const char *path)
@@ -82,7 +80,8 @@ assets_t *assets_create_from_folder(const char *path)
 		return nullptr;
 	}
 
-	assets->type = TYPE_FOLDER;
+	assets->load = load;
+	assets->cleanup = cleanup;
 
 	const toml_datum_t table = toml_result.toptab;
 
@@ -113,5 +112,6 @@ assets_t *assets_create_from_folder(const char *path)
 
 void assets_destroy(assets_t *assets)
 {
+	assets->cleanup(assets);
 	SDL_free(assets);
 }
