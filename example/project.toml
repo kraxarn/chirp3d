@@ -16,5 +16,6 @@ icon = ""
 [project.run]
 map = "test"
 
-[assets.maps]
-test = "assets/maps/test.map"
+[assets]
+maps = ["test"]
+textures = ["dark", "green", "light", "orange", "purple", "red"]
