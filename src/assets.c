@@ -7,8 +7,16 @@
 #include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_stdinc.h>
 
+typedef enum assets_type_t
+{
+	TYPE_INVALID = 0,
+	TYPE_FOLDER  = 1,
+	TYPE_FILE    = 2,
+} assets_type_t;
+
 typedef struct assets_t
 {
+	assets_type_t type;
 } assets_t;
 
 static bool set_metadata_property(const toml_datum_t table, const char *key)
