@@ -139,20 +139,8 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		}
 	}
 
-	SDL_GPUPresentMode present_mode;
-	if (SDL_WindowSupportsGPUPresentMode(state->device, state->window, SDL_GPU_PRESENTMODE_MAILBOX))
-	{
-		SDL_LogDebug(LOG_CATEGORY_CORE, "Using mailbox present mode");
-		present_mode = SDL_GPU_PRESENTMODE_MAILBOX;
-	}
-	else
-	{
-		SDL_LogDebug(LOG_CATEGORY_CORE, "Using VSync present mode");
-		present_mode = SDL_GPU_PRESENTMODE_VSYNC;
-	}
-
 	if (!SDL_SetGPUSwapchainParameters(state->device, state->window,
-		SDL_GPU_SWAPCHAINCOMPOSITION_SDR, present_mode))
+		SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC))
 	{
 		SDL_LogWarn(LOG_CATEGORY_CORE, "VSync not supported: %s", SDL_GetError());
 	}
