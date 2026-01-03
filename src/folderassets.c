@@ -109,9 +109,3 @@ assets_t *assets_create_from_folder(const char *path)
 	toml_free(toml_result);
 	return assets;
 }
-
-void assets_destroy(assets_t *assets)
-{
-	assets->cleanup(assets);
-	SDL_free(assets);
-}
