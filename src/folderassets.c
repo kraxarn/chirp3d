@@ -40,8 +40,49 @@ static SDL_IOStream *load(assets_t *assets, const char *path)
 {
 	const folder_assets_t *folder_assets = assets->data;
 
+	const char *filename = SDL_strrchr(path, '/');
+	if (filename == nullptr)
+	{
+		SDL_SetError("Invalid path");
+		return nullptr;
+	}
+	filename++;
+
+	const long parent_len = filename - path;
+	char *parent = SDL_malloc(parent_len);
+	SDL_strlcpy(parent, path, parent_len);
+
+	char *dir_path = nullptr;
+	SDL_asprintf(&dir_path, "%s/%s", folder_assets->basepath, parent);
+	SDL_free(parent);
+
+	char *pattern = nullptr;
+	SDL_asprintf(&pattern, "%s.*", filename);
+
+	auto count = 0;
+	char **results = SDL_GlobDirectory(dir_path, pattern, 0, &count);
+	SDL_free(pattern);
+
+	if (count == 0)
+	{
+		SDL_SetError("No asset found for '%s'", path);
+		SDL_free((void *) results);
+		SDL_free(dir_path);
+		return nullptr;
+	}
+
+	if (count > 1)
+	{
+		SDL_SetError("Multiple assets found for '%s'", path);
+		SDL_free((void *) results);
+		SDL_free(dir_path);
+		return nullptr;
+	}
+
 	char *full_path = nullptr;
-	SDL_asprintf(&full_path, "%s/%s", folder_assets->basepath, path);
+	SDL_asprintf(&full_path, "%s/%s", dir_path, results[0]);
+	SDL_free(dir_path);
+	SDL_free((void *) results);
 
 	SDL_IOStream *stream = SDL_IOFromFile(full_path, "rb");
 	SDL_free(full_path);
