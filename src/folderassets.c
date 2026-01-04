@@ -36,7 +36,7 @@ static bool set_metadata_property(const toml_datum_t table, const char *key)
 	return true;
 }
 
-static void *load([[maybe_unused]] assets_t *assets, [[maybe_unused]] const char *path)
+static void *load(assets_t *assets, const char *path)
 {
 	const folder_assets_t *folder_assets = assets->data;
 
