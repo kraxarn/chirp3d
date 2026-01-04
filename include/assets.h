@@ -19,3 +19,6 @@ typedef struct assets_t
 assets_t *assets_create_from_folder(const char *path);
 
 void assets_destroy(assets_t *assets);
+
+[[nodiscard]]
+SDL_IOStream *assets_load(assets_t *assets, const char *name);
