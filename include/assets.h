@@ -1,8 +1,10 @@
 #pragma once
 
+#include <SDL3/SDL_iostream.h>
+
 typedef struct assets_t assets_t;
 
-typedef void *(*assets_load_func_t)(assets_t *assets, const char *name);
+typedef SDL_IOStream *(*assets_load_func_t)(assets_t *assets, const char *name);
 
 typedef void (*assets_cleanup_func_t)(assets_t *assets);
 

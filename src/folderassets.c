@@ -36,17 +36,17 @@ static bool set_metadata_property(const toml_datum_t table, const char *key)
 	return true;
 }
 
-static void *load(assets_t *assets, const char *path)
+static SDL_IOStream *load(assets_t *assets, const char *path)
 {
 	const folder_assets_t *folder_assets = assets->data;
 
 	char *full_path = nullptr;
 	SDL_asprintf(&full_path, "%s/%s", folder_assets->basepath, path);
 
-	void *data = SDL_LoadFile(full_path, nullptr);
+	SDL_IOStream *stream = SDL_IOFromFile(full_path, "rb");
 	SDL_free(full_path);
 
-	return data;
+	return stream;
 }
 
 static void cleanup(assets_t *assets)
