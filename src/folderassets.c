@@ -1,10 +1,12 @@
 #include "assets.h"
+#include "logcategory.h"
 
 #include "tomlc17.h"
 
 #include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_iostream.h>
+#include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
 
 typedef struct folder_assets_t
@@ -54,7 +56,6 @@ static SDL_IOStream *load(assets_t *assets, const char *path)
 
 	char *dir_path = nullptr;
 	SDL_asprintf(&dir_path, "%s/%s", folder_assets->basepath, parent);
-	SDL_free(parent);
 
 	char *pattern = nullptr;
 	SDL_asprintf(&pattern, "%s.*", filename);
@@ -68,6 +69,7 @@ static SDL_IOStream *load(assets_t *assets, const char *path)
 		SDL_SetError("No asset found for '%s'", path);
 		SDL_free((void *) results);
 		SDL_free(dir_path);
+		SDL_free(parent);
 		return nullptr;
 	}
 
@@ -76,8 +78,13 @@ static SDL_IOStream *load(assets_t *assets, const char *path)
 		SDL_SetError("Multiple assets found for '%s'", path);
 		SDL_free((void *) results);
 		SDL_free(dir_path);
+		SDL_free(parent);
 		return nullptr;
 	}
+
+	SDL_LogDebug(LOG_CATEGORY_ASSETS, "Loaded asset '%s/%s' from '%s'",
+		parent, results[0], path);
+	SDL_free(parent);
 
 	char *full_path = nullptr;
 	SDL_asprintf(&full_path, "%s/%s", dir_path, results[0]);
