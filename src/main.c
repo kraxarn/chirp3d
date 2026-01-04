@@ -5,6 +5,7 @@
 #include "gpu.h"
 #include "gpudevicedriver.h"
 #include "image.h"
+#include "input.h"
 #include "logcategory.h"
 #include "math.h"
 #include "matrix.h"
@@ -350,48 +351,53 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 		SDL_SetWindowRelativeMouseMode(state->window, false);
 	}
 
-	if (event->type == SDL_EVENT_MOUSE_MOTION && (int) SDL_GetWindowRelativeMouseMode(state->window))
+	if (SDL_GetWindowRelativeMouseMode(state->window))
 	{
-		state->camera.target.x -= event->motion.xrel * mouse_sensitivity;
-		state->camera.target.y -= event->motion.yrel * mouse_sensitivity;
-	}
+		input_update(event);
 
-	if (event->type == SDL_EVENT_KEY_DOWN && (int) SDL_GetWindowRelativeMouseMode(state->window))
-	{
-		switch (event->key.key)
+		if (event->type == SDL_EVENT_MOUSE_MOTION)
 		{
-			case SDLK_W:
-				state->camera.position.z += move_speed;
-				state->camera.target.z += move_speed;
-				break;
+			state->camera.target.x -= event->motion.xrel * mouse_sensitivity;
+			state->camera.target.y -= event->motion.yrel * mouse_sensitivity;
+		}
 
-			case SDLK_S:
-				state->camera.position.z -= move_speed;
-				state->camera.target.z -= move_speed;
-				break;
+		if (event->type == SDL_EVENT_KEY_DOWN)
+		{
+			switch (event->key.key)
+			{
+				case SDLK_W:
+					state->camera.position.z += move_speed;
+					state->camera.target.z += move_speed;
+					break;
 
-			case SDLK_A:
-				state->camera.position.x += move_speed;
-				state->camera.target.x += move_speed;
-				break;
+				case SDLK_S:
+					state->camera.position.z -= move_speed;
+					state->camera.target.z -= move_speed;
+					break;
 
-			case SDLK_D:
-				state->camera.position.x -= move_speed;
-				state->camera.target.x -= move_speed;
-				break;
+				case SDLK_A:
+					state->camera.position.x += move_speed;
+					state->camera.target.x += move_speed;
+					break;
 
-			case SDLK_Q:
-				state->camera.position.y += move_speed;
-				state->camera.target.y += move_speed;
-				break;
+				case SDLK_D:
+					state->camera.position.x -= move_speed;
+					state->camera.target.x -= move_speed;
+					break;
 
-			case SDLK_E:
-				state->camera.position.y -= move_speed;
-				state->camera.target.y -= move_speed;
-				break;
+				case SDLK_Q:
+					state->camera.position.y += move_speed;
+					state->camera.target.y += move_speed;
+					break;
 
-			default:
-				break;
+				case SDLK_E:
+					state->camera.position.y -= move_speed;
+					state->camera.target.y -= move_speed;
+					break;
+
+				default:
+					break;
+			}
 		}
 	}
 
