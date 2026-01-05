@@ -98,11 +98,12 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	state->last_update = SDL_GetTicks();
 	state->current_rotation = 0.F;
 
-	constexpr auto window_w = 1280;
-	constexpr auto window_h = 720;
-	constexpr auto window_flags = SDL_WINDOW_RESIZABLE;
+	const window_config_t window_config = state->assets->window_config;
 
-	state->window = SDL_CreateWindow(ENGINE_NAME, window_w, window_h, window_flags);
+	state->window = SDL_CreateWindow(window_config.title,
+		window_config.size.x, window_config.size.y,
+		window_config_flags(window_config)
+	);
 	if (state->window == nullptr)
 	{
 		return fatal_error(nullptr, "Window creation failed");
@@ -112,15 +113,6 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	if (state->device == nullptr)
 	{
 		return fatal_error(state->window, "GPU context creation failed");
-	}
-
-	const char *device_name = SDL_GetGPUDeviceDriver(state->device);
-	if (device_name != nullptr)
-	{
-		char *title = nullptr;
-		SDL_asprintf(&title, "%s (%s)", SDL_GetWindowTitle(state->window), device_name);
-		SDL_SetWindowTitle(state->window, title);
-		SDL_free(title);
 	}
 
 	log_gpu_info(state->device);

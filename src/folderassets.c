@@ -12,6 +12,7 @@
 typedef struct folder_assets_t
 {
 	char *basepath;
+	toml_result_t toml;
 } folder_assets_t;
 
 static bool set_metadata_property(const toml_datum_t table, const char *key)
@@ -101,8 +102,40 @@ static void cleanup(assets_t *assets)
 {
 	folder_assets_t *data = assets->data;
 
+	toml_free(data->toml);
 	SDL_free(data->basepath);
 	SDL_free(data);
+}
+
+static window_config_t parse_window_config(const toml_datum_t project)
+{
+	window_config_t config = window_config_default();
+
+	const toml_datum_t window = toml_get(project, "window");
+
+	const toml_datum_t toml_title = toml_get(window, "title");
+	if (toml_title.type == TOML_STRING)
+	{
+		config.title = toml_title.u.s;
+	}
+
+	const toml_datum_t toml_size = toml_get(window, "size");
+	if (toml_size.type == TOML_ARRAY
+		&& toml_size.u.arr.size == 2
+		&& toml_size.u.arr.elem[0].type == TOML_INT64
+		&& toml_size.u.arr.elem[1].type == TOML_INT64)
+	{
+		config.size.x = (int) toml_size.u.arr.elem[0].u.int64;
+		config.size.y = (int) toml_size.u.arr.elem[1].u.int64;
+	}
+
+	const toml_datum_t toml_fullscreen = toml_get(window, "fullscreen");
+	if (toml_size.type == TOML_BOOLEAN)
+	{
+		config.fullscreen = toml_fullscreen.u.boolean;
+	}
+
+	return config;
 }
 
 assets_t *assets_create_from_folder(const char *path)
@@ -155,6 +188,8 @@ assets_t *assets_create_from_folder(const char *path)
 	assets->load = load;
 	assets->cleanup = cleanup;
 
+	folder_assets->toml = toml_result;
+
 	folder_assets->basepath = nullptr;
 	SDL_asprintf(&folder_assets->basepath, "%s/assets", path);
 
@@ -169,6 +204,8 @@ assets_t *assets_create_from_folder(const char *path)
 		return nullptr;
 	}
 
+	assets->window_config = parse_window_config(project);
+
 	const toml_datum_t metadata = toml_get(project, "metadata");
 	if (metadata.type == TOML_TABLE)
 	{
@@ -181,6 +218,5 @@ assets_t *assets_create_from_folder(const char *path)
 		set_metadata_property(metadata, "type");
 	}
 
-	toml_free(toml_result);
 	return assets;
 }
