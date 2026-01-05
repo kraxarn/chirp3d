@@ -19,3 +19,11 @@ map = "test"
 [assets]
 maps = ["test"]
 textures = ["dark", "green", "light", "orange", "purple", "red"]
+
+[input]
+move_forward = { keycode = "w", axis = "left_y", axis_range = [0.05, 1.0] }
+move_backward = { keycode = "s", axis = "left_y", axis_range = [-1.0, -0.05] }
+move_left = { keycode = "a", axis = "left_x", axis_range = [-1.0, -0.05] }
+move_right = { keycode = "d", axis = "left_x", axis_range = [0.05, 1.0] }
+move_up = { keycode = "q", axis = "right_y", axis_range = [0.05, 1.0] }
+move_down = { keycode = "e", axis = "right_y", axis_range = [-1.0, -0.05] }
