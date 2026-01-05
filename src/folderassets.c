@@ -130,7 +130,7 @@ static window_config_t parse_window_config(const toml_datum_t project)
 	}
 
 	const toml_datum_t toml_fullscreen = toml_get(window, "fullscreen");
-	if (toml_size.type == TOML_BOOLEAN)
+	if (toml_fullscreen.type == TOML_BOOLEAN)
 	{
 		config.fullscreen = toml_fullscreen.u.boolean;
 	}
