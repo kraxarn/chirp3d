@@ -239,28 +239,20 @@ assets_t *assets_create_from_folder(const char *path)
 
 			if (value.type != TOML_TABLE)
 			{
-				SDL_LogWarn(LOG_CATEGORY_INPUT, "Ignoring invalid entry '%s'", key);
 				continue;
 			}
 
 			const toml_datum_t keycode = toml_get(value, "keycode");
 			if (keycode.type != TOML_STRING || keycode.u.str.len > sizeof(SDL_Keycode))
 			{
-				SDL_LogWarn(LOG_CATEGORY_INPUT, "Ignoring invalid keycode in entry '%s'", key);
+				SDL_LogWarn(LOG_CATEGORY_INPUT, "Invalid keycode in entry '%s'", key);
 			}
 			else
 			{
-				// TODO: I'm pretty sure this is very bad
-				char *keycode_str = SDL_strdup(keycode.u.s);
-				SDL_strlwr(keycode_str);
-				auto parsed = SDLK_UNKNOWN;
-				SDL_memcpy(&parsed, keycode_str, keycode.u.str.len);
-				SDL_free(keycode_str);
-
-				if (SDL_strlen(SDL_GetKeyName(parsed)) <= 0)
+				const SDL_Keycode parsed = SDL_GetKeyFromName(keycode.u.s);
+				if (parsed == SDLK_UNKNOWN)
 				{
-					SDL_LogWarn(LOG_CATEGORY_INPUT, "Ignoring invalid keycode '%s' in entry '%s'",
-						keycode.u.s, key);
+					SDL_LogWarn(LOG_CATEGORY_INPUT, "Invalid keycode '%s': %s", keycode.u.s, SDL_GetError());
 					continue;
 				}
 
@@ -269,10 +261,11 @@ assets_t *assets_create_from_folder(const char *path)
 				};
 				if (!input_add(key, input_config))
 				{
-					SDL_LogWarn(LOG_CATEGORY_INPUT, "Ignoring invalid keycode '%s' (%s)",
-						keycode.u.s, SDL_GetError());
+					SDL_LogWarn(LOG_CATEGORY_INPUT, "Invalid keycode '%s': %s", keycode.u.s, SDL_GetError());
 					continue;
 				}
+
+				SDL_LogDebug(LOG_CATEGORY_INPUT, "Mapped '%s' to key '%s'", key, SDL_GetKeyName(parsed));
 			}
 		}
 	}
