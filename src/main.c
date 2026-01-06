@@ -69,7 +69,7 @@ static void log_gpu_info(SDL_GPUDevice *device)
 static SDL_AppResult build_scene(app_state_t *state)
 {
 	const mesh_t *meshes[] = {
-		create_cube(state->device, (vector3f_t){.x = 20.F, .y = 10.F, .z = 10.F}),
+		create_cube(state->device, (vector3f_t){.x = 60.F, .y = 2.5F, .z = 60.F}),
 	};
 
 	state->num_meshes = SDL_arraysize(meshes);
