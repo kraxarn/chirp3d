@@ -12,4 +12,4 @@ bool input_add(const char *name, input_config_t config);
 bool input_is_key_down(SDL_Keycode keycode);
 
 [[nodiscard]]
-bool input_is_down(const char *key);
+bool input_is_down(const char *name);

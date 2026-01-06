@@ -59,10 +59,8 @@ bool input_add(const char *name, const input_config_t config)
 		return SDL_SetError("Property already exists");
 	}
 
-	input_config_t *value = SDL_malloc(sizeof(input_config_t));
-	SDL_memcpy(value, &config, sizeof(input_config_t));
-
-	return SDL_SetPointerPropertyWithCleanup(props, name, value, cleanup_free, nullptr);
+	// TODO: This shouldn't be set in the main 'props' as it may cause conflicts
+	return SDL_SetNumberProperty(props, name, config.keycode);
 }
 
 bool input_is_key_down(const SDL_Keycode keycode)
@@ -71,14 +69,14 @@ bool input_is_key_down(const SDL_Keycode keycode)
 	return SDL_GetBooleanProperty(props, key_name, false);
 }
 
-bool input_is_down(const char *key)
+bool input_is_down(const char *name)
 {
-	const input_config_t *config = SDL_GetPointerProperty(props, key, nullptr);
-	if (config == nullptr)
+	const SDL_Keycode keycode = SDL_GetNumberProperty(props, name, SDLK_UNKNOWN);
+	if (keycode == SDLK_UNKNOWN)
 	{
 		return false;
 	}
 
-	const char *key_name = SDL_GetKeyName(config->keycode);
+	const char *key_name = SDL_GetKeyName(keycode);
 	return SDL_GetBooleanProperty(props, key_name, false);
 }
