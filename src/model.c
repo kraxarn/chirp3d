@@ -55,9 +55,10 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 	};
 
 	constexpr auto uv_tile_size = 10.F;
-	const vector2f_t uv_max = {
+	const vector3f_t uv_max = {
 		.x = size.x / uv_tile_size,
-		.y = size.y / uv_tile_size
+		.y = size.y / uv_tile_size,
+		.z = size.z / uv_tile_size,
 	};
 
 	vertex_t vertices[] = {
@@ -132,15 +133,15 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 		// Top (+y)
 		(vertex_t){
 			.position = (vector3f_t){min.x, max.y, max.z},
-			.tex_coord = (vector2f_t){0.F, uv_max.y}
+			.tex_coord = (vector2f_t){0.F, uv_max.z}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, max.y, max.z},
-			.tex_coord = (vector2f_t){uv_max.x, uv_max.y}
+			.tex_coord = (vector2f_t){uv_max.z, uv_max.z}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, max.y, min.z},
-			.tex_coord = (vector2f_t){uv_max.x, 0.F}
+			.tex_coord = (vector2f_t){uv_max.z, 0.F}
 		},
 		(vertex_t){
 			.position = (vector3f_t){min.x, max.y, min.z},
@@ -149,15 +150,15 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 		// Bottom (-y)
 		(vertex_t){
 			.position = (vector3f_t){min.x, min.y, min.z},
-			.tex_coord = (vector2f_t){0.F, uv_max.y}
+			.tex_coord = (vector2f_t){0.F, uv_max.z}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, min.y, min.z},
-			.tex_coord = (vector2f_t){uv_max.x, uv_max.y}
+			.tex_coord = (vector2f_t){uv_max.z, uv_max.z}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, min.y, max.z},
-			.tex_coord = (vector2f_t){uv_max.x, 0.F}
+			.tex_coord = (vector2f_t){uv_max.z, 0.F}
 		},
 		(vertex_t){
 			.position = (vector3f_t){min.x, min.y, max.z},
