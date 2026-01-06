@@ -74,7 +74,7 @@ bool input_is_down(const char *name)
 	const SDL_Keycode keycode = SDL_GetNumberProperty(props, name, SDLK_UNKNOWN);
 	if (keycode == SDLK_UNKNOWN)
 	{
-		return false;
+		return SDL_SetError("Unmapped input: %s", name);
 	}
 
 	const char *key_name = SDL_GetKeyName(keycode);
