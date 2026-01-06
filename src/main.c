@@ -66,6 +66,41 @@ static void log_gpu_info(SDL_GPUDevice *device)
 #endif
 }
 
+static SDL_AppResult build_scene(app_state_t *state)
+{
+	const mesh_t *meshes[] = {
+		create_cube(state->device, (vector3f_t){.x = 20.F, .y = 10.F, .z = 10.F}),
+	};
+
+	state->num_meshes = SDL_arraysize(meshes);
+	state->meshes = (mesh_t **) SDL_malloc(sizeof(meshes));
+	SDL_memcpy((void *) state->meshes, (void *) meshes, sizeof(meshes));
+
+	SDL_IOStream *texture_stream = assets_load(state->assets, "textures/light");
+	if (texture_stream == nullptr)
+	{
+		return fatal_error(state->window, "Failed to open texture");
+	}
+
+	SDL_Surface *texture = load_qoi(texture_stream, true);
+	if (texture == nullptr)
+	{
+		return fatal_error(state->window, "Failed to load texture");
+	}
+
+	for (size_t i = 0; i < state->num_meshes; i++)
+	{
+		if (!mesh_set_texture(state->meshes[i], texture))
+		{
+			SDL_DestroySurface(texture);
+			return fatal_error(state->window, "Failed to set mesh texture");
+		}
+	}
+	SDL_DestroySurface(texture);
+
+	return SDL_APP_CONTINUE;
+}
+
 SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 {
 #ifdef NDEBUG
@@ -212,37 +247,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_ReleaseGPUShader(state->device, vert_shader);
 	SDL_ReleaseGPUShader(state->device, frag_shader);
 
-	const mesh_t *meshes[] = {
-		create_cube(state->device, (vector3f_t){.x = 10.F, .y = 10.F, .z = 10.F}),
-	};
-
-	state->num_meshes = SDL_arraysize(meshes);
-	state->meshes = (mesh_t **) SDL_malloc(sizeof(meshes));
-	SDL_memcpy((void *) state->meshes, (void *) meshes, sizeof(meshes));
-
-	SDL_IOStream *texture_stream = assets_load(state->assets, "textures/light");
-	if (texture_stream == nullptr)
-	{
-		return fatal_error(state->window, "Failed to open texture");
-	}
-
-	SDL_Surface *texture = load_qoi(texture_stream, true);
-	if (texture == nullptr)
-	{
-		return fatal_error(state->window, "Failed to load texture");
-	}
-
-	for (size_t i = 0; i < state->num_meshes; i++)
-	{
-		if (!mesh_set_texture(state->meshes[i], texture))
-		{
-			SDL_DestroySurface(texture);
-			return fatal_error(state->window, "Failed to set mesh texture");
-		}
-	}
-	SDL_DestroySurface(texture);
-
-	return SDL_APP_CONTINUE;
+	return build_scene(state);
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate)
