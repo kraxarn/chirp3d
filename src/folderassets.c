@@ -1,4 +1,6 @@
 #include "assets.h"
+#include "input.h"
+#include "inputconfig.h"
 #include "logcategory.h"
 
 #include "tomlc17.h"
@@ -216,6 +218,63 @@ assets_t *assets_create_from_folder(const char *path)
 		set_metadata_property(metadata, "copyright");
 		set_metadata_property(metadata, "url");
 		set_metadata_property(metadata, "type");
+	}
+
+	const toml_datum_t input = toml_get(table, "input");
+	if (input.type == TOML_TABLE)
+	{
+		// TODO: Temporary workaround for weird clang bug (?) when using union
+		const auto tab = (struct
+		{
+			int size;
+			const char **keys;
+			void *padding;
+			toml_datum_t *values;
+		} *) &input.u.tab;
+
+		for (auto i = 0; i < tab->size; i++)
+		{
+			const char *key = tab->keys[i];
+			const toml_datum_t value = tab->values[i];
+
+			if (value.type != TOML_TABLE)
+			{
+				SDL_LogWarn(LOG_CATEGORY_INPUT, "Ignoring invalid entry '%s'", key);
+				continue;
+			}
+
+			const toml_datum_t keycode = toml_get(value, "keycode");
+			if (keycode.type != TOML_STRING || keycode.u.str.len > sizeof(SDL_Keycode))
+			{
+				SDL_LogWarn(LOG_CATEGORY_INPUT, "Ignoring invalid keycode in entry '%s'", key);
+			}
+			else
+			{
+				// TODO: I'm pretty sure this is very bad
+				char *keycode_str = SDL_strdup(keycode.u.s);
+				SDL_strlwr(keycode_str);
+				auto parsed = SDLK_UNKNOWN;
+				SDL_memcpy(&parsed, keycode_str, keycode.u.str.len);
+				SDL_free(keycode_str);
+
+				if (SDL_strlen(SDL_GetKeyName(parsed)) <= 0)
+				{
+					SDL_LogWarn(LOG_CATEGORY_INPUT, "Ignoring invalid keycode '%s' in entry '%s'",
+						keycode.u.s, key);
+					continue;
+				}
+
+				const input_config_t input_config = {
+					.keycode = parsed,
+				};
+				if (!input_add(key, input_config))
+				{
+					SDL_LogWarn(LOG_CATEGORY_INPUT, "Ignoring invalid keycode '%s' (%s)",
+						keycode.u.s, SDL_GetError());
+					continue;
+				}
+			}
+		}
 	}
 
 	return assets;
