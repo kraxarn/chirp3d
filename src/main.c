@@ -142,7 +142,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_IOStream *font_source = SDL_IOFromConstMem(font_monogram_ttf, sizeof(font_monogram_ttf));
 	if (font_source == nullptr)
 	{
-		return fatal_error(nullptr, "Failed to load font data");
+		return fatal_error(state->window, "Failed to load font data");
 	}
 
 	constexpr Uint16 font_size = 24;
@@ -150,7 +150,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	state->font = font_create(state->window, state->device, font_source, font_size, font_color);
 	if (state->font == nullptr)
 	{
-		return fatal_error(nullptr, "Failed to load font");
+		return fatal_error(state->window, "Failed to load font");
 	}
 
 	state->camera = (camera_t){
