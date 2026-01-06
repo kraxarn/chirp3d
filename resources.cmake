@@ -10,6 +10,4 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 	SHADER_DEFAULT_FRAG_MSL_PATH="${RESOURCE_DIR}/shaders/msl/default.frag.msl"
 	SHADER_DEFAULT_VERT_SPV_PATH="${RESOURCE_DIR}/shaders/spv/default.vert.spv"
 	SHADER_DEFAULT_FRAG_SPV_PATH="${RESOURCE_DIR}/shaders/spv/default.frag.spv"
-	# Textures
-	TEXTURE_WALL_QOI_PATH="${RESOURCE_DIR}/textures/wall.qoi"
 )
