@@ -13,16 +13,32 @@ static void update_keyboard_event(const SDL_KeyboardEvent event)
 	SDL_SetBooleanProperty(props, key_name, event.down);
 }
 
-void input_update(const SDL_Event *event)
+static void cleanup_free([[maybe_unused]] void *userdata, void *value)
+{
+	SDL_free(value);
+}
+
+static bool init()
 {
 	if (props == 0)
 	{
 		props = SDL_CreateProperties();
-		if (props == 0)
-		{
-			SDL_LogError(LOG_CATEGORY_INPUT, "Property error: %s", SDL_GetError());
-			return;
-		}
+	}
+
+	if (props != 0)
+	{
+		return true;
+	}
+
+	SDL_LogError(LOG_CATEGORY_INPUT, "Property error: %s", SDL_GetError());
+	return false;
+}
+
+void input_update(const SDL_Event *event)
+{
+	if (!init())
+	{
+		return;
 	}
 
 	if (event->type == SDL_EVENT_KEY_DOWN || event->type == SDL_EVENT_KEY_UP)
@@ -31,8 +47,38 @@ void input_update(const SDL_Event *event)
 	}
 }
 
-bool input_is_key_down(SDL_Keycode keycode)
+bool input_add(const char *name, const input_config_t config)
+{
+	if (!init())
+	{
+		return false;
+	}
+
+	if (SDL_HasProperty(props, name))
+	{
+		return SDL_SetError("Property already exists");
+	}
+
+	input_config_t *value = SDL_malloc(sizeof(input_config_t));
+	SDL_memcpy(value, &config, sizeof(input_config_t));
+
+	return SDL_SetPointerPropertyWithCleanup(props, name, value, cleanup_free, nullptr);
+}
+
+bool input_is_key_down(const SDL_Keycode keycode)
 {
 	const char *key_name = SDL_GetKeyName(keycode);
+	return SDL_GetBooleanProperty(props, key_name, false);
+}
+
+bool input_is_down(const char *key)
+{
+	const input_config_t *config = SDL_GetPointerProperty(props, key, nullptr);
+	if (config == nullptr)
+	{
+		return false;
+	}
+
+	const char *key_name = SDL_GetKeyName(config->keycode);
 	return SDL_GetBooleanProperty(props, key_name, false);
 }
