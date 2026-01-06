@@ -33,7 +33,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: chirp3d-linux-clang-x64
+          name: chirp3d-linux-x64
           path: |
             ${{runner.workspace}}/chirp3d/build/chirp3d
             ${{runner.workspace}}/chirp3d/build/_deps/sdl-build/libSDL3.so
