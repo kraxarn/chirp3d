@@ -54,19 +54,25 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 		.z = (size.z / 2.F),
 	};
 
+	constexpr auto uv_tile_size = 10.F;
+	const vector2f_t uv_max = {
+		.x = size.x / uv_tile_size,
+		.y = size.y / uv_tile_size
+	};
+
 	vertex_t vertices[] = {
 		// Front (+z)
 		(vertex_t){
 			.position = (vector3f_t){min.x, min.y, max.z},
-			.tex_coord = (vector2f_t){0.F, 1.F}
+			.tex_coord = (vector2f_t){0.F, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, min.y, max.z},
-			.tex_coord = (vector2f_t){1.F, 1.F}
+			.tex_coord = (vector2f_t){uv_max.x, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, max.y, max.z},
-			.tex_coord = (vector2f_t){1.F, 0.F}
+			.tex_coord = (vector2f_t){uv_max.x, 0.F}
 		},
 		(vertex_t){
 			.position = (vector3f_t){min.x, max.y, max.z},
@@ -75,15 +81,15 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 		// Back (-z)
 		(vertex_t){
 			.position = (vector3f_t){max.x, min.y, min.z},
-			.tex_coord = (vector2f_t){0.F, 1.F}
+			.tex_coord = (vector2f_t){0.F, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){min.x, min.y, min.z},
-			.tex_coord = (vector2f_t){1.F, 1.F}
+			.tex_coord = (vector2f_t){uv_max.x, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){min.x, max.y, min.z},
-			.tex_coord = (vector2f_t){1.F, 0.F}
+			.tex_coord = (vector2f_t){uv_max.x, 0.F}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, max.y, min.z},
@@ -92,15 +98,15 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 		// Right (+x)
 		(vertex_t){
 			.position = (vector3f_t){max.x, min.y, max.z},
-			.tex_coord = (vector2f_t){0.F, 1.F}
+			.tex_coord = (vector2f_t){0.F, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, min.y, min.z},
-			.tex_coord = (vector2f_t){1.F, 1.F}
+			.tex_coord = (vector2f_t){uv_max.x, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, max.y, min.z},
-			.tex_coord = (vector2f_t){1.F, 0.F}
+			.tex_coord = (vector2f_t){uv_max.x, 0.F}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, max.y, max.z},
@@ -109,15 +115,15 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 		// Left (-x)
 		(vertex_t){
 			.position = (vector3f_t){min.x, min.y, min.z},
-			.tex_coord = (vector2f_t){0.F, 1.F}
+			.tex_coord = (vector2f_t){0.F, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){min.x, min.y, max.z},
-			.tex_coord = (vector2f_t){1.F, 1.F}
+			.tex_coord = (vector2f_t){uv_max.x, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){min.x, max.y, max.z},
-			.tex_coord = (vector2f_t){1.F, 0.F}
+			.tex_coord = (vector2f_t){uv_max.x, 0.F}
 		},
 		(vertex_t){
 			.position = (vector3f_t){min.x, max.y, min.z},
@@ -126,15 +132,15 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 		// Top (+y)
 		(vertex_t){
 			.position = (vector3f_t){min.x, max.y, max.z},
-			.tex_coord = (vector2f_t){0.F, 1.F}
+			.tex_coord = (vector2f_t){0.F, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, max.y, max.z},
-			.tex_coord = (vector2f_t){1.F, 1.F}
+			.tex_coord = (vector2f_t){uv_max.x, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, max.y, min.z},
-			.tex_coord = (vector2f_t){1.F, 0.F}
+			.tex_coord = (vector2f_t){uv_max.x, 0.F}
 		},
 		(vertex_t){
 			.position = (vector3f_t){min.x, max.y, min.z},
@@ -143,15 +149,15 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 		// Bottom (-y)
 		(vertex_t){
 			.position = (vector3f_t){min.x, min.y, min.z},
-			.tex_coord = (vector2f_t){0.F, 1.F}
+			.tex_coord = (vector2f_t){0.F, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, min.y, min.z},
-			.tex_coord = (vector2f_t){1.F, 1.F}
+			.tex_coord = (vector2f_t){uv_max.x, uv_max.y}
 		},
 		(vertex_t){
 			.position = (vector3f_t){max.x, min.y, max.z},
-			.tex_coord = (vector2f_t){1.F, 0.F}
+			.tex_coord = (vector2f_t){uv_max.x, 0.F}
 		},
 		(vertex_t){
 			.position = (vector3f_t){min.x, min.y, max.z},
