@@ -14,10 +14,10 @@
 
 static constexpr auto channels = 4;
 
-SDL_Surface *load_qoi(SDL_IOStream *source)
+SDL_Surface *load_qoi(SDL_IOStream *source, const bool close_io)
 {
 	size_t size = 0;
-	void *data = SDL_LoadFile_IO(source, &size, true);
+	void *data = SDL_LoadFile_IO(source, &size, close_io);
 
 	qoi_desc desc;
 	void *pixels = qoi_decode(data, (int) size, &desc, channels);
