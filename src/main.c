@@ -226,8 +226,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(state->window, "Failed to open texture");
 	}
 
-	// TODO: Temporary (only SDL 3.4+)
-	SDL_Surface *texture = SDL_LoadPNG_IO(texture_stream, true);
+	SDL_Surface *texture = load_qoi(texture_stream);
 	if (texture == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load texture");
