@@ -17,6 +17,10 @@ typedef struct mesh_t
 	SDL_GPUSampler *sampler;
 
 	size_t num_indices;
+
+	matrix4x4_t projection;
+	bool rebuild_projection;
+
 	vector3f_t rotation;
 } mesh_t;
 
@@ -29,6 +33,7 @@ mesh_t *mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
 	mesh->texture = nullptr;
 	mesh->sampler = nullptr;
 	mesh->rotation = vector3f_zero();
+	mesh->rebuild_projection = true;
 
 	const size_t vertex_size = sizeof(vertex_t) * info.num_vertices;
 	const size_t index_size = sizeof(mesh_index_t) * info.num_indices;
@@ -242,14 +247,23 @@ bool mesh_set_texture(mesh_t *mesh, const SDL_Surface *texture)
 	return true;
 }
 
-void mesh_draw(const mesh_t *mesh, SDL_GPURenderPass *render_pass,
-	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
+static void rebuild_projection(mesh_t *mesh)
 {
 	const matrix4x4_t rotation_x = matrix4x4_create_rotation_x(deg2rad(mesh->rotation.x));
 	const matrix4x4_t rotation_y = matrix4x4_create_rotation_y(deg2rad(mesh->rotation.y));
 	const matrix4x4_t rotation_z = matrix4x4_create_rotation_z(deg2rad(mesh->rotation.z));
 
-	const matrix4x4_t mesh_proj = matrix4x4_multiply(rotation_x, matrix4x4_multiply(rotation_y, rotation_z));
+	mesh->projection = matrix4x4_multiply(rotation_x, matrix4x4_multiply(rotation_y, rotation_z));
+	mesh->rebuild_projection = false;
+}
+
+void mesh_draw(mesh_t *mesh, SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffer *command_buffer,
+	const matrix4x4_t projection)
+{
+	if (mesh->rebuild_projection)
+	{
+		rebuild_projection(mesh);
+	}
 
 	const SDL_GPUBufferBinding vertex_binding = {
 		.buffer = mesh->vertex_buffer,
@@ -273,7 +287,7 @@ void mesh_draw(const mesh_t *mesh, SDL_GPURenderPass *render_pass,
 	}
 
 	const vertex_uniform_data_t vertex_data = {
-		.mvp = matrix4x4_multiply(mesh_proj, projection),
+		.mvp = matrix4x4_multiply(mesh->projection, projection),
 	};
 	SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
 
@@ -288,4 +302,5 @@ vector3f_t mesh_rotation(const mesh_t *mesh)
 void mesh_set_rotation(mesh_t *mesh, const vector3f_t rotation)
 {
 	mesh->rotation = rotation;
+	mesh->rebuild_projection = true;
 }
