@@ -320,7 +320,7 @@ vector3f_t mesh_position(const mesh_t *mesh)
 	return mesh->position;
 }
 
-void mesh_set_position(mesh_t *mesh, vector3f_t position)
+void mesh_set_position(mesh_t *mesh, const vector3f_t position)
 {
 	mesh->position = position;
 	mesh->rebuild_projection = true;
