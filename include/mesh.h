@@ -22,3 +22,8 @@ void mesh_draw(mesh_t *mesh, SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffe
 vector3f_t mesh_rotation(const mesh_t *mesh);
 
 void mesh_set_rotation(mesh_t *mesh, vector3f_t rotation);
+
+[[nodiscard]]
+vector3f_t mesh_position(const mesh_t *mesh);
+
+void mesh_set_position(mesh_t *mesh, vector3f_t position);

@@ -22,6 +22,7 @@ typedef struct mesh_t
 	bool rebuild_projection;
 
 	vector3f_t rotation;
+	vector3f_t position;
 } mesh_t;
 
 mesh_t *mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
@@ -32,8 +33,9 @@ mesh_t *mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
 	mesh->num_indices = info.num_indices;
 	mesh->texture = nullptr;
 	mesh->sampler = nullptr;
-	mesh->rotation = vector3f_zero();
 	mesh->rebuild_projection = true;
+	mesh->rotation = vector3f_zero();
+	mesh->position = vector3f_zero();
 
 	const size_t vertex_size = sizeof(vertex_t) * info.num_vertices;
 	const size_t index_size = sizeof(mesh_index_t) * info.num_indices;
@@ -249,11 +251,19 @@ bool mesh_set_texture(mesh_t *mesh, const SDL_Surface *texture)
 
 static void rebuild_projection(mesh_t *mesh)
 {
-	const matrix4x4_t rotation_x = matrix4x4_create_rotation_x(deg2rad(mesh->rotation.x));
-	const matrix4x4_t rotation_y = matrix4x4_create_rotation_y(deg2rad(mesh->rotation.y));
-	const matrix4x4_t rotation_z = matrix4x4_create_rotation_z(deg2rad(mesh->rotation.z));
+	const matrix4x4_t transforms[] = {
+		matrix4x4_create_translation(mesh->position),
+		matrix4x4_create_rotation_x(deg2rad(mesh->rotation.x)),
+		matrix4x4_create_rotation_y(deg2rad(mesh->rotation.y)),
+		matrix4x4_create_rotation_z(deg2rad(mesh->rotation.z)),
+	};
 
-	mesh->projection = matrix4x4_multiply(rotation_x, matrix4x4_multiply(rotation_y, rotation_z));
+	mesh->projection = transforms[0];
+	for (auto i = 1; i < SDL_arraysize(transforms); i++)
+	{
+		mesh->projection = matrix4x4_multiply(mesh->projection, transforms[i]);
+	}
+
 	mesh->rebuild_projection = false;
 }
 
@@ -302,5 +312,16 @@ vector3f_t mesh_rotation(const mesh_t *mesh)
 void mesh_set_rotation(mesh_t *mesh, const vector3f_t rotation)
 {
 	mesh->rotation = rotation;
+	mesh->rebuild_projection = true;
+}
+
+vector3f_t mesh_position(const mesh_t *mesh)
+{
+	return mesh->position;
+}
+
+void mesh_set_position(mesh_t *mesh, vector3f_t position)
+{
+	mesh->position = position;
 	mesh->rebuild_projection = true;
 }
