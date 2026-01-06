@@ -220,8 +220,14 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	state->meshes = (mesh_t **) SDL_malloc(sizeof(meshes));
 	SDL_memcpy((void *) state->meshes, (void *) meshes, sizeof(meshes));
 
-	SDL_IOStream *texture_stream = SDL_IOFromConstMem(texture_wall_qoi, sizeof(texture_wall_qoi));
-	SDL_Surface *texture = load_qoi(texture_stream);
+	SDL_IOStream *texture_stream = assets_load(state->assets, "textures/light");
+	if (texture_stream == nullptr)
+	{
+		return fatal_error(state->window, "Failed to open texture");
+	}
+
+	// TODO: Temporary (only SDL 3.4+)
+	SDL_Surface *texture = SDL_LoadPNG_IO(texture_stream, true);
 	if (texture == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load texture");
