@@ -159,6 +159,12 @@ void mesh_destroy(mesh_t *mesh)
 
 bool mesh_set_texture(mesh_t *mesh, const SDL_Surface *texture)
 {
+	// TODO: This isn't ideal :/ (but saves some confusion for now)
+	if (texture->format != SDL_PIXELFORMAT_ABGR8888)
+	{
+		return SDL_SetError("Only ABGR8888 pixel format is currently supported");
+	}
+
 	if (mesh->texture != nullptr)
 	{
 		SDL_ReleaseGPUTexture(mesh->device, mesh->texture);
