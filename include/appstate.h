@@ -12,7 +12,7 @@ typedef struct time_info_t
 {
 	Uint16 fps;
 	Uint16 count;
-	Uint16 duration;
+	float duration;
 } time_info_t;
 
 typedef struct app_state_t
@@ -25,7 +25,7 @@ typedef struct app_state_t
 	camera_t camera;
 	Uint64 last_update;
 	time_info_t time;
-	Uint64 dt;
+	float dt;
 
 	mesh_t **meshes;
 	size_t num_meshes;

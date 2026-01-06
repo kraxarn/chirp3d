@@ -30,7 +30,7 @@
 #include <SDL3/SDL_version.h>
 
 static constexpr auto mouse_sensitivity = 0.075F;
-static constexpr auto move_speed = 0.02F;
+static constexpr auto move_speed = 10.F;
 
 static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
 {
@@ -244,17 +244,17 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	app_state_t *state = appstate;
 
 	const Uint64 current_update = SDL_GetTicks();
-	state->dt = current_update - state->last_update;
+	state->dt = (float) (current_update - state->last_update) / 1000.F;
 	state->last_update = current_update;
 
 	if (state->time.fps == 0)
 	{
-		state->time.fps = 1'000.F / (float) state->dt;
+		state->time.fps = 1.F / state->dt;
 	}
 
 	state->time.count++;
 	state->time.duration += state->dt;
-	if (state->time.duration >= 1'000)
+	if (state->time.duration >= 1.F)
 	{
 		state->time.fps = state->time.count;
 		state->time.count = 0;
@@ -265,38 +265,38 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	{
 		if (input_is_down("move_forward"))
 		{
-			state->camera.position.z += move_speed * (float) state->dt;
-			state->camera.target.z += move_speed * (float) state->dt;
+			state->camera.position.z += move_speed * state->dt;
+			state->camera.target.z += move_speed * state->dt;
 		}
 
 		if (input_is_down("move_backward"))
 		{
-			state->camera.position.z -= move_speed * (float) state->dt;
-			state->camera.target.z -= move_speed * (float) state->dt;
+			state->camera.position.z -= move_speed * state->dt;
+			state->camera.target.z -= move_speed * state->dt;
 		}
 
 		if (input_is_down("move_left"))
 		{
-			state->camera.position.x += move_speed * (float) state->dt;
-			state->camera.target.x += move_speed * (float) state->dt;
+			state->camera.position.x += move_speed * state->dt;
+			state->camera.target.x += move_speed * state->dt;
 		}
 
 		if (input_is_down("move_right"))
 		{
-			state->camera.position.x -= move_speed * (float) state->dt;
-			state->camera.target.x -= move_speed * (float) state->dt;
+			state->camera.position.x -= move_speed * state->dt;
+			state->camera.target.x -= move_speed * state->dt;
 		}
 
 		if (input_is_down("move_up"))
 		{
-			state->camera.position.y += move_speed * (float) state->dt;
-			state->camera.target.y += move_speed * (float) state->dt;
+			state->camera.position.y += move_speed * state->dt;
+			state->camera.target.y += move_speed * state->dt;
 		}
 
 		if (input_is_down("move_down"))
 		{
-			state->camera.position.y -= move_speed * (float) state->dt;
-			state->camera.target.y -= move_speed * (float) state->dt;
+			state->camera.position.y -= move_speed * state->dt;
+			state->camera.target.y -= move_speed * state->dt;
 		}
 	}
 
