@@ -71,7 +71,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 {
 	const mesh_t *meshes[] = {
 		create_cube(state->device, (vector3f_t){.x = 100.F, .y = 2.5F, .z = 100.F}),
-		create_cube(state->device, (vector3f_t){.x = 10.F, .y = 10.F, .z = 10.F}),
+		create_cube(state->device, (vector3f_t){.x = 10.F, .y = 20.F, .z = 10.F}),
 	};
 
 	state->num_meshes = SDL_arraysize(meshes);
@@ -84,6 +84,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 
 	SDL_Surface *purple = assets_load_texture(state->assets, "purple");
 	SDL_assert(mesh_set_texture(state->meshes[1], purple));
+	mesh_set_position(state->meshes[1], (vector3f_t){.x = -20.F, .y = 10.F, .z = 20.F});
 	SDL_DestroySurface(purple);
 
 	return SDL_APP_CONTINUE;
