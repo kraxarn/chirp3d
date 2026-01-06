@@ -264,8 +264,6 @@ assets_t *assets_create_from_folder(const char *path)
 					SDL_LogWarn(LOG_CATEGORY_INPUT, "Invalid keycode '%s': %s", keycode.u.s, SDL_GetError());
 					continue;
 				}
-
-				SDL_LogDebug(LOG_CATEGORY_INPUT, "Mapped '%s' to key '%s'", key, SDL_GetKeyName(parsed));
 			}
 		}
 	}
