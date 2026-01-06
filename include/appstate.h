@@ -27,5 +27,4 @@ typedef struct app_state_t
 	Uint64 last_update;
 	time_info_t time;
 	Uint64 dt;
-	float current_rotation;
 } app_state_t;

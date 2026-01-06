@@ -1,6 +1,10 @@
 #include "mesh.h"
 #include "gpu.h"
+#include "math.h"
+#include "matrix.h"
 #include "meshinfo.h"
+#include "uniformdata.h"
+#include "vector.h"
 
 #include <SDL3/SDL_stdinc.h>
 
@@ -13,6 +17,7 @@ typedef struct mesh_t
 	SDL_GPUSampler *sampler;
 
 	size_t num_indices;
+	vector3f_t rotation;
 } mesh_t;
 
 mesh_t *mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
@@ -23,6 +28,7 @@ mesh_t *mesh_create(SDL_GPUDevice *device, const mesh_info_t info)
 	mesh->num_indices = info.num_indices;
 	mesh->texture = nullptr;
 	mesh->sampler = nullptr;
+	mesh->rotation = vector3f_zero();
 
 	const size_t vertex_size = sizeof(vertex_t) * info.num_vertices;
 	const size_t index_size = sizeof(mesh_index_t) * info.num_indices;
@@ -236,8 +242,15 @@ bool mesh_set_texture(mesh_t *mesh, const SDL_Surface *texture)
 	return true;
 }
 
-void mesh_draw(const mesh_t *mesh, SDL_GPURenderPass *render_pass)
+void mesh_draw(const mesh_t *mesh, SDL_GPURenderPass *render_pass,
+	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
 {
+	const matrix4x4_t rotation_x = matrix4x4_create_rotation_x(deg2rad(mesh->rotation.x));
+	const matrix4x4_t rotation_y = matrix4x4_create_rotation_y(deg2rad(mesh->rotation.y));
+	const matrix4x4_t rotation_z = matrix4x4_create_rotation_z(deg2rad(mesh->rotation.z));
+
+	const matrix4x4_t mesh_proj = matrix4x4_multiply(rotation_x, matrix4x4_multiply(rotation_y, rotation_z));
+
 	const SDL_GPUBufferBinding vertex_binding = {
 		.buffer = mesh->vertex_buffer,
 		.offset = 0,
@@ -259,5 +272,20 @@ void mesh_draw(const mesh_t *mesh, SDL_GPURenderPass *render_pass)
 		SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 	}
 
+	const vertex_uniform_data_t vertex_data = {
+		.mvp = matrix4x4_multiply(mesh_proj, projection),
+	};
+	SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
+
 	SDL_DrawGPUIndexedPrimitives(render_pass, mesh->num_indices, 1, 0, 0, 0);
+}
+
+vector3f_t mesh_rotation(const mesh_t *mesh)
+{
+	return mesh->rotation;
+}
+
+void mesh_set_rotation(mesh_t *mesh, const vector3f_t rotation)
+{
+	mesh->rotation = rotation;
 }

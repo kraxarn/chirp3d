@@ -96,7 +96,6 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 
 	state->last_update = SDL_GetTicks();
-	state->current_rotation = 0.F;
 
 	const window_config_t window_config = state->assets->window_config;
 
@@ -244,11 +243,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	state->dt = current_update - state->last_update;
 	state->last_update = current_update;
 
-	state->current_rotation = SDL_fmodf(state->current_rotation + (rotation_speed * state->dt), 360.F);
-	const matrix4x4_t mesh_proj = matrix4x4_multiply(
-		matrix4x4_create_rotation_x(deg2rad(state->current_rotation)),
-		matrix4x4_create_rotation_y(deg2rad(state->current_rotation))
-	);
+	vector3f_t current_rotation = mesh_rotation(state->mesh);
+	current_rotation.x = SDL_fmodf(current_rotation.x + (rotation_speed * state->dt), 360.F);
+	current_rotation.y = current_rotation.x;
+	mesh_set_rotation(state->mesh, current_rotation);
 
 	if (state->time.fps == 0)
 	{
@@ -285,13 +283,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		);
 		const matrix4x4_t view_proj = matrix4x4_multiply(view, proj);
 
-		const vertex_uniform_data_t vertex_data = {
-			.mvp = matrix4x4_multiply(mesh_proj, view_proj),
-		};
-
 		SDL_BindGPUGraphicsPipeline(render_pass, state->pipeline);
-		SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
-		mesh_draw(state->mesh, render_pass);
+		mesh_draw(state->mesh, render_pass, command_buffer, view_proj);
 
 		static constexpr size_t debug_text_len = 256;
 		static char debug_text[debug_text_len];
