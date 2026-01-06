@@ -224,13 +224,14 @@ assets_t *assets_create_from_folder(const char *path)
 	if (input.type == TOML_TABLE)
 	{
 		// TODO: Temporary workaround for weird clang bug (?) when using union
-		const auto tab = (struct
+		struct toml_table_t
 		{
 			int size;
 			const char **keys;
 			void *padding;
 			toml_datum_t *values;
-		} *) &input.u.tab;
+		};
+		const auto tab = (struct toml_table_t *) &input.u.tab;
 
 		for (auto i = 0; i < tab->size; i++)
 		{
