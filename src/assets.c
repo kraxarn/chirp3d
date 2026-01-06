@@ -22,11 +22,18 @@ SDL_IOStream *assets_load(assets_t *assets, const char *name)
 SDL_Surface *assets_load_texture(assets_t *assets, const char *name)
 {
 	char *path = nullptr;
-	SDL_asprintf(&path, "textures/%s", name);
+	if (SDL_asprintf(&path, "textures/%s", name) < 0)
+	{
+		return nullptr;
+	}
 
 	SDL_IOStream *stream = assets_load(assets, path);
-	SDL_Surface *surface = load_qoi(stream, true);
-
 	SDL_free(path);
-	return surface;
+
+	if (stream == nullptr)
+	{
+		return nullptr;
+	}
+
+	return load_qoi(stream, true);
 }
