@@ -10,9 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Checkout Dependencies
-        run: apt update && apt install -y git
-
       - uses: actions/checkout@v5
 
       - name: Set up compiler
