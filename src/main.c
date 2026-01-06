@@ -244,16 +244,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 {
 	app_state_t *state = appstate;
 
-	constexpr float rotation_speed = 64.F / 1000.F;
-
 	const Uint64 current_update = SDL_GetTicks();
 	state->dt = current_update - state->last_update;
 	state->last_update = current_update;
-
-	vector3f_t current_rotation = mesh_rotation(state->meshes[0]);
-	current_rotation.x = SDL_fmodf(current_rotation.x + (rotation_speed * state->dt), 360.F);
-	current_rotation.y = current_rotation.x;
-	mesh_set_rotation(state->meshes[0], current_rotation);
 
 	if (state->time.fps == 0)
 	{
