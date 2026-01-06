@@ -302,14 +302,16 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			"Audio   : %s\n"
 			"Renderer: %s\n"
 			"Camera  : %6.2f %6.2f %6.2f\n"
-			"Target  : %6.2f %6.2f %6.2f",
+			"Target  : %6.2f %6.2f %6.2f\n"
+			"Up      : %6.2f %6.2f %6.2f\n",
 			ENGINE_NAME, ENGINE_VERSION,
 			state->time.fps,
 			video_driver_display_name(SDL_GetCurrentVideoDriver()),
 			audio_driver_display_name(SDL_GetCurrentAudioDriver()),
 			gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device)),
 			state->camera.position.x, state->camera.position.y, state->camera.position.z,
-			state->camera.target.x, state->camera.target.y, state->camera.target.z
+			state->camera.target.x, state->camera.target.y, state->camera.target.z,
+			state->camera.up.x, state->camera.up.y, state->camera.up.z
 		);
 
 		font_draw_text(state->font, render_pass, command_buffer, size,
