@@ -335,7 +335,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			"- debug mode -\n"
 #endif
 			"%s %s\n"
-			"FPS     : %u\n"
+			"FPS     : %u (%.2f)\n"
 			"Video   : %s\n"
 			"Audio   : %s\n"
 			"Renderer: %s\n"
@@ -343,7 +343,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			"Target  : %6.2f %6.2f %6.2f\n"
 			"Up      : %6.2f %6.2f %6.2f\n",
 			ENGINE_NAME, ENGINE_VERSION,
-			state->time.fps,
+			state->time.fps, state->dt,
 			video_driver_display_name(SDL_GetCurrentVideoDriver()),
 			audio_driver_display_name(SDL_GetCurrentAudioDriver()),
 			gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device)),
