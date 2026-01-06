@@ -30,7 +30,7 @@
 #include <SDL3/SDL_version.h>
 
 static constexpr auto mouse_sensitivity = 0.075F;
-static constexpr auto move_speed = 1.5F;
+static constexpr auto move_speed = 0.02F;
 
 static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
 {
@@ -261,6 +261,45 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		state->time.duration = 0;
 	}
 
+	if (SDL_GetWindowRelativeMouseMode(state->window))
+	{
+		if (input_is_down("move_forward"))
+		{
+			state->camera.position.z += move_speed * (float) state->dt;
+			state->camera.target.z += move_speed * (float) state->dt;
+		}
+
+		if (input_is_down("move_backward"))
+		{
+			state->camera.position.z -= move_speed * (float) state->dt;
+			state->camera.target.z -= move_speed * (float) state->dt;
+		}
+
+		if (input_is_down("move_left"))
+		{
+			state->camera.position.x += move_speed * (float) state->dt;
+			state->camera.target.x += move_speed * (float) state->dt;
+		}
+
+		if (input_is_down("move_right"))
+		{
+			state->camera.position.x -= move_speed * (float) state->dt;
+			state->camera.target.x -= move_speed * (float) state->dt;
+		}
+
+		if (input_is_down("move_up"))
+		{
+			state->camera.position.y += move_speed * (float) state->dt;
+			state->camera.target.y += move_speed * (float) state->dt;
+		}
+
+		if (input_is_down("move_down"))
+		{
+			state->camera.position.y -= move_speed * (float) state->dt;
+			state->camera.target.y -= move_speed * (float) state->dt;
+		}
+	}
+
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 
 	SDL_GPUCommandBuffer *command_buffer = nullptr;
@@ -350,45 +389,6 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 		{
 			state->camera.target.x -= event->motion.xrel * mouse_sensitivity;
 			state->camera.target.y -= event->motion.yrel * mouse_sensitivity;
-		}
-
-		if (event->type == SDL_EVENT_KEY_DOWN)
-		{
-			switch (event->key.key)
-			{
-				case SDLK_W:
-					state->camera.position.z += move_speed;
-					state->camera.target.z += move_speed;
-					break;
-
-				case SDLK_S:
-					state->camera.position.z -= move_speed;
-					state->camera.target.z -= move_speed;
-					break;
-
-				case SDLK_A:
-					state->camera.position.x += move_speed;
-					state->camera.target.x += move_speed;
-					break;
-
-				case SDLK_D:
-					state->camera.position.x -= move_speed;
-					state->camera.target.x -= move_speed;
-					break;
-
-				case SDLK_Q:
-					state->camera.position.y += move_speed;
-					state->camera.target.y += move_speed;
-					break;
-
-				case SDLK_E:
-					state->camera.position.y -= move_speed;
-					state->camera.target.y -= move_speed;
-					break;
-
-				default:
-					break;
-			}
 		}
 	}
 
