@@ -12,7 +12,6 @@
 #include "model.h"
 #include "resources.h"
 #include "shader.h"
-#include "uniformdata.h"
 #include "videodriver.h"
 
 #define SDL_MAIN_USE_CALLBACKS
@@ -213,8 +212,13 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_ReleaseGPUShader(state->device, vert_shader);
 	SDL_ReleaseGPUShader(state->device, frag_shader);
 
-	const vector3f_t mesh_size = {.x = 10.F, .y = 10.F, .z = 10.F};
-	state->mesh = create_cube(state->device, mesh_size);
+	const mesh_t *meshes[] = {
+		create_cube(state->device, (vector3f_t){.x = 10.F, .y = 10.F, .z = 10.F}),
+	};
+
+	state->num_meshes = SDL_arraysize(meshes);
+	state->meshes = (mesh_t **) SDL_malloc(sizeof(meshes));
+	SDL_memcpy((void *) state->meshes, (void *) meshes, sizeof(meshes));
 
 	SDL_IOStream *texture_stream = SDL_IOFromConstMem(texture_wall_qoi, sizeof(texture_wall_qoi));
 	SDL_Surface *texture = load_qoi(texture_stream);
@@ -223,10 +227,13 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(state->window, "Failed to load texture");
 	}
 
-	if (!mesh_set_texture(state->mesh, texture))
+	for (size_t i = 0; i < state->num_meshes; i++)
 	{
-		SDL_DestroySurface(texture);
-		return fatal_error(state->window, "Failed to set mesh texture");
+		if (!mesh_set_texture(state->meshes[i], texture))
+		{
+			SDL_DestroySurface(texture);
+			return fatal_error(state->window, "Failed to set mesh texture");
+		}
 	}
 	SDL_DestroySurface(texture);
 
@@ -243,10 +250,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	state->dt = current_update - state->last_update;
 	state->last_update = current_update;
 
-	vector3f_t current_rotation = mesh_rotation(state->mesh);
+	vector3f_t current_rotation = mesh_rotation(state->meshes[0]);
 	current_rotation.x = SDL_fmodf(current_rotation.x + (rotation_speed * state->dt), 360.F);
 	current_rotation.y = current_rotation.x;
-	mesh_set_rotation(state->mesh, current_rotation);
+	mesh_set_rotation(state->meshes[0], current_rotation);
 
 	if (state->time.fps == 0)
 	{
@@ -284,7 +291,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		const matrix4x4_t view_proj = matrix4x4_multiply(view, proj);
 
 		SDL_BindGPUGraphicsPipeline(render_pass, state->pipeline);
-		mesh_draw(state->mesh, render_pass, command_buffer, view_proj);
+
+		for (size_t i = 0; i < state->num_meshes; i++)
+		{
+			mesh_draw(state->meshes[i], render_pass, command_buffer, view_proj);
+		}
 
 		static constexpr size_t debug_text_len = 256;
 		static char debug_text[debug_text_len];
@@ -394,7 +405,12 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 {
 	const app_state_t *state = appstate;
 
-	mesh_destroy(state->mesh);
+	for (size_t i = 0; i < state->num_meshes; i++)
+	{
+		mesh_destroy(state->meshes[i]);
+	}
+	SDL_free((void *) state->meshes);
+
 	font_destroy(state->font);
 	assets_destroy(state->assets);
 

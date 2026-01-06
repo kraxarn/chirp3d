@@ -21,10 +21,12 @@ typedef struct app_state_t
 	SDL_GPUDevice *device;
 	SDL_GPUGraphicsPipeline *pipeline;
 	font_t *font;
-	mesh_t *mesh;
 	assets_t *assets;
 	camera_t camera;
 	Uint64 last_update;
 	time_info_t time;
 	Uint64 dt;
+
+	mesh_t **meshes;
+	size_t num_meshes;
 } app_state_t;
