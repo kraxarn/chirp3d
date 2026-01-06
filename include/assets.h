@@ -3,6 +3,7 @@
 #include "windowconfig.h"
 
 #include <SDL3/SDL_iostream.h>
+#include <SDL3/SDL_surface.h>
 
 typedef struct assets_t assets_t;
 
@@ -25,3 +26,6 @@ void assets_destroy(assets_t *assets);
 
 [[nodiscard]]
 SDL_IOStream *assets_load(assets_t *assets, const char *name);
+
+[[nodiscard]]
+SDL_Surface *assets_load_texture(assets_t *assets, const char *name);

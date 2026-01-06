@@ -76,13 +76,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 	state->meshes = (mesh_t **) SDL_malloc(sizeof(meshes));
 	SDL_memcpy((void *) state->meshes, (void *) meshes, sizeof(meshes));
 
-	SDL_IOStream *texture_stream = assets_load(state->assets, "textures/light");
-	if (texture_stream == nullptr)
-	{
-		return fatal_error(state->window, "Failed to open texture");
-	}
-
-	SDL_Surface *texture = load_qoi(texture_stream, true);
+	SDL_Surface *texture = assets_load_texture(state->assets, "light");
 	if (texture == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load texture");
