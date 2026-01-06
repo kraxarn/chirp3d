@@ -40,18 +40,18 @@ static void compute_normals(vertex_t *vertices, const size_t num_vertices,
 }
 #endif
 
-mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t position, const vector3f_t size)
+mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 {
 	const vector3f_t min = {
-		.x = position.x - (size.x / 2.F),
-		.y = position.y - (size.y / 2.F),
-		.z = position.z - (size.z / 2.F),
+		.x = -(size.x / 2.F),
+		.y = -(size.y / 2.F),
+		.z = -(size.z / 2.F),
 	};
 
 	const vector3f_t max = {
-		.x = position.x + (size.x / 2.F),
-		.y = position.y + (size.y / 2.F),
-		.z = position.z + (size.z / 2.F),
+		.x = (size.x / 2.F),
+		.y = (size.y / 2.F),
+		.z = (size.z / 2.F),
 	};
 
 	vertex_t vertices[] = {

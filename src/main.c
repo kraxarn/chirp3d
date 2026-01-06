@@ -214,7 +214,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_ReleaseGPUShader(state->device, frag_shader);
 
 	const vector3f_t mesh_size = {.x = 10.F, .y = 10.F, .z = 10.F};
-	state->mesh = create_cube(state->device, vector3f_zero(), mesh_size);
+	state->mesh = create_cube(state->device, mesh_size);
 
 	SDL_IOStream *texture_stream = SDL_IOFromConstMem(texture_wall_qoi, sizeof(texture_wall_qoi));
 	SDL_Surface *texture = load_qoi(texture_stream);
