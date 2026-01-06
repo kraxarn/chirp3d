@@ -21,6 +21,7 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
+#include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
@@ -69,28 +70,21 @@ static void log_gpu_info(SDL_GPUDevice *device)
 static SDL_AppResult build_scene(app_state_t *state)
 {
 	const mesh_t *meshes[] = {
-		create_cube(state->device, (vector3f_t){.x = 60.F, .y = 2.5F, .z = 60.F}),
+		create_cube(state->device, (vector3f_t){.x = 100.F, .y = 2.5F, .z = 100.F}),
+		create_cube(state->device, (vector3f_t){.x = 10.F, .y = 10.F, .z = 10.F}),
 	};
 
 	state->num_meshes = SDL_arraysize(meshes);
 	state->meshes = (mesh_t **) SDL_malloc(sizeof(meshes));
 	SDL_memcpy((void *) state->meshes, (void *) meshes, sizeof(meshes));
 
-	SDL_Surface *texture = assets_load_texture(state->assets, "light");
-	if (texture == nullptr)
-	{
-		return fatal_error(state->window, "Failed to load texture");
-	}
+	SDL_Surface *light = assets_load_texture(state->assets, "light");
+	SDL_assert(mesh_set_texture(state->meshes[0], light));
+	SDL_DestroySurface(light);
 
-	for (size_t i = 0; i < state->num_meshes; i++)
-	{
-		if (!mesh_set_texture(state->meshes[i], texture))
-		{
-			SDL_DestroySurface(texture);
-			return fatal_error(state->window, "Failed to set mesh texture");
-		}
-	}
-	SDL_DestroySurface(texture);
+	SDL_Surface *purple = assets_load_texture(state->assets, "purple");
+	SDL_assert(mesh_set_texture(state->meshes[1], purple));
+	SDL_DestroySurface(purple);
 
 	return SDL_APP_CONTINUE;
 }
