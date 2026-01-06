@@ -335,7 +335,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			"- debug mode -\n"
 #endif
 			"%s %s\n"
-			"FPS     : %u (%.2f)\n"
+			"FPS     : %u (%.3f)\n"
 			"Video   : %s\n"
 			"Audio   : %s\n"
 			"Renderer: %s\n"
