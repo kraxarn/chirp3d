@@ -63,6 +63,13 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 					},
 				}
 			},
+			.has_depth_stencil_target = true,
+			.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+		},
+		.depth_stencil_state = (SDL_GPUDepthStencilState){
+			.enable_depth_test = true,
+			.enable_depth_write = true,
+			.compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
 		},
 		.vertex_input_state = (SDL_GPUVertexInputState){
 			.num_vertex_buffers = 1,
