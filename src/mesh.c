@@ -160,7 +160,7 @@ void mesh_destroy(mesh_t *mesh)
 bool mesh_set_texture(mesh_t *mesh, const SDL_Surface *texture)
 {
 	// TODO: This isn't ideal :/ (but saves some confusion for now)
-	if (texture->format != SDL_PIXELFORMAT_ABGR8888)
+	if (texture != nullptr && texture->format != SDL_PIXELFORMAT_ABGR8888)
 	{
 		return SDL_SetError("Only ABGR8888 pixel format is currently supported");
 	}
@@ -169,6 +169,12 @@ bool mesh_set_texture(mesh_t *mesh, const SDL_Surface *texture)
 	{
 		SDL_ReleaseGPUTexture(mesh->device, mesh->texture);
 		SDL_ReleaseGPUSampler(mesh->device, mesh->sampler);
+		mesh->texture = nullptr;
+	}
+
+	if (texture == nullptr)
+	{
+		return SDL_SetError("No texture provided");
 	}
 
 	const SDL_GPUSamplerCreateInfo sampler_info = {
