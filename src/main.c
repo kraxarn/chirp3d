@@ -236,8 +236,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 {
 	app_state_t *state = appstate;
 
-	const Uint64 current_update = SDL_GetTicks();
-	state->dt = (float) (current_update - state->last_update) / 1000.F;
+	constexpr auto ns_s = 1'000'000'000.F;
+	const Uint64 current_update = SDL_GetTicksNS();
+	state->dt = (float) (current_update - state->last_update) / ns_s;
 	state->last_update = current_update;
 
 	if (state->time.fps == 0)
@@ -328,7 +329,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 #endif
 			"%s %s\n"
 			"FPS     : %u\n"
-			"Delta   : %.3f\n"
+			"Delta   : %.4f\n"
 			"Video   : %s\n"
 			"Audio   : %s\n"
 			"Renderer: %s\n"
