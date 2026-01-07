@@ -23,6 +23,6 @@ Currently very early in development and not very usable quite yet.
 Any compiler with C23 support should work, including Clang 19+ (recommended) or GCC 15+.
 MSVC is currently not supported, as it doesn't support C23 yet.
 
-# why yet another engine?
+# why yet another game engine?
 
 It's fun to make and very cool to have your own game engine B)
