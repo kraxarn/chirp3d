@@ -22,7 +22,7 @@ static vector3f_t camera_up(const camera_t *camera)
 	return vector3f_normalize(camera->up);
 }
 
-static vector3f_t camera_left(const camera_t *camera)
+static vector3f_t camera_right(const camera_t *camera)
 {
 	return vector3f_normalize(vector3f_cross(camera_forward(camera), camera_up(camera)));
 }
@@ -37,10 +37,10 @@ void camera_move_z(camera_t *camera, const float movement)
 
 void camera_move_x(camera_t *camera, const float movement)
 {
-	const vector3f_t left = vector3f_scale(camera_left(camera), movement);
+	const vector3f_t right = vector3f_scale(camera_right(camera), movement);
 
-	camera->position = vector3f_add(camera->position, left);
-	camera->target = vector3f_add(camera->target, left);
+	camera->position = vector3f_add(camera->position, right);
+	camera->target = vector3f_add(camera->target, right);
 }
 
 void camera_move_y(camera_t *camera, const float movement)

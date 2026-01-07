@@ -23,9 +23,9 @@ camera_t camera_create_default();
 void camera_move_z(camera_t *camera, float movement);
 
 /**
- * Move camera in the X-axis (left/right)
+ * Move camera in the X-axis (right/left)
  * @param camera Camera to modify
- * @param movement Left movement
+ * @param movement Right movement
  */
 void camera_move_x(camera_t *camera, float movement);
 
