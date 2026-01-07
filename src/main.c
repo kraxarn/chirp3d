@@ -376,8 +376,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 
 		if (event->type == SDL_EVENT_MOUSE_MOTION)
 		{
-			state->camera.target.x -= event->motion.xrel * mouse_sensitivity;
-			state->camera.target.y -= event->motion.yrel * mouse_sensitivity;
+			camera_rotate_x(&state->camera, -(event->motion.xrel * mouse_sensitivity));
+			camera_rotate_y(&state->camera, -(event->motion.yrel * mouse_sensitivity));
 		}
 	}
 

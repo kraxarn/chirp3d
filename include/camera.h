@@ -35,3 +35,13 @@ void camera_move_x(camera_t *camera, float movement);
  * @param movement Up movement
  */
 void camera_move_y(camera_t *camera, float movement);
+
+/**
+ * Camera jaw
+ */
+void camera_rotate_x(camera_t *camera, float angle);
+
+/**
+ * Camera pitch
+ */
+void camera_rotate_y(camera_t *camera, float angle);
