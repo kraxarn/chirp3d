@@ -12,11 +12,33 @@ camera_t camera_create_default()
 	};
 }
 
+static vector3f_t camera_forward(const camera_t *camera)
+{
+	return vector3f_normalize(vector3f_sub(camera->target, camera->position));
+}
+
+static vector3f_t camera_up(const camera_t *camera)
+{
+	return vector3f_normalize(camera->up);
+}
+
+static vector3f_t camera_left(const camera_t *camera)
+{
+	return vector3f_normalize(vector3f_cross(camera_forward(camera), camera_up(camera)));
+}
+
 void camera_move_z(camera_t *camera, const float movement)
 {
-	const vector3f_t forward = vector3f_normalize(vector3f_sub(camera->target, camera->position));
-	const vector3f_t move = vector3f_scale(forward, movement);
+	const vector3f_t forward = vector3f_scale(camera_forward(camera), movement);
 
-	camera->position = vector3f_add(camera->position, move);
-	camera->target = vector3f_add(camera->target, move);
+	camera->position = vector3f_add(camera->position, forward);
+	camera->target = vector3f_add(camera->target, forward);
+}
+
+void camera_move_x(camera_t *camera, const float movement)
+{
+	const vector3f_t left = vector3f_scale(camera_left(camera), movement);
+
+	camera->position = vector3f_add(camera->position, left);
+	camera->target = vector3f_add(camera->target, left);
 }
