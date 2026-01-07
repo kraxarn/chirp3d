@@ -15,4 +15,4 @@ typedef struct camera_t
 [[nodiscard]]
 camera_t camera_create_default();
 
-void camera_move_forward(camera_t *camera, float movement);
+void camera_move_z(camera_t *camera, float movement);
