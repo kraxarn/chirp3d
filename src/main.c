@@ -21,7 +21,6 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
-#include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
@@ -79,11 +78,17 @@ static SDL_AppResult build_scene(app_state_t *state)
 	SDL_memcpy((void *) state->meshes, (void *) meshes, sizeof(meshes));
 
 	SDL_Surface *light = assets_load_texture(state->assets, "light");
-	SDL_assert(mesh_set_texture(state->meshes[0], light));
+	if (!mesh_set_texture(state->meshes[0], light))
+	{
+		return fatal_error(state->window, "Failed to load texture");
+	}
 	SDL_DestroySurface(light);
 
 	SDL_Surface *purple = assets_load_texture(state->assets, "purple");
-	SDL_assert(mesh_set_texture(state->meshes[1], purple));
+	if (!mesh_set_texture(state->meshes[1], purple))
+	{
+		return fatal_error(state->window, "Failed to load texture");
+	}
 	mesh_set_position(state->meshes[1], (vector3f_t){.x = -20.F, .y = 10.F, .z = 20.F});
 	SDL_DestroySurface(purple);
 
