@@ -62,63 +62,14 @@ vector3f_t vector3f_cross(const vector3f_t vec1, const vector3f_t vec2)
 	};
 }
 
-vector3f_t vector3f_rotate(const vector3f_t vec, vector3f_t axis, float angle)
+vector3f_t vector3f_rotate(const vector3f_t vec, const vector3f_t axis, const float angle)
 {
-	vector3f_t result = vec;
+	const vector3f_t axis_norm = vector3f_normalize(axis);
+	const vector3f_t axis_scaled = vector3f_scale(axis_norm, SDL_sinf(angle));
+	const vector3f_t cross1 = vector3f_scale(vector3f_cross(axis_scaled, vec), SDL_cosf(angle) * 2);
+	const vector3f_t cross2 = vector3f_scale(vector3f_cross(axis_scaled, cross1), 2);
 
-	// TODO: normalize(axis)
-	float length = SDL_sqrtf((axis.x * axis.x) + (axis.y * axis.y) + (axis.z * axis.z));
-	if (length == 0.F)
-	{
-		length = 1.F;
-	}
-	const float i_length = 1.F / length;
-	axis.x *= i_length;
-	axis.y *= i_length;
-	axis.z *= i_length;
-
-	angle /= 2.F;
-	float a = SDL_sinf(angle);
-	const float b = axis.x * a;
-	const float c = axis.y * a;
-	const float d = axis.z * a;
-	a = SDL_cosf(angle);
-	vector3f_t w = {.x = b, .y = c, .z = d};
-
-	// TODO: cross(w, v)
-	vector3f_t wv = {
-		.x = (w.y * vec.z) - (w.z * vec.y),
-		.y = (w.z * vec.x) - (w.x * vec.z),
-		.z = (w.x * vec.y) - (w.y * vec.x),
-	};
-
-	// TODO: cross(w, wv)
-	vector3f_t wwv = {
-		.x = (w.y * wv.z) - (w.z * wv.y),
-		.y = (w.z * wv.x) - (w.x * wv.z),
-		.z = (w.x * wv.y) - (w.y * wv.x),
-	};
-
-	// TODO: scale(wv, 2 * a)
-	a *= 2;
-	wv.x *= a;
-	wv.y *= a;
-	wv.z *= a;
-
-	// TODO: scale(wwv, 2)
-	wwv.x *= 2;
-	wwv.y *= 2;
-	wwv.z *= 2;
-
-	result.x += wv.x;
-	result.y += wv.y;
-	result.z += wv.z;
-
-	result.x += wwv.x;
-	result.y += wwv.y;
-	result.z += wwv.z;
-
-	return result;
+	return vector3f_add(vec, vector3f_add(cross1, cross2));
 }
 
 float vector3f_angle(const vector3f_t vec1, const vector3f_t vec2)
