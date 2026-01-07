@@ -60,30 +60,20 @@ void camera_rotate_x(camera_t *camera, const float angle) // jaw
 	camera->target = vector3f_add(camera->position, rotated);
 }
 
-void camera_rotate_y(camera_t *camera, float angle) // patch
+void camera_rotate_y(camera_t *camera, const float angle) // pitch
 {
 	const vector3f_t up = camera_up(camera);
 	vector3f_t target = vector3f_sub(camera->target, camera->position);
 
-	// TODO: Use proper clamping and clean this up
+	// To avoid numerical errors
+	constexpr auto offset = 0.001F;
 
-	float max_up = vector3f_angle(up, target);
-	max_up -= 0.001F;
-	if (angle > max_up)
-	{
-		angle = max_up;
-	}
+	const float max_up = vector3f_angle(up, target) - offset;
+	const float max_down = -vector3f_angle(vector3f_invert(up), target) + offset;
+	const float clamped_angle = SDL_min(SDL_max(angle, max_down), max_up);
 
-	float max_down = vector3f_angle(vector3f_invert(up), target);
-	max_down *= -1.F;
-	max_down += 0.001F;
-	if (angle < max_down)
-	{
-		angle = max_down;
-	}
-
-	vector3f_t right = camera_right(camera);
-	target = vector3f_rotate(target, right, angle);
+	const vector3f_t right = camera_right(camera);
+	target = vector3f_rotate(target, right, clamped_angle);
 
 	camera->target = vector3f_add(camera->position, target);
 }
