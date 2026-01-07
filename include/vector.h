@@ -62,4 +62,7 @@ vector3f_t vector3f_cross(vector3f_t vec1, vector3f_t vec2);
 [[nodiscard]]
 vector3f_t vector3f_rotate(vector3f_t vec, vector3f_t axis, float angle);
 
+[[nodiscard]]
+float vector3f_angle(vector3f_t vec1, vector3f_t vec2);
+
 char *vector3f_str(vector3f_t vec, char *str, size_t max_len);
