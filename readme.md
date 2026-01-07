@@ -16,7 +16,7 @@ Currently very early in development and not very usable quite yet.
 
 * Linux and Android through Vulkan 1.0.
 * macOS and iOS through Metal.
-* Windows through Direct3D 12 (FL 11_1, RBT 2), or Vulkan 1.0 (not recommended).
+* Windows through Direct3D 12 (FL 11_0, RBT 2), or Vulkan 1.0 (not recommended).
 
 # compiler support
 
