@@ -48,6 +48,9 @@ vector3f_t vector3f_add(vector3f_t vec1, vector3f_t vec2);
 vector3f_t vector3f_sub(vector3f_t vec1, vector3f_t vec2);
 
 [[nodiscard]]
+vector3f_t vector3f_scale(vector3f_t vec, float scalar);
+
+[[nodiscard]]
 vector3f_t vector3f_normalize(vector3f_t vec);
 
 [[nodiscard]]

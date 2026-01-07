@@ -29,6 +29,15 @@ vector3f_t vector3f_sub(const vector3f_t vec1, const vector3f_t vec2)
 	};
 }
 
+vector3f_t vector3f_scale(const vector3f_t vec, const float scalar)
+{
+	return (vector3f_t){
+		.x = vec.x * scalar,
+		.y = vec.y * scalar,
+		.z = vec.z * scalar,
+	};
+}
+
 vector3f_t vector3f_normalize(const vector3f_t vec)
 {
 	const float magnitude = SDL_sqrtf((vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z));
