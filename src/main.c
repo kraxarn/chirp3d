@@ -336,7 +336,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 #endif
 			"%s %s\n"
 			"FPS     : %u\n"
-			"Delta   : %.4f\n"
+			"Delta   : %.3f\n"
 			"Video   : %s\n"
 			"Audio   : %s\n"
 			"Renderer: %s\n"
