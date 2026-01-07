@@ -106,6 +106,21 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 
 	return SDL_CreateGPUGraphicsPipeline(device, &create_info);
 }
+SDL_GPUTexture *create_depth_texture(SDL_GPUDevice *device, const vector2i_t size)
+{
+	const SDL_GPUTextureCreateInfo create_info = {
+		.type = SDL_GPU_TEXTURETYPE_2D,
+		.width = size.x,
+		.height = size.y,
+		.layer_count_or_depth = 1,
+		.num_levels = 1,
+		.sample_count = SDL_GPU_SAMPLECOUNT_1,
+		.format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET
+	};
+
+	return SDL_CreateGPUTexture(device, &create_info);
+}
 
 char *gpu_driver_names()
 {
@@ -180,7 +195,8 @@ char *shader_format_names(SDL_GPUDevice *device)
 }
 
 bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, const SDL_FColor clear_color,
-	SDL_GPUCommandBuffer **command_buffer, SDL_GPURenderPass **render_pass, vector2f_t *size)
+	SDL_GPUTexture *depth_texture, SDL_GPUCommandBuffer **command_buffer,
+	SDL_GPURenderPass **render_pass, vector2f_t *size)
 {
 	current_command_buffer = SDL_AcquireGPUCommandBuffer(device);
 	if (current_command_buffer == nullptr)
@@ -212,7 +228,18 @@ bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, const SDL_FColor clea
 		.load_op = SDL_GPU_LOADOP_CLEAR,
 		.store_op = SDL_GPU_STOREOP_STORE,
 	};
-	current_render_pass = SDL_BeginGPURenderPass(*command_buffer, &color_target_info, 1, nullptr);
+	const SDL_GPUDepthStencilTargetInfo depth_stencil_target_info = {
+		.texture = depth_texture,
+		.cycle = true,
+		.clear_depth = 1,
+		.clear_stencil = 0,
+		.load_op = SDL_GPU_LOADOP_CLEAR,
+		.store_op = SDL_GPU_STOREOP_STORE,
+		.stencil_load_op = SDL_GPU_LOADOP_CLEAR,
+		.stencil_store_op = SDL_GPU_STOREOP_STORE,
+	};
+	current_render_pass = SDL_BeginGPURenderPass(*command_buffer, &color_target_info,1,
+		&depth_stencil_target_info);
 	*render_pass = current_render_pass;
 	return true;
 }

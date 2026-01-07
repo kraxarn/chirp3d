@@ -168,6 +168,18 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		SDL_LogWarn(LOG_CATEGORY_CORE, "VSync not supported: %s", SDL_GetError());
 	}
 
+	vector2i_t depth_size;
+	if (!SDL_GetWindowSize(state->window, &depth_size.x, &depth_size.y))
+	{
+		return fatal_error(state->window, "Failed to get window size");
+	}
+
+	state->depth_texture = create_depth_texture(state->device, depth_size);
+	if (state->depth_texture == nullptr)
+	{
+		return fatal_error(state->window, "Failed to create depth texture");
+	}
+
 	SDL_IOStream *font_source = SDL_IOFromConstMem(font_monogram_ttf, sizeof(font_monogram_ttf));
 	if (font_source == nullptr)
 	{
@@ -304,7 +316,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	SDL_GPURenderPass *render_pass = nullptr;
 	vector2f_t size;
 
-	if (draw_begin(state->device, state->window, clear_color, &command_buffer, &render_pass, &size))
+	if (draw_begin(state->device, state->window, clear_color, state->depth_texture,
+		&command_buffer, &render_pass, &size))
 	{
 		const matrix4x4_t proj = matrix4x4_create_perspective(
 			deg2rad(state->camera.fov_y),
@@ -402,6 +415,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	font_destroy(state->font);
 	assets_destroy(state->assets);
 
+	SDL_ReleaseGPUTexture(state->device, state->depth_texture);
 	SDL_ReleaseGPUGraphicsPipeline(state->device, state->pipeline);
 	SDL_ReleaseWindowFromGPUDevice(state->device, state->window);
 

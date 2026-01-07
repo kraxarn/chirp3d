@@ -20,6 +20,7 @@ typedef struct app_state_t
 	SDL_Window *window;
 	SDL_GPUDevice *device;
 	SDL_GPUGraphicsPipeline *pipeline;
+	SDL_GPUTexture *depth_texture;
 	font_t *font;
 	assets_t *assets;
 	camera_t camera;
