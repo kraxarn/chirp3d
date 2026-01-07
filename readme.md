@@ -1,7 +1,14 @@
 # chirp3d
 
-Modern and lightweight 3D-focused game engine for Linux/Android through Vulkan, macOS/iOS through Metal and Windows
-through DirectX 12, written in C23.
+Modern, lightweight and cross-platform 3D-focused game engine.
+Somewhat related to [chirp](https://github.com/kraxarn/chirp),
+but with a stronger focus on modern 3D support over supporting every platform in existance.
+
+# platform support
+
+* Linux and Android through Vulkan 1.0.
+* macOS and iOS through Metal.
+* Windows through Direct3D 12 (FL 11_1, RBT 2), or Vulkan 1.0 (not recommended).
 
 # compiler support
 
