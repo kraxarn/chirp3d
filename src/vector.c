@@ -135,6 +135,15 @@ float vector3f_angle(const vector3f_t vec1, const vector3f_t vec2)
 	return SDL_atan2f(len, dot);
 }
 
+vector3f_t vector3f_invert(const vector3f_t vec)
+{
+	return (vector3f_t){
+		.x = -vec.x,
+		.y = -vec.y,
+		.z = -vec.z,
+	};
+}
+
 char *vector3f_str(const vector3f_t vec, char *str, const size_t max_len)
 {
 	SDL_snprintf(str, max_len, "%6.2f %6.2f %6.2f", vec.x, vec.y, vec.z);
