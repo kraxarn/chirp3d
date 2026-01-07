@@ -29,7 +29,7 @@
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_version.h>
 
-static constexpr auto mouse_sensitivity = 0.075F;
+static constexpr auto mouse_sensitivity = 0.0015F;
 static constexpr auto move_speed = 20.F;
 
 static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
