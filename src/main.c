@@ -109,7 +109,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	state->assets = assets_create_from_folder(assets_path);
 	if (state->assets == nullptr)
 	{
-		return fatal_error(state->window, "Failed to load assets");
+		return fatal_error(nullptr, "Failed to load assets");
 	}
 
 	constexpr SDL_InitFlags init_flags = SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD;
