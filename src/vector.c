@@ -67,7 +67,7 @@ vector3f_t vector3f_rotate(const vector3f_t vec, vector3f_t axis, float angle)
 	vector3f_t result = vec;
 
 	// TODO: normalize(axis)
-	float length = SDL_sqrtf((vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z));
+	float length = SDL_sqrtf((axis.x * axis.x) + (axis.y * axis.y) + (axis.z * axis.z));
 	if (length == 0.F)
 	{
 		length = 1.F;
