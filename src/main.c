@@ -263,8 +263,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 		if (input_is_down("move_backward"))
 		{
-			state->camera.position.z -= move_speed * state->dt;
-			state->camera.target.z -= move_speed * state->dt;
+			camera_move_z(&state->camera, -(move_speed * state->dt));
 		}
 
 		if (input_is_down("move_left"))
