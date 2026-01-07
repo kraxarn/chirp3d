@@ -5,7 +5,7 @@ through DirectX 12, written in C23.
 
 # compiler support
 
-Any compiler with C23 support should work, including clang 19+ (recommended) or gcc 15+.
+Any compiler with C23 support should work, including Clang 19+ (recommended) or GCC 15+.
 MSVC is currently not supported, as it doesn't support C23 yet.
 
 # features
