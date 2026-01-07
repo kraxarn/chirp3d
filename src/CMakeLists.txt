@@ -1,6 +1,7 @@
 target_sources(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/assets.c
 	${CMAKE_CURRENT_SOURCE_DIR}/audiodriver.c
+	${CMAKE_CURRENT_SOURCE_DIR}/camera.c
 	${CMAKE_CURRENT_SOURCE_DIR}/folderassets.c
 	${CMAKE_CURRENT_SOURCE_DIR}/font.c
 	${CMAKE_CURRENT_SOURCE_DIR}/gpu.c

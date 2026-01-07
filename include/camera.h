@@ -11,3 +11,6 @@ typedef struct camera_t
 	float near_plane;
 	float far_plane;
 } camera_t;
+
+[[nodiscard]]
+camera_t camera_create_default();
