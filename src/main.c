@@ -256,6 +256,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	if (SDL_GetWindowRelativeMouseMode(state->window))
 	{
+		vector2f_t mouse;
+		SDL_GetRelativeMouseState(&mouse.x, &mouse.y);
+		camera_rotate_x(&state->camera, -(mouse.x * mouse_sensitivity));
+		camera_rotate_y(&state->camera, -(mouse.y * mouse_sensitivity));
+
 		if (input_is_down("move_forward"))
 		{
 			camera_move_z(&state->camera, move_speed * state->dt);
@@ -373,12 +378,6 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 	if (SDL_GetWindowRelativeMouseMode(state->window))
 	{
 		input_update(event);
-
-		if (event->type == SDL_EVENT_MOUSE_MOTION)
-		{
-			camera_rotate_x(&state->camera, -(event->motion.xrel * mouse_sensitivity));
-			camera_rotate_y(&state->camera, -(event->motion.yrel * mouse_sensitivity));
-		}
 	}
 
 	return SDL_APP_CONTINUE;
