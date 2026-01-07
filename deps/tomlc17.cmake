@@ -5,7 +5,7 @@ FetchContent_Declare(tomlc17
 	GIT_TAG R251225
 )
 
-message(STATUS "Downloading: tomlc17")
+message(STATUS "Downloading tomlc17")
 FetchContent_MakeAvailable(tomlc17)
 
 add_library(tomlc17 STATIC)
