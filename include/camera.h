@@ -15,4 +15,9 @@ typedef struct camera_t
 [[nodiscard]]
 camera_t camera_create_default();
 
+/**
+ * Move camera in the Z-axis (forwards/backwards)
+ * @param camera Camera to modify
+ * @param movement How much to move forwards
+ */
 void camera_move_z(camera_t *camera, float movement);
