@@ -278,14 +278,12 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 		if (input_is_down("move_up"))
 		{
-			state->camera.position.y += move_speed * state->dt;
-			state->camera.target.y += move_speed * state->dt;
+			camera_move_y(&state->camera, move_speed * state->dt);
 		}
 
 		if (input_is_down("move_down"))
 		{
-			state->camera.position.y -= move_speed * state->dt;
-			state->camera.target.y -= move_speed * state->dt;
+			camera_move_y(&state->camera, -(move_speed * state->dt));
 		}
 	}
 

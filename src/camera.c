@@ -42,3 +42,11 @@ void camera_move_x(camera_t *camera, const float movement)
 	camera->position = vector3f_add(camera->position, left);
 	camera->target = vector3f_add(camera->target, left);
 }
+
+void camera_move_y(camera_t *camera, const float movement)
+{
+	const vector3f_t up = vector3f_scale(camera_up(camera), movement);
+
+	camera->position = vector3f_add(camera->position, up);
+	camera->target = vector3f_add(camera->target, up);
+}

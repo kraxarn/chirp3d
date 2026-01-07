@@ -28,3 +28,10 @@ void camera_move_z(camera_t *camera, float movement);
  * @param movement Left movement
  */
 void camera_move_x(camera_t *camera, float movement);
+
+/**
+ * Move camera in the Y-axis (up/down)
+ * @param camera Camera to modify
+ * @param movement Up movement
+ */
+void camera_move_y(camera_t *camera, float movement);
