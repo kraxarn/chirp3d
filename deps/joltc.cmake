@@ -8,4 +8,7 @@ FetchContent_Declare(joltc
 message(STATUS "Downloading joltc")
 FetchContent_MakeAvailable(joltc)
 
+# Jolt is written in C++
+enable_language(CXX)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE joltc)
