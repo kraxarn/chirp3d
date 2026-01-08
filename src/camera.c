@@ -29,10 +29,16 @@ static vector3f_t camera_right(const camera_t *camera)
 
 void camera_move_z(camera_t *camera, const float movement)
 {
-	const vector3f_t forward = vector3f_scale(camera_forward(camera), movement);
+	vector3f_t forward = camera_forward(camera);
 
-	camera->position = vector3f_add(camera->position, forward);
-	camera->target = vector3f_add(camera->target, forward);
+	// We don't want to move up/down when looking up/down
+	forward.y = 0;
+	forward = vector3f_normalize(forward);
+
+	const vector3f_t scaled = vector3f_scale(forward, movement);
+
+	camera->position = vector3f_add(camera->position, scaled);
+	camera->target = vector3f_add(camera->target, scaled);
 }
 
 void camera_move_x(camera_t *camera, const float movement)
