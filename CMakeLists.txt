@@ -55,24 +55,3 @@ add_custom_command(
 	COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:SDL3::SDL3-shared> $<TARGET_FILE_DIR:${PROJECT_NAME}>
 	VERBATIM
 )
-
-if (APPLE)
-	install(TARGETS ${PROJECT_NAME}
-		BUNDLE DESTINATION "bin"
-	)
-	if (TARGET SDL3-shared)
-		install(TARGETS SDL3-shared
-			# TODO: I hope there's a better way to do this
-			LIBRARY DESTINATION "bin/${PROJECT_NAME}.app/Contents/MacOS"
-		)
-	endif ()
-else ()
-	install(TARGETS ${PROJECT_NAME}
-		RUNTIME DESTINATION "bin"
-	)
-	if (TARGET SDL3-shared)
-		install(TARGETS SDL3-shared
-			LIBRARY DESTINATION "bin"
-		)
-	endif ()
-endif ()
