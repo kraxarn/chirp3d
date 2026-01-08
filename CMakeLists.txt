@@ -49,3 +49,24 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
 		message(WARNING "LTO error: ${ipo_error}")
 	endif ()
 endif ()
+
+if (APPLE)
+	install(TARGETS ${PROJECT_NAME}
+		BUNDLE DESTINATION "bin"
+	)
+	if (SDL3-shared)
+		install(TARGETS SDL3-shared
+			# TODO: I hope there's a better way to do this
+			LIBRARY DESTINATION "bin/${PROJECT_NAME}.app/Contents/MacOS"
+		)
+	endif ()
+else ()
+	install(TARGETS ${PROJECT_NAME}
+		RUNTIME DESTINATION "bin"
+	)
+	if (SDL3-shared)
+		install(TARGETS SDL3-shared
+			LIBRARY DESTINATION "bin"
+		)
+	endif ()
+endif ()
