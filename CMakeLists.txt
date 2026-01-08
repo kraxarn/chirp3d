@@ -50,6 +50,12 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
 	endif ()
 endif ()
 
+add_custom_command(
+	TARGET ${PROJECT_NAME} POST_BUILD
+	COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:SDL3::SDL3-shared> $<TARGET_FILE_DIR:${PROJECT_NAME}>
+	VERBATIM
+)
+
 if (APPLE)
 	install(TARGETS ${PROJECT_NAME}
 		BUNDLE DESTINATION "bin"

@@ -18,11 +18,8 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      - name: Install
-        run: cmake --install build --prefix dist
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: chirp3d-macos-arm64
-          path: ${{runner.workspace}}/dist
+          path: ${{runner.workspace}}/build/chirp3d.app
