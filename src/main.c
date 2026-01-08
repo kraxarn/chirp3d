@@ -246,6 +246,12 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_ReleaseGPUShader(state->device, vert_shader);
 	SDL_ReleaseGPUShader(state->device, frag_shader);
 
+	state->physics_engine = physics_engine_create();
+	if (state->physics_engine == nullptr)
+	{
+		return fatal_error(state->window, "Failed to create physics engine");
+	}
+
 	return build_scene(state);
 }
 
@@ -424,6 +430,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 
 	font_destroy(state->font);
 	assets_destroy(state->assets);
+	physics_engine_destroy(state->physics_engine);
 
 	SDL_ReleaseGPUTexture(state->device, state->depth_texture);
 	SDL_ReleaseGPUGraphicsPipeline(state->device, state->pipeline);

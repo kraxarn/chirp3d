@@ -8,4 +8,5 @@ typedef enum log_category_t
 	LOG_CATEGORY_FONT,
 	LOG_CATEGORY_ASSETS,
 	LOG_CATEGORY_INPUT,
+	LOG_CATEGORY_PHYSICS,
 } log_category_t;
