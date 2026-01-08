@@ -12,16 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Create Build Environment
-        run: cmake -E make_directory ${{runner.workspace}}/build
-
       - name: Configure CMake
-        working-directory: ${{runner.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
 
       - name: Build
-        working-directory: ${{runner.workspace}}/build
-        run: cmake --build . --config $BUILD_TYPE
+        run: cmake --build build
 
       - name: Install
         run: cmake --install build --prefix dist
