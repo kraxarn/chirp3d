@@ -399,6 +399,16 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 		input_update(event);
 	}
 
+	if (event->type == SDL_EVENT_WINDOW_RESIZED)
+	{
+		SDL_ReleaseGPUTexture(state->device, state->depth_texture);
+		const auto size = (vector2i_t){
+			.x = event->window.data1,
+			.y = event->window.data2,
+		};
+		state->depth_texture = create_depth_texture(state->device, size);
+	}
+
 	return SDL_APP_CONTINUE;
 }
 
