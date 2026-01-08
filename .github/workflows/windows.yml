@@ -29,10 +29,11 @@ jobs:
       - name: Build
         run: cmake --build build --config ${{env.BUILD_TYPE}}
 
+      - name: Install
+        run: cmake --install build --prefix dist
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: chirp3d-windows-x64
-          path: |
-            ${{runner.workspace}}\chirp3d\build\chirp3d.exe
-            ${{runner.workspace}}\chirp3d\build\_deps\sdl-build\SDL3.dll
+          path: ${{runner.workspace}}\chirp3d\dist
