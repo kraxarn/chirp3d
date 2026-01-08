@@ -21,5 +21,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: chirp3d-macos-arm64
+          name: chirp3d-macos-universal
           path: ${{runner.workspace}}/build/chirp3d.app
