@@ -106,6 +106,7 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 
 	return SDL_CreateGPUGraphicsPipeline(device, &create_info);
 }
+
 SDL_GPUTexture *create_depth_texture(SDL_GPUDevice *device, const vector2i_t size)
 {
 	const SDL_GPUTextureCreateInfo create_info = {
@@ -238,7 +239,7 @@ bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, const SDL_FColor clea
 		.stencil_load_op = SDL_GPU_LOADOP_CLEAR,
 		.stencil_store_op = SDL_GPU_STOREOP_STORE,
 	};
-	current_render_pass = SDL_BeginGPURenderPass(*command_buffer, &color_target_info,1,
+	current_render_pass = SDL_BeginGPURenderPass(*command_buffer, &color_target_info, 1,
 		&depth_stencil_target_info);
 	*render_pass = current_render_pass;
 	return true;
