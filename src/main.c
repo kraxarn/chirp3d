@@ -89,7 +89,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 	{
 		return fatal_error(state->window, "Failed to load texture");
 	}
-	mesh_set_position(state->meshes[1], (vector3f_t){.x = -20.F, .y = 10.F, .z = 20.F});
+	mesh_set_position(state->meshes[1], (vector3f_t){.x = -20.F, .y = 11.2F, .z = 20.F});
 	SDL_DestroySurface(purple);
 
 	return SDL_APP_CONTINUE;
