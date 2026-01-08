@@ -54,7 +54,7 @@ if (APPLE)
 	install(TARGETS ${PROJECT_NAME}
 		BUNDLE DESTINATION "bin"
 	)
-	if (SDL3-shared)
+	if (TARGET SDL3-shared)
 		install(TARGETS SDL3-shared
 			# TODO: I hope there's a better way to do this
 			LIBRARY DESTINATION "bin/${PROJECT_NAME}.app/Contents/MacOS"
@@ -64,7 +64,7 @@ else ()
 	install(TARGETS ${PROJECT_NAME}
 		RUNTIME DESTINATION "bin"
 	)
-	if (SDL3-shared)
+	if (TARGET SDL3-shared)
 		install(TARGETS SDL3-shared
 			LIBRARY DESTINATION "bin"
 		)
