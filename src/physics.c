@@ -136,21 +136,8 @@ void physics_engine_optimize(const physics_engine_t *engine)
 	SDL_LogDebug(LOG_CATEGORY_PHYSICS, "Optimised broad phase in %llu ms", end - start);
 }
 
-static JPH_Vec3 jph_vec3(const vector3f_t vec)
-{
-	// TODO: They should be exactly the same, so we can probably just cast directly
-	return (JPH_Vec3){
-		.x = vec.x,
-		.y = vec.y,
-		.z = vec.z,
-	};
-}
-
-static JPH_MotionType jph_motion_type(const physics_motion_type_t motion_type)
-{
-	// Should always match, but keep in function just in case
-	return (JPH_MotionType) motion_type;
-}
+#define jph_vec3(x) ((JPH_Vec3*)(x))
+#define jph_motion_type(x) ((JPH_MotionType)(x))
 
 static JPH_Activation jph_activation(const bool activate)
 {
@@ -168,14 +155,15 @@ static void add_body(physics_engine_t *engine, const JPH_BodyCreationSettings *s
 
 void physics_engine_add_box(physics_engine_t *engine, const box_config_t *config)
 {
-	const JPH_Vec3 jph_half_extents = jph_vec3(config->half_extents);
-	JPH_BoxShape *shape = JPH_BoxShape_Create(&jph_half_extents, JPH_DEFAULT_CONVEX_RADIUS);
+	JPH_BoxShape *shape = JPH_BoxShape_Create(
+		jph_vec3(&config->half_extents), JPH_DEFAULT_CONVEX_RADIUS
+	);
 
-	const JPH_Vec3 jph_position = jph_vec3(config->position);
 	JPH_BodyCreationSettings *settings = JPH_BodyCreationSettings_Create3(
-		(JPH_Shape *) shape, &jph_position, nullptr,
+		(JPH_Shape *) shape, jph_vec3(&config->position), nullptr,
 		jph_motion_type(config->motion_type), config->layer
 	);
+
 	add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 }
@@ -184,11 +172,11 @@ void physics_engine_add_sphere(physics_engine_t *engine, const sphere_config_t *
 {
 	JPH_SphereShape *shape = JPH_SphereShape_Create(config->radius);
 
-	const JPH_Vec3 jph_position = jph_vec3(config->position);
 	JPH_BodyCreationSettings *settings = JPH_BodyCreationSettings_Create3(
-		(JPH_Shape *) shape, &jph_position, nullptr,
+		(JPH_Shape *) shape, jph_vec3(&config->position), nullptr,
 		jph_motion_type(config->motion_type), config->layer
 	);
+
 	add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 }
