@@ -17,9 +17,9 @@ typedef enum object_layer_t: Uint32
 
 typedef enum physics_motion_type_t
 {
-	MOTION_TYPE_STATIC    = 0,
-	MOTION_TYPE_KINEMATIC = 1,
-	MOTION_TYPE_DYNAMIC   = 2,
+	MOTION_TYPE_STATIC    = 0, // Non-movable
+	MOTION_TYPE_KINEMATIC = 1, // Only movable using velocities
+	MOTION_TYPE_DYNAMIC   = 2, // Normal physics object
 } physics_motion_type_t;
 
 typedef struct box_config_t
