@@ -281,3 +281,82 @@ bool gpu_upload_mesh_info(SDL_GPUDevice *device, const mesh_info_t info,
 
 	return true;
 }
+
+bool gpu_upload_texture(SDL_GPUDevice *device, const SDL_Surface *surface,
+	const SDL_GPUSamplerCreateInfo *sampler_info,
+	SDL_GPUSampler **sampler, SDL_GPUTexture **texture)
+{
+	*sampler = SDL_CreateGPUSampler(device, sampler_info);
+	if (*sampler == nullptr)
+	{
+		return false;
+	}
+
+	const SDL_GPUTextureCreateInfo texture_info = {
+		.type = SDL_GPU_TEXTURETYPE_2D,
+		.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+		.width = surface->w,
+		.height = surface->h,
+		.layer_count_or_depth = 1,
+		.num_levels = 1,
+		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+	};
+	*texture = SDL_CreateGPUTexture(device, &texture_info);
+	if (*texture == nullptr)
+	{
+		return false;
+	}
+
+	const SDL_GPUTransferBufferCreateInfo buffer_info = {
+		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+		.size = surface->w * surface->h * 4,
+	};
+	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(device, &buffer_info);
+	if (transfer_buffer == nullptr)
+	{
+		return false;
+	}
+
+	void *transfer_data = SDL_MapGPUTransferBuffer(device, transfer_buffer, false);
+	if (transfer_data == nullptr)
+	{
+		SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+		return false;
+	}
+
+	SDL_memcpy(transfer_data, surface->pixels, (size_t) (surface->w * surface->h * 4));
+
+	SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+
+	SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(device);
+	if (command_buffer == nullptr)
+	{
+		return false;
+	}
+
+	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
+
+	const SDL_GPUTextureTransferInfo source = {
+		.transfer_buffer = transfer_buffer,
+		.offset = 0,
+	};
+	const SDL_GPUTextureRegion destination = {
+		.texture = *texture,
+		.w = surface->w,
+		.h = surface->h,
+		.d = 1,
+	};
+	SDL_UploadToGPUTexture(copy_pass, &source, &destination, false);
+
+	SDL_EndGPUCopyPass(copy_pass);
+
+	if (!SDL_SubmitGPUCommandBuffer(command_buffer))
+	{
+		SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+		return false;
+	}
+
+	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+
+	return true;
+}
