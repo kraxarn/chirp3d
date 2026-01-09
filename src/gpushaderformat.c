@@ -5,7 +5,7 @@
 
 char *shader_format_names(SDL_GPUDevice *device)
 {
-	// "Invalid, Private, SPIR-V, DXBC, DXIL, MSL, metallib"
+	// "invalid, private, spir-v, dxbc, dxil, msl, metallib"
 	constexpr size_t shader_format_names_len = 51;
 
 	char *shader_format_names = SDL_malloc(sizeof(char) * (shader_format_names_len + 1));
