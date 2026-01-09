@@ -1,4 +1,5 @@
 #include "font.h"
+#include "gpu.h"
 #include "logcategory.h"
 #include "matrix.h"
 #include "meshinfo.h"
@@ -89,45 +90,6 @@ static bool build_palette(SDL_Surface *surface, const SDL_Color color)
 
 static bool upload_mesh_data(font_t *font)
 {
-	constexpr size_t vertex_size = sizeof(vertex_t) * num_vertices;
-	constexpr size_t index_size = sizeof(mesh_index_t) * num_indices;
-
-	const SDL_GPUBufferCreateInfo vertex_buffer_info = {
-		.usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-		.size = vertex_size,
-	};
-	font->vertex_buffer = SDL_CreateGPUBuffer(font->device, &vertex_buffer_info);
-	if (font->vertex_buffer == nullptr)
-	{
-		return false;
-	}
-
-	const SDL_GPUBufferCreateInfo index_buffer_info = {
-		.usage = SDL_GPU_BUFFERUSAGE_INDEX,
-		.size = index_size,
-	};
-	font->index_buffer = SDL_CreateGPUBuffer(font->device, &index_buffer_info);
-	if (font->index_buffer == nullptr)
-	{
-		return false;
-	}
-
-	const SDL_GPUTransferBufferCreateInfo transfer_info = {
-		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-		.size = vertex_size + index_size,
-	};
-	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(font->device, &transfer_info);
-	if (transfer_buffer == nullptr)
-	{
-		return false;
-	}
-
-	void *transfer_data = SDL_MapGPUTransferBuffer(font->device, transfer_buffer, false);
-	if (transfer_data == nullptr)
-	{
-		return false;
-	}
-
 	const auto font_size = (float) font->size;
 
 	const vertex_t vertices[] = {
@@ -154,45 +116,14 @@ static bool upload_mesh_data(font_t *font)
 		0, 2, 3,
 	};
 
-	SDL_memcpy(transfer_data, vertices, sizeof(vertices));
-	SDL_memcpy(transfer_data + sizeof(vertices), indices, sizeof(indices));
-
-	SDL_UnmapGPUTransferBuffer(font->device, transfer_buffer);
-
-	SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(font->device);
-	if (command_buffer == nullptr)
-	{
-		return false;
-	}
-
-	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
-
-	const SDL_GPUTransferBufferLocation vertex_source = {
-		.transfer_buffer = transfer_buffer,
-		.offset = 0,
+	const mesh_info_t info = {
+		.num_vertices = SDL_arraysize(vertices),
+		.vertices = vertices,
+		.num_indices = SDL_arraysize(indices),
+		.indices = indices,
 	};
-	const SDL_GPUBufferRegion vertex_destination = {
-		.buffer = font->vertex_buffer,
-		.offset = 0,
-		.size = vertex_size,
-	};
-	SDL_UploadToGPUBuffer(copy_pass, &vertex_source, &vertex_destination, false);
 
-	const SDL_GPUTransferBufferLocation index_source = {
-		.transfer_buffer = transfer_buffer,
-		.offset = vertex_size,
-	};
-	const SDL_GPUBufferRegion index_destination = {
-		.buffer = font->index_buffer,
-		.offset = 0,
-		.size = index_size,
-	};
-	SDL_UploadToGPUBuffer(copy_pass, &index_source, &index_destination, false);
-
-	SDL_EndGPUCopyPass(copy_pass);
-	SDL_ReleaseGPUTransferBuffer(font->device, transfer_buffer);
-
-	return SDL_SubmitGPUCommandBuffer(command_buffer);
+	return gpu_upload_mesh_info(font->device, info, &font->vertex_buffer, &font->index_buffer);
 }
 
 static bool upload_atlas(font_t *font, const SDL_Surface *atlas)
