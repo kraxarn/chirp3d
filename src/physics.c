@@ -166,7 +166,8 @@ bool physics_update(const physics_engine_t *engine, const float delta)
 	}
 }
 
-#define jph_vec3(x) ((JPH_Vec3*)(x))
+#define jph_vec3(x)        ((JPH_Vec3*)(x))
+#define jph_r_vec3(x)      ((JPH_RVec3*)(x))
 #define jph_motion_type(x) ((JPH_MotionType)(x))
 
 static JPH_Activation jph_activation(const bool activate)
@@ -226,4 +227,11 @@ physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_co
 	const JPH_BodyID body_id = add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 	return body_id;
+}
+
+vector3f_t physics_body_position(const physics_engine_t *engine, const physics_body_id_t body_id)
+{
+	vector3f_t position;
+	JPH_BodyInterface_GetPosition(engine->body_interface, body_id, jph_r_vec3(&position));
+	return position;
 }

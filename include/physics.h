@@ -66,3 +66,5 @@ physics_body_id_t physics_add_box(physics_engine_t *engine, const box_config_t *
 physics_body_id_t physics_add_sphere(physics_engine_t *engine, const sphere_config_t *config);
 
 physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_config_t *config);
+
+vector3f_t physics_body_position(const physics_engine_t *engine, physics_body_id_t body_id);
