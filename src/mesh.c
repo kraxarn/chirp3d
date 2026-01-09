@@ -93,79 +93,8 @@ bool mesh_set_texture(mesh_t *mesh, const SDL_Surface *texture)
 		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
 	};
 
-	mesh->sampler = SDL_CreateGPUSampler(mesh->device, &sampler_info);
-	if (mesh->sampler == nullptr)
-	{
-		return false;
-	}
-
-	const SDL_GPUTextureCreateInfo texture_info = {
-		.type = SDL_GPU_TEXTURETYPE_2D,
-		.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-		.width = texture->w,
-		.height = texture->h,
-		.layer_count_or_depth = 1,
-		.num_levels = 1,
-		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
-	};
-
-	mesh->texture = SDL_CreateGPUTexture(mesh->device, &texture_info);
-	if (mesh->texture == nullptr)
-	{
-		return false;
-	}
-
-	const SDL_GPUTransferBufferCreateInfo buffer_info = {
-		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-		.size = texture->w * texture->h * 4,
-	};
-
-	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(mesh->device, &buffer_info);
-	if (transfer_buffer == nullptr)
-	{
-		return false;
-	}
-
-	void *transfer_data = SDL_MapGPUTransferBuffer(mesh->device, transfer_buffer, false);
-	if (transfer_data == nullptr)
-	{
-		SDL_ReleaseGPUTransferBuffer(mesh->device, transfer_buffer);
-		return false;
-	}
-
-	SDL_memcpy(transfer_data, texture->pixels, (size_t) (texture->w * texture->h * 4));
-	SDL_UnmapGPUTransferBuffer(mesh->device, transfer_buffer);
-
-	SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(mesh->device);
-	if (command_buffer == nullptr)
-	{
-		return false;
-	}
-
-	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
-
-	const SDL_GPUTextureTransferInfo source = {
-		.transfer_buffer = transfer_buffer,
-		.offset = 0,
-	};
-	const SDL_GPUTextureRegion destination = {
-		.texture = mesh->texture,
-		.w = texture->w,
-		.h = texture->h,
-		.d = 1,
-	};
-	SDL_UploadToGPUTexture(copy_pass, &source, &destination, false);
-
-	SDL_EndGPUCopyPass(copy_pass);
-	if (!SDL_SubmitGPUCommandBuffer(command_buffer))
-	{
-		SDL_ReleaseGPUTransferBuffer(mesh->device, transfer_buffer);
-		return false;
-	}
-
-	SDL_ReleaseGPUTransferBuffer(mesh->device, transfer_buffer);
-
-	return true;
+	return gpu_upload_texture(mesh->device, texture, &sampler_info,
+		&mesh->sampler, &mesh->texture);
 }
 
 static void rebuild_projection(mesh_t *mesh)
