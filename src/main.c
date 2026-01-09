@@ -344,6 +344,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		return fatal_error(state->window, "Failed to update physics");
 	}
 
+	const vector3f_t player_position = physics_body_position(state->physics_engine, state->player_body_id);
+	SDL_Log("Position: %.f %.f %.f", player_position.x, player_position.y, player_position.z);
+
 	if (SDL_GetWindowRelativeMouseMode(state->window))
 	{
 		vector2f_t mouse;
