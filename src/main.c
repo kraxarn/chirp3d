@@ -111,7 +111,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 		.position = vector3f_zero(),
 		.motion_type = MOTION_TYPE_DYNAMIC,
 	};
-	physics_add_capsule(state->physics_engine, &player_config);
+	state->player_body_id = physics_add_capsule(state->physics_engine, &player_config);
 
 	physics_optimize(state->physics_engine);
 
