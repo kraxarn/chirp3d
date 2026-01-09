@@ -127,6 +127,12 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 	state->last_update = SDL_GetTicks();
 
+#ifdef NDEBUG
+	state->debug_hud = false;
+#else
+	state->debug_hud = true;
+#endif
+
 	const window_config_t window_config = state->assets->window_config;
 
 	state->window = SDL_CreateWindow(window_config.title,
@@ -257,6 +263,38 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	return build_scene(state);
 }
 
+static char *debug_hud_text(const app_state_t *state)
+{
+	static constexpr size_t debug_text_len = 256;
+	static char debug_text[debug_text_len];
+
+	SDL_snprintf(debug_text, debug_text_len,
+#ifndef NDEBUG
+		"- debug mode -\n"
+#endif
+		"%s %s\n"
+		"FPS     : %u\n"
+		"Delta   : %.4f\n"
+		"Video   : %s\n"
+		"Audio   : %s\n"
+		"Renderer: %s\n"
+		"Camera  : %6.2f %6.2f %6.2f\n"
+		"Target  : %6.2f %6.2f %6.2f\n"
+		"Up      : %6.2f %6.2f %6.2f\n",
+		ENGINE_NAME, ENGINE_VERSION,
+		state->time.fps,
+		state->dt,
+		video_driver_display_name(SDL_GetCurrentVideoDriver()),
+		audio_driver_display_name(SDL_GetCurrentAudioDriver()),
+		gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device)),
+		state->camera.position.x, state->camera.position.y, state->camera.position.z,
+		state->camera.target.x, state->camera.target.y, state->camera.target.z,
+		state->camera.up.x, state->camera.up.y, state->camera.up.z
+	);
+
+	return debug_text;
+}
+
 SDL_AppResult SDL_AppIterate(void *appstate)
 {
 	app_state_t *state = appstate;
@@ -347,34 +385,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			mesh_draw(state->meshes[i], render_pass, command_buffer, view_proj);
 		}
 
-		static constexpr size_t debug_text_len = 256;
-		static char debug_text[debug_text_len];
-		SDL_snprintf(debug_text, debug_text_len,
-#ifndef NDEBUG
-			"- debug mode -\n"
-#endif
-			"%s %s\n"
-			"FPS     : %u\n"
-			"Delta   : %.4f\n"
-			"Video   : %s\n"
-			"Audio   : %s\n"
-			"Renderer: %s\n"
-			"Camera  : %6.2f %6.2f %6.2f\n"
-			"Target  : %6.2f %6.2f %6.2f\n"
-			"Up      : %6.2f %6.2f %6.2f\n",
-			ENGINE_NAME, ENGINE_VERSION,
-			state->time.fps,
-			state->dt,
-			video_driver_display_name(SDL_GetCurrentVideoDriver()),
-			audio_driver_display_name(SDL_GetCurrentAudioDriver()),
-			gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device)),
-			state->camera.position.x, state->camera.position.y, state->camera.position.z,
-			state->camera.target.x, state->camera.target.y, state->camera.target.z,
-			state->camera.up.x, state->camera.up.y, state->camera.up.z
-		);
-
-		font_draw_text(state->font, render_pass, command_buffer, size,
-			(vector2f_t){.x = 16.F, .y = 16.F}, debug_text);
+		if (state->debug_hud)
+		{
+			font_draw_text(state->font, render_pass, command_buffer, size,
+				(vector2f_t){.x = 16.F, .y = 16.F}, debug_hud_text(state));
+		}
 	}
 	if (!draw_end())
 	{
@@ -405,6 +420,11 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 	if (SDL_GetWindowRelativeMouseMode(state->window))
 	{
 		input_update(event);
+
+		if (event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_F3)
+		{
+			state->debug_hud = (int) state->debug_hud == 0;
+		}
 	}
 
 	if (event->type == SDL_EVENT_WINDOW_RESIZED)

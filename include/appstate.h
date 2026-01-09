@@ -34,4 +34,6 @@ typedef struct app_state_t
 
 	mesh_t **meshes;
 	size_t num_meshes;
+
+	bool debug_hud;
 } app_state_t;
