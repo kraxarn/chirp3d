@@ -70,8 +70,10 @@ static void log_gpu_info(SDL_GPUDevice *device)
 
 static SDL_AppResult build_scene(app_state_t *state)
 {
+	const auto floor_size = (vector3f_t){.x = 100.F, .y = 2.5F, .z = 100.F};
+
 	const mesh_t *meshes[] = {
-		create_cube(state->device, (vector3f_t){.x = 100.F, .y = 2.5F, .z = 100.F}),
+		create_cube(state->device, floor_size),
 		create_cube(state->device, (vector3f_t){.x = 10.F, .y = 20.F, .z = 10.F}),
 	};
 
@@ -93,6 +95,23 @@ static SDL_AppResult build_scene(app_state_t *state)
 	}
 	mesh_set_position(state->meshes[1], (vector3f_t){.x = -20.F, .y = 11.2F, .z = 20.F});
 	SDL_DestroySurface(purple);
+
+	const box_config_t floor_config = {
+		.motion_type = MOTION_TYPE_STATIC,
+		.layer = OBJ_LAYER_STATIC,
+		.position = mesh_position(state->meshes[0]),
+		.half_extents = floor_size,
+		.activate = false,
+	};
+	physics_engine_add_box(state->physics_engine, &floor_config);
+
+	const capsule_config_t player_config = {
+		.half_height = 10.F,
+		.radius = 5.F,
+		.position = vector3f_zero(),
+		.motion_type = MOTION_TYPE_DYNAMIC,
+	};
+	physics_engine_add_capsule(state->physics_engine, &player_config);
 
 	return SDL_APP_CONTINUE;
 }
