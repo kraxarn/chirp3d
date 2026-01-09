@@ -123,31 +123,6 @@ SDL_GPUTexture *create_depth_texture(SDL_GPUDevice *device, const vector2i_t siz
 	return SDL_CreateGPUTexture(device, &create_info);
 }
 
-char *gpu_driver_names()
-{
-	// "vulkan, metal, direct3d12"
-	constexpr size_t gpu_drivers_len = 25;
-
-	char *gpu_drivers = SDL_malloc(sizeof(char) * (gpu_drivers_len + 1));
-	if (gpu_drivers == nullptr)
-	{
-		return nullptr;
-	}
-	gpu_drivers[0] = '\0';
-
-	for (auto i = 0; i < SDL_GetNumGPUDrivers(); i++)
-	{
-		SDL_strlcat(gpu_drivers, SDL_GetGPUDriver(i), gpu_drivers_len);
-		if (i < SDL_GetNumGPUDrivers() - 1)
-		{
-			SDL_strlcat(gpu_drivers, ", ", gpu_drivers_len);
-		}
-	}
-
-	gpu_drivers[SDL_strlen(gpu_drivers)] = '\0';
-	return gpu_drivers;
-}
-
 bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, const SDL_FColor clear_color,
 	SDL_GPUTexture *depth_texture, SDL_GPUCommandBuffer **command_buffer,
 	SDL_GPURenderPass **render_pass, vector2f_t *size)

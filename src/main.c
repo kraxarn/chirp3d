@@ -4,6 +4,7 @@
 #include "font.h"
 #include "gpu.h"
 #include "gpudevicedriver.h"
+#include "gpudriver.h"
 #include "gpushaderformat.h"
 #include "image.h"
 #include "input.h"

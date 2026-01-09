@@ -16,9 +16,6 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 [[nodiscard]]
 SDL_GPUTexture *create_depth_texture(SDL_GPUDevice *device, vector2i_t size);
 
-[[nodiscard]]
-char *gpu_driver_names();
-
 bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, SDL_FColor clear_color,
 	SDL_GPUTexture *depth_texture, SDL_GPUCommandBuffer **command_buffer, SDL_GPURenderPass **render_pass, vector2f_t *size);
 
