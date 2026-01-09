@@ -11,9 +11,9 @@
 #include "logcategory.h"
 #include "math.h"
 #include "matrix.h"
-#include "model.h"
 #include "resources.h"
 #include "shader.h"
+#include "shapes.h"
 #include "videodriver.h"
 
 #define SDL_MAIN_USE_CALLBACKS
