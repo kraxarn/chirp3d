@@ -152,9 +152,16 @@ static JPH_MotionType jph_motion_type(const physics_motion_type_t motion_type)
 	return (JPH_MotionType) motion_type;
 }
 
-static void add_body(physics_engine_t *engine,
-	const JPH_BodyCreationSettings *settings, const JPH_Activation activation)
+static JPH_Activation jph_activation(const bool activate)
 {
+	return (int) activate
+		? JPH_Activation_Activate
+		: JPH_Activation_DontActivate;
+}
+
+static void add_body(physics_engine_t *engine, const JPH_BodyCreationSettings *settings, const bool activate)
+{
+	const JPH_Activation activation = jph_activation(activate);
 	const JPH_BodyID body = JPH_BodyInterface_CreateAndAddBody(engine->body_interface, settings, activation);
 	engine->bodies[engine->num_bodies++] = body;
 }
@@ -169,7 +176,7 @@ void physics_engine_add_box(physics_engine_t *engine, const box_config_t *config
 		(JPH_Shape *) shape, &jph_position, nullptr,
 		jph_motion_type(config->motion_type), config->layer
 	);
-	add_body(engine, settings, JPH_Activation_DontActivate);
+	add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 }
 
@@ -182,6 +189,6 @@ void physics_engine_add_sphere(physics_engine_t *engine, const sphere_config_t *
 		(JPH_Shape *) shape, &jph_position, nullptr,
 		jph_motion_type(config->motion_type), config->layer
 	);
-	add_body(engine, settings, JPH_Activation_Activate);
+	add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 }

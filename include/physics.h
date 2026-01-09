@@ -28,6 +28,7 @@ typedef struct box_config_t
 	object_layer_t layer;
 	vector3f_t position;
 	vector3f_t half_extents;
+	bool activate;
 } box_config_t;
 
 typedef struct sphere_config_t
@@ -36,6 +37,7 @@ typedef struct sphere_config_t
 	object_layer_t layer;
 	vector3f_t position;
 	float radius;
+	bool activate;
 } sphere_config_t;
 
 [[nodiscard]]
