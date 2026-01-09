@@ -159,30 +159,28 @@ static void add_body(physics_engine_t *engine,
 	engine->bodies[engine->num_bodies++] = body;
 }
 
-void physics_engine_add_box(physics_engine_t *engine, const physics_motion_type_t motion_type,
-	const object_layer_t layer, const vector3f_t position, const vector3f_t half_extents)
+void physics_engine_add_box(physics_engine_t *engine, const box_config_t *config)
 {
-	const JPH_Vec3 jph_half_extents = jph_vec3(half_extents);
+	const JPH_Vec3 jph_half_extents = jph_vec3(config->half_extents);
 	JPH_BoxShape *shape = JPH_BoxShape_Create(&jph_half_extents, JPH_DEFAULT_CONVEX_RADIUS);
 
-	const JPH_Vec3 jph_position = jph_vec3(position);
+	const JPH_Vec3 jph_position = jph_vec3(config->position);
 	JPH_BodyCreationSettings *settings = JPH_BodyCreationSettings_Create3(
 		(JPH_Shape *) shape, &jph_position, nullptr,
-		jph_motion_type(motion_type), layer
+		jph_motion_type(config->motion_type), config->layer
 	);
 	add_body(engine, settings, JPH_Activation_DontActivate);
 	JPH_BodyCreationSettings_Destroy(settings);
 }
 
-void physics_engine_add_sphere(physics_engine_t *engine, const physics_motion_type_t motion_type,
-	const object_layer_t layer, const vector3f_t position, const float radius)
+void physics_engine_add_sphere(physics_engine_t *engine, const sphere_config_t *config)
 {
-	JPH_SphereShape *shape = JPH_SphereShape_Create(radius);
+	JPH_SphereShape *shape = JPH_SphereShape_Create(config->radius);
 
-	const JPH_Vec3 jph_position = jph_vec3(position);
+	const JPH_Vec3 jph_position = jph_vec3(config->position);
 	JPH_BodyCreationSettings *settings = JPH_BodyCreationSettings_Create3(
 		(JPH_Shape *) shape, &jph_position, nullptr,
-		jph_motion_type(motion_type), layer
+		jph_motion_type(config->motion_type), config->layer
 	);
 	add_body(engine, settings, JPH_Activation_Activate);
 	JPH_BodyCreationSettings_Destroy(settings);
