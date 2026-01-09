@@ -1,6 +1,5 @@
 #include "physics.h"
 #include "logcategory.h"
-#include "vector.h"
 
 #include "joltc.h"
 
@@ -53,7 +52,7 @@ static bool on_assert(const char *expression, const char *message, const char *f
 	return true;
 }
 
-physics_engine_t *physics_engine_create()
+physics_engine_t *physics_create()
 {
 	if (!JPH_Init())
 	{
@@ -112,7 +111,7 @@ physics_engine_t *physics_engine_create()
 	return engine;
 }
 
-void physics_engine_destroy(physics_engine_t *engine)
+void physics_destroy(physics_engine_t *engine)
 {
 	if (engine == nullptr)
 	{
@@ -131,7 +130,7 @@ void physics_engine_destroy(physics_engine_t *engine)
 	SDL_free(engine);
 }
 
-void physics_engine_optimize(const physics_engine_t *engine)
+void physics_optimize(const physics_engine_t *engine)
 {
 	const Uint64 start = SDL_GetTicks();
 
@@ -141,7 +140,7 @@ void physics_engine_optimize(const physics_engine_t *engine)
 	SDL_LogDebug(LOG_CATEGORY_PHYSICS, "Optimised broad phase in %llu ms", end - start);
 }
 
-bool physics_engine_update(const physics_engine_t *engine, const float delta)
+bool physics_update(const physics_engine_t *engine, const float delta)
 {
 	constexpr auto collision_steps = 1;
 
@@ -184,7 +183,7 @@ static void add_body(physics_engine_t *engine, const JPH_BodyCreationSettings *s
 	engine->bodies[engine->num_bodies++] = body;
 }
 
-void physics_engine_add_box(physics_engine_t *engine, const box_config_t *config)
+void physics_add_box(physics_engine_t *engine, const box_config_t *config)
 {
 	JPH_BoxShape *shape = JPH_BoxShape_Create(
 		jph_vec3(&config->half_extents), JPH_DEFAULT_CONVEX_RADIUS
@@ -199,7 +198,7 @@ void physics_engine_add_box(physics_engine_t *engine, const box_config_t *config
 	JPH_BodyCreationSettings_Destroy(settings);
 }
 
-void physics_engine_add_sphere(physics_engine_t *engine, const sphere_config_t *config)
+void physics_add_sphere(physics_engine_t *engine, const sphere_config_t *config)
 {
 	JPH_SphereShape *shape = JPH_SphereShape_Create(config->radius);
 
@@ -212,7 +211,7 @@ void physics_engine_add_sphere(physics_engine_t *engine, const sphere_config_t *
 	JPH_BodyCreationSettings_Destroy(settings);
 }
 
-void physics_engine_add_capsule(physics_engine_t *engine, const capsule_config_t *config)
+void physics_add_capsule(physics_engine_t *engine, const capsule_config_t *config)
 {
 	JPH_CapsuleShape *shape = JPH_CapsuleShape_Create(config->half_height, config->radius);
 

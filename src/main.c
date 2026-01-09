@@ -103,7 +103,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 		.half_extents = floor_size,
 		.activate = false,
 	};
-	physics_engine_add_box(state->physics_engine, &floor_config);
+	physics_add_box(state->physics_engine, &floor_config);
 
 	const capsule_config_t player_config = {
 		.half_height = 10.F,
@@ -111,9 +111,9 @@ static SDL_AppResult build_scene(app_state_t *state)
 		.position = vector3f_zero(),
 		.motion_type = MOTION_TYPE_DYNAMIC,
 	};
-	physics_engine_add_capsule(state->physics_engine, &player_config);
+	physics_add_capsule(state->physics_engine, &player_config);
 
-	physics_engine_optimize(state->physics_engine);
+	physics_optimize(state->physics_engine);
 
 	return SDL_APP_CONTINUE;
 }
@@ -275,7 +275,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_ReleaseGPUShader(state->device, vert_shader);
 	SDL_ReleaseGPUShader(state->device, frag_shader);
 
-	state->physics_engine = physics_engine_create();
+	state->physics_engine = physics_create();
 	if (state->physics_engine == nullptr)
 	{
 		return fatal_error(state->window, "Failed to create physics engine");
@@ -339,7 +339,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		state->time.duration = 0;
 	}
 
-	if (!physics_engine_update(state->physics_engine, state->dt))
+	if (!physics_update(state->physics_engine, state->dt))
 	{
 		return fatal_error(state->window, "Failed to update physics");
 	}
@@ -478,7 +478,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 
 	font_destroy(state->font);
 	assets_destroy(state->assets);
-	physics_engine_destroy(state->physics_engine);
+	physics_destroy(state->physics_engine);
 
 	SDL_ReleaseGPUTexture(state->device, state->depth_texture);
 	SDL_ReleaseGPUGraphicsPipeline(state->device, state->pipeline);

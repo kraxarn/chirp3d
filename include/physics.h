@@ -51,16 +51,16 @@ typedef struct capsule_config_t
 } capsule_config_t;
 
 [[nodiscard]]
-physics_engine_t *physics_engine_create();
+physics_engine_t *physics_create();
 
-void physics_engine_destroy(physics_engine_t *engine);
+void physics_destroy(physics_engine_t *engine);
 
-void physics_engine_optimize(const physics_engine_t *engine);
+void physics_optimize(const physics_engine_t *engine);
 
-bool physics_engine_update(const physics_engine_t *engine, float delta);
+bool physics_update(const physics_engine_t *engine, float delta);
 
-void physics_engine_add_box(physics_engine_t *engine, const box_config_t *config);
+void physics_add_box(physics_engine_t *engine, const box_config_t *config);
 
-void physics_engine_add_sphere(physics_engine_t *engine, const sphere_config_t *config);
+void physics_add_sphere(physics_engine_t *engine, const sphere_config_t *config);
 
-void physics_engine_add_capsule(physics_engine_t *engine, const capsule_config_t *config);
+void physics_add_capsule(physics_engine_t *engine, const capsule_config_t *config);
