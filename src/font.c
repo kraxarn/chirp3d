@@ -137,79 +137,8 @@ static bool upload_atlas(font_t *font, const SDL_Surface *atlas)
 		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
 	};
 
-	font->sampler = SDL_CreateGPUSampler(font->device, &sampler_info);
-	if (font->sampler == nullptr)
-	{
-		return false;
-	}
-
-	const SDL_GPUTextureCreateInfo texture_info = {
-		.type = SDL_GPU_TEXTURETYPE_2D,
-		.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-		.width = atlas->w,
-		.height = atlas->h,
-		.layer_count_or_depth = 1,
-		.num_levels = 1,
-		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
-	};
-
-	font->texture = SDL_CreateGPUTexture(font->device, &texture_info);
-	if (font->texture == nullptr)
-	{
-		return false;
-	}
-
-	const SDL_GPUTransferBufferCreateInfo buffer_info = {
-		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-		.size = atlas->w * atlas->h * 4,
-	};
-
-	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(font->device, &buffer_info);
-	if (transfer_buffer == nullptr)
-	{
-		return false;
-	}
-
-	void *transfer_data = SDL_MapGPUTransferBuffer(font->device, transfer_buffer, false);
-	if (transfer_data == nullptr)
-	{
-		SDL_ReleaseGPUTransferBuffer(font->device, transfer_buffer);
-		return false;
-	}
-
-	SDL_memcpy(transfer_data, atlas->pixels, (size_t) (atlas->w * atlas->h * 4));
-	SDL_UnmapGPUTransferBuffer(font->device, transfer_buffer);
-
-	SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(font->device);
-	if (command_buffer == nullptr)
-	{
-		return false;
-	}
-
-	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
-
-	const SDL_GPUTextureTransferInfo source = {
-		.transfer_buffer = transfer_buffer,
-		.offset = 0,
-	};
-	const SDL_GPUTextureRegion destination = {
-		.texture = font->texture,
-		.w = atlas->w,
-		.h = atlas->h,
-		.d = 1,
-	};
-	SDL_UploadToGPUTexture(copy_pass, &source, &destination, false);
-
-	SDL_EndGPUCopyPass(copy_pass);
-	if (!SDL_SubmitGPUCommandBuffer(command_buffer))
-	{
-		SDL_ReleaseGPUTransferBuffer(font->device, transfer_buffer);
-		return false;
-	}
-
-	SDL_ReleaseGPUTransferBuffer(font->device, transfer_buffer);
-
-	return true;
+	return gpu_upload_texture(font->device, atlas, &sampler_info,
+		&font->sampler, &font->texture);
 }
 
 static void build_atlas_data(const float font_size, vector2f_aligned_t *coordinates)
