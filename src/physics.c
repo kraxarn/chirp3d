@@ -119,6 +119,11 @@ void physics_engine_destroy(physics_engine_t *engine)
 		return;
 	}
 
+	for (size_t i = 0; i < engine->num_bodies; i++)
+	{
+		JPH_BodyInterface_RemoveAndDestroyBody(engine->body_interface, engine->bodies[i]);
+	}
+
 	JPH_JobSystem_Destroy(engine->job_system);
 	JPH_PhysicsSystem_Destroy(engine->physics_system);
 	JPH_Shutdown();
