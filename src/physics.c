@@ -141,6 +141,32 @@ void physics_engine_optimize(const physics_engine_t *engine)
 	SDL_LogDebug(LOG_CATEGORY_PHYSICS, "Optimised broad phase in %llu ms", end - start);
 }
 
+bool physics_engine_update(const physics_engine_t *engine, const float delta)
+{
+	constexpr auto collision_steps = 1;
+
+	const JPH_PhysicsUpdateError error = JPH_PhysicsSystem_Update(engine->physics_system,
+		delta, collision_steps, engine->job_system);
+
+	switch (error)
+	{
+		case JPH_PhysicsUpdateError_None:
+			return true;
+
+		case JPH_PhysicsUpdateError_ManifoldCacheFull:
+			return SDL_SetError("The manifest cache is full");
+
+		case JPH_PhysicsUpdateError_BodyPairCacheFull:
+			return SDL_SetError("The body pair cache is full");
+
+		case JPH_PhysicsUpdateError_ContactConstraintsFull:
+			return SDL_SetError("The contact constraints buffer is full");
+
+		default:
+			return SDL_SetError("Unknown error");
+	}
+}
+
 #define jph_vec3(x) ((JPH_Vec3*)(x))
 #define jph_motion_type(x) ((JPH_MotionType)(x))
 

@@ -339,6 +339,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		state->time.duration = 0;
 	}
 
+	if (!physics_engine_update(state->physics_engine, state->dt))
+	{
+		return fatal_error(state->window, "Failed to update physics");
+	}
+
 	if (SDL_GetWindowRelativeMouseMode(state->window))
 	{
 		vector2f_t mouse;
