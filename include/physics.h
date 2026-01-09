@@ -8,10 +8,11 @@ typedef struct physics_engine_t physics_engine_t;
 
 typedef enum object_layer_t: Uint32
 {
-	OBJ_LAYER_NON_MOVING = 0,
-	OBJ_LAYER_MOVING     = 1,
+	OBJ_LAYER_DEFAULT = 0,
+	OBJ_LAYER_STATIC  = 1,
+	OBJ_LAYER_PLAYER  = 2,
 
-	OBJ_LAYER_COUNT = 2,
+	OBJ_LAYER_COUNT = 3,
 } object_layer_t;
 
 typedef enum physics_motion_type_t

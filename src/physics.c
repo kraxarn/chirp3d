@@ -75,21 +75,20 @@ physics_engine_t *physics_engine_create()
 
 	JPH_ObjectLayerPairFilter *obj_filter = JPH_ObjectLayerPairFilterTable_Create(OBJ_LAYER_COUNT);
 	JPH_ObjectLayerPairFilterTable_EnableCollision(obj_filter,
-		OBJ_LAYER_NON_MOVING, OBJ_LAYER_MOVING
+		OBJ_LAYER_STATIC, OBJ_LAYER_PLAYER
 	);
 	JPH_ObjectLayerPairFilterTable_EnableCollision(obj_filter,
-		OBJ_LAYER_MOVING, OBJ_LAYER_NON_MOVING
+		OBJ_LAYER_PLAYER, OBJ_LAYER_STATIC
 	);
 
-	// 1-to-1 mapping between object layers and broad-phase layers
 	JPH_BroadPhaseLayerInterface *bp_interface = JPH_BroadPhaseLayerInterfaceTable_Create(
 		OBJ_LAYER_COUNT, BP_LAYER_COUNT
 	);
 	JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(bp_interface,
-		OBJ_LAYER_NON_MOVING, BP_LAYER_NON_MOVING
+		OBJ_LAYER_STATIC, BP_LAYER_NON_MOVING
 	);
 	JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(bp_interface,
-		OBJ_LAYER_MOVING, BP_LAYER_MOVING
+		OBJ_LAYER_PLAYER, BP_LAYER_MOVING
 	);
 
 	JPH_ObjectVsBroadPhaseLayerFilter *layer_filter = JPH_ObjectVsBroadPhaseLayerFilterTable_Create(
