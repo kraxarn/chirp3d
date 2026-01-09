@@ -274,7 +274,7 @@ static char *debug_hud_text(const app_state_t *state)
 #endif
 		"%s %s\n"
 		"FPS     : %u\n"
-		"Delta   : %.4f\n"
+		"Delta   : %.2f ms\n"
 		"Video   : %s\n"
 		"Audio   : %s\n"
 		"Renderer: %s\n"
@@ -283,7 +283,7 @@ static char *debug_hud_text(const app_state_t *state)
 		"Up      : %6.2f %6.2f %6.2f\n",
 		ENGINE_NAME, ENGINE_VERSION,
 		state->time.fps,
-		state->dt,
+		state->dt * 1'000.F,
 		video_driver_display_name(SDL_GetCurrentVideoDriver()),
 		audio_driver_display_name(SDL_GetCurrentAudioDriver()),
 		gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device)),
