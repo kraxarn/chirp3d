@@ -180,3 +180,16 @@ void physics_engine_add_sphere(physics_engine_t *engine, const sphere_config_t *
 	add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 }
+
+void physics_engine_add_capsule(physics_engine_t *engine, const capsule_config_t *config)
+{
+	JPH_CapsuleShape *shape = JPH_CapsuleShape_Create(config->half_height, config->radius);
+
+	JPH_BodyCreationSettings *settings = JPH_BodyCreationSettings_Create3(
+		(JPH_Shape *) shape, jph_vec3(&config->position), nullptr,
+		jph_motion_type(config->motion_type), config->layer
+	);
+
+	add_body(engine, settings, config->activate);
+	JPH_BodyCreationSettings_Destroy(settings);
+}
