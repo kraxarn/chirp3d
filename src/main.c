@@ -299,7 +299,7 @@ static char *debug_hud_text(const app_state_t *state)
 		"Video   : %s\n"
 		"Audio   : %s\n"
 		"Renderer: %s\n"
-		"Camera  : %6.2f %6.2f %6.2f\n"
+		"Position: %6.2f %6.2f %6.2f\n"
 		"Target  : %6.2f %6.2f %6.2f\n"
 		"Up      : %6.2f %6.2f %6.2f\n",
 		ENGINE_NAME, ENGINE_VERSION,
