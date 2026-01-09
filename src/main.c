@@ -113,6 +113,8 @@ static SDL_AppResult build_scene(app_state_t *state)
 	};
 	physics_engine_add_capsule(state->physics_engine, &player_config);
 
+	physics_engine_optimize(state->physics_engine);
+
 	return SDL_APP_CONTINUE;
 }
 
