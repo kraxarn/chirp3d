@@ -6,6 +6,8 @@
 
 typedef struct physics_engine_t physics_engine_t;
 
+typedef Uint32 physics_body_id_t;
+
 typedef enum object_layer_t: Uint32
 {
 	OBJ_LAYER_DEFAULT = 0,
@@ -59,8 +61,8 @@ void physics_optimize(const physics_engine_t *engine);
 
 bool physics_update(const physics_engine_t *engine, float delta);
 
-void physics_add_box(physics_engine_t *engine, const box_config_t *config);
+physics_body_id_t physics_add_box(physics_engine_t *engine, const box_config_t *config);
 
-void physics_add_sphere(physics_engine_t *engine, const sphere_config_t *config);
+physics_body_id_t physics_add_sphere(physics_engine_t *engine, const sphere_config_t *config);
 
-void physics_add_capsule(physics_engine_t *engine, const capsule_config_t *config);
+physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_config_t *config);

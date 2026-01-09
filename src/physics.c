@@ -176,14 +176,15 @@ static JPH_Activation jph_activation(const bool activate)
 		: JPH_Activation_DontActivate;
 }
 
-static void add_body(physics_engine_t *engine, const JPH_BodyCreationSettings *settings, const bool activate)
+static JPH_BodyID add_body(physics_engine_t *engine, const JPH_BodyCreationSettings *settings, const bool activate)
 {
 	const JPH_Activation activation = jph_activation(activate);
 	const JPH_BodyID body = JPH_BodyInterface_CreateAndAddBody(engine->body_interface, settings, activation);
 	engine->bodies[engine->num_bodies++] = body;
+	return body;
 }
 
-void physics_add_box(physics_engine_t *engine, const box_config_t *config)
+physics_body_id_t physics_add_box(physics_engine_t *engine, const box_config_t *config)
 {
 	JPH_BoxShape *shape = JPH_BoxShape_Create(
 		jph_vec3(&config->half_extents), JPH_DEFAULT_CONVEX_RADIUS
@@ -194,11 +195,12 @@ void physics_add_box(physics_engine_t *engine, const box_config_t *config)
 		jph_motion_type(config->motion_type), config->layer
 	);
 
-	add_body(engine, settings, config->activate);
+	const JPH_BodyID body_id = add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);
+	return body_id;
 }
 
-void physics_add_sphere(physics_engine_t *engine, const sphere_config_t *config)
+physics_body_id_t physics_add_sphere(physics_engine_t *engine, const sphere_config_t *config)
 {
 	JPH_SphereShape *shape = JPH_SphereShape_Create(config->radius);
 
@@ -207,11 +209,12 @@ void physics_add_sphere(physics_engine_t *engine, const sphere_config_t *config)
 		jph_motion_type(config->motion_type), config->layer
 	);
 
-	add_body(engine, settings, config->activate);
+	const JPH_BodyID body_id = add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);
+	return body_id;
 }
 
-void physics_add_capsule(physics_engine_t *engine, const capsule_config_t *config)
+physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_config_t *config)
 {
 	JPH_CapsuleShape *shape = JPH_CapsuleShape_Create(config->half_height, config->radius);
 
@@ -220,6 +223,7 @@ void physics_add_capsule(physics_engine_t *engine, const capsule_config_t *confi
 		jph_motion_type(config->motion_type), config->layer
 	);
 
-	add_body(engine, settings, config->activate);
+	const JPH_BodyID body_id = add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);
+	return body_id;
 }
