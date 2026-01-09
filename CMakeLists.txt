@@ -29,6 +29,7 @@ include(deps/qoi.cmake)
 include(deps/stb.cmake)
 include(deps/tomlc17.cmake)
 include(deps/joltc.cmake)
+include(deps/par.cmake)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	# macOS

@@ -3,7 +3,25 @@
 #include "meshinfo.h"
 #include "vector.h"
 
+#include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_stdinc.h>
+
+#define PAR_MALLOC(T, N) ((T*) SDL_malloc(N * sizeof(T)))
+#define PAR_CALLOC(T, N) ((T*) SDL_calloc(N * sizeof(T), 1))
+#define PAR_REALLOC(T, BUF, N) ((T*) SDL_realloc(BUF, sizeof(T) * (N)))
+#define PAR_FREE(BUF) SDL_free(BUF)
+
+#define sqrt(x)  SDL_sqrt(x)
+#define cosf(x)  SDL_cosf(x)
+#define sinf(x)  SDL_sinf(x)
+#define cos(x)   SDL_cos(x)
+#define sin(x)   SDL_sin(x)
+#define acos(x)  SDL_acos(x)
+#define pow(x,y) SDL_pow(x,y)
+
+#define PAR_SHAPES_IMPLEMENTATION
+#include "par_shapes.h"
 
 #if 0
 static void compute_normals(vertex_t *vertices, const size_t num_vertices,
@@ -183,4 +201,59 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 	};
 
 	return mesh_create(device, mesh_info);
+}
+
+mesh_t *create_sphere(SDL_GPUDevice *device, const float radius)
+{
+	par_shapes_set_epsilon_degenerate_sphere(0.F);
+
+	// TODO: Maybe allow setting these manually
+	constexpr auto slices = 32;
+	constexpr auto stacks = 32;
+
+	par_shapes_mesh *sphere = par_shapes_create_parametric_sphere(slices, stacks);
+	par_shapes_scale(sphere, radius, radius, radius);
+
+	const auto num_vertices = (size_t) sphere->npoints;
+	const size_t num_indices = (size_t) sphere->ntriangles * 3;
+
+	const auto points = (vector3f_t *) sphere->points;
+	const auto tex_coords = (vector2f_t *) sphere->tcoords;
+	const auto indices = (vector3u16_t *) sphere->triangles;
+
+	vertex_t *vertices = SDL_malloc(num_vertices * sizeof(vertex_t));
+
+	for (size_t i = 0; i < num_vertices; i++)
+	{
+		SDL_assert(points[i].x == sphere->points[(i * 3) + 0]);
+		SDL_assert(points[i].y == sphere->points[(i * 3) + 1]);
+		SDL_assert(points[i].z == sphere->points[(i * 3) + 2]);
+
+		SDL_assert(tex_coords[i].x == sphere->tcoords[(i * 2) + 0]);
+		SDL_assert(tex_coords[i].y == sphere->tcoords[(i * 2) + 1]);
+
+		vertices[i].position = points[i];
+		vertices[i].tex_coord = tex_coords[i];
+	}
+
+	for (size_t i = 0; i < num_indices / 3; i++)
+	{
+		SDL_assert(indices[i].x == sphere->triangles[(i * 3) + 0]);
+		SDL_assert(indices[i].y == sphere->triangles[(i * 3) + 1]);
+		SDL_assert(indices[i].z == sphere->triangles[(i * 3) + 2]);
+	}
+
+	const mesh_info_t mesh_info = {
+		.num_vertices = num_vertices,
+		.vertices = vertices,
+		.num_indices = sphere->ntriangles,
+		.indices = sphere->triangles,
+	};
+
+	mesh_t *mesh = mesh_create(device, mesh_info);
+
+	SDL_free(vertices);
+	par_shapes_free_mesh(sphere);
+
+	return mesh;
 }

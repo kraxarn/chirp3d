@@ -38,6 +38,13 @@ typedef struct vector4f_t
 	float w;
 } vector4f_t;
 
+typedef struct vector3u16_t
+{
+	Uint16 x;
+	Uint16 y;
+	Uint16 z;
+} vector3u16_t;
+
 [[nodiscard]]
 vector3f_t vector3f_zero();
 

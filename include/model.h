@@ -7,3 +7,6 @@
 
 [[nodiscard]]
 mesh_t *create_cube(SDL_GPUDevice *device, vector3f_t size);
+
+[[nodiscard]]
+mesh_t *create_sphere(SDL_GPUDevice *device, float radius);
