@@ -148,53 +148,6 @@ char *gpu_driver_names()
 	return gpu_drivers;
 }
 
-char *shader_format_names(SDL_GPUDevice *device)
-{
-	// "Invalid, Private, SPIR-V, DXBC, DXIL, MSL, metallib"
-	constexpr size_t shader_format_names_len = 51;
-
-	char *shader_format_names = SDL_malloc(sizeof(char) * (shader_format_names_len + 1));
-	if (shader_format_names == nullptr)
-	{
-		return nullptr;
-	}
-	shader_format_names[0] = '\0';
-
-	const SDL_GPUShaderFormat shader_format = SDL_GetGPUShaderFormats(device);
-
-	if (shader_format == SDL_GPU_SHADERFORMAT_INVALID)
-	{
-		SDL_strlcat(shader_format_names, "invalid, ", shader_format_names_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_PRIVATE) > 0)
-	{
-		SDL_strlcat(shader_format_names, "private, ", shader_format_names_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_SPIRV) > 0)
-	{
-		SDL_strlcat(shader_format_names, "spir-v, ", shader_format_names_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_DXBC) > 0)
-	{
-		SDL_strlcat(shader_format_names, "dxbc, ", shader_format_names_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_DXIL) > 0)
-	{
-		SDL_strlcat(shader_format_names, "dxil, ", shader_format_names_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_MSL) > 0)
-	{
-		SDL_strlcat(shader_format_names, "msl, ", shader_format_names_len);
-	}
-	if ((shader_format & SDL_GPU_SHADERFORMAT_METALLIB) > 0)
-	{
-		SDL_strlcat(shader_format_names, "metallib, ", shader_format_names_len);
-	}
-
-	shader_format_names[SDL_strlen(shader_format_names) - 2] = '\0';
-	return shader_format_names;
-}
-
 bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, const SDL_FColor clear_color,
 	SDL_GPUTexture *depth_texture, SDL_GPUCommandBuffer **command_buffer,
 	SDL_GPURenderPass **render_pass, vector2f_t *size)
