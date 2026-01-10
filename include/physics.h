@@ -77,3 +77,6 @@ void physics_body_set_position(const physics_engine_t *engine, physics_body_id_t
 
 [[nodiscard]]
 vector3f_t physics_body_linear_velocity(const physics_engine_t *engine, physics_body_id_t body_id);
+
+void physics_body_add_linear_velocity(const physics_engine_t *engine,
+	physics_body_id_t body_id, vector3f_t velocity);
