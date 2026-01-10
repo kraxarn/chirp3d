@@ -235,3 +235,10 @@ vector3f_t physics_body_position(const physics_engine_t *engine, const physics_b
 	JPH_BodyInterface_GetPosition(engine->body_interface, body_id, jph_r_vec3(&position));
 	return position;
 }
+
+vector3f_t physics_body_linear_velocity(const physics_engine_t *engine, const physics_body_id_t body_id)
+{
+	vector3f_t velocity;
+	JPH_BodyInterface_GetLinearVelocity(engine->body_interface, body_id, jph_r_vec3(&velocity));
+	return velocity;
+}

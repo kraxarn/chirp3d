@@ -67,4 +67,8 @@ physics_body_id_t physics_add_sphere(physics_engine_t *engine, const sphere_conf
 
 physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_config_t *config);
 
+[[nodiscard]]
 vector3f_t physics_body_position(const physics_engine_t *engine, physics_body_id_t body_id);
+
+[[nodiscard]]
+vector3f_t physics_body_linear_velocity(const physics_engine_t *engine, physics_body_id_t body_id);
