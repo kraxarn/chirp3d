@@ -110,6 +110,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 		.radius = 5.F,
 		.position = vector3f_zero(),
 		.motion_type = MOTION_TYPE_DYNAMIC,
+		.layer = OBJ_LAYER_PLAYER,
 		.activate = false,
 	};
 	state->player_body_id = physics_add_capsule(state->physics_engine, &player_config);
