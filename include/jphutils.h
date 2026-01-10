@@ -3,7 +3,12 @@
 #include "physics.h"
 #include "vector.h"
 
-#include "joltc.h"
+typedef struct JPH_Vec3 JPH_Vec3;
+typedef struct JPH_Quat JPH_Quat;
+
+typedef enum JPH_MotionType JPH_MotionType;
+typedef enum JPH_AllowedDOFs JPH_AllowedDOFs;
+typedef enum JPH_Activation JPH_Activation;
 
 [[nodiscard]]
 JPH_Vec3 *jph_vec3(const vector3f_t *vec);
