@@ -27,7 +27,7 @@ static vector3f_t camera_right(const camera_t *camera)
 	return vector3f_normalize(vector3f_cross(camera_forward(camera), camera_up(camera)));
 }
 
-void camera_move_z(camera_t *camera, const float movement)
+vector3f_t camera_move_z(camera_t *camera, const float movement)
 {
 	vector3f_t forward = camera_forward(camera);
 
@@ -39,22 +39,30 @@ void camera_move_z(camera_t *camera, const float movement)
 
 	camera->position = vector3f_add(camera->position, scaled);
 	camera->target = vector3f_add(camera->target, scaled);
+
+	return forward;
 }
 
-void camera_move_x(camera_t *camera, const float movement)
+vector3f_t camera_move_x(camera_t *camera, const float movement)
 {
-	const vector3f_t right = vector3f_scale(camera_right(camera), movement);
+	const vector3f_t right = camera_right(camera);
+	const vector3f_t scaled = vector3f_scale(right, movement);
 
-	camera->position = vector3f_add(camera->position, right);
-	camera->target = vector3f_add(camera->target, right);
+	camera->position = vector3f_add(camera->position, scaled);
+	camera->target = vector3f_add(camera->target, scaled);
+
+	return right;
 }
 
-void camera_move_y(camera_t *camera, const float movement)
+vector3f_t camera_move_y(camera_t *camera, const float movement)
 {
-	const vector3f_t up = vector3f_scale(camera_up(camera), movement);
+	const vector3f_t up = camera_up(camera);
+	const vector3f_t scaled = vector3f_scale(up, movement);
 
-	camera->position = vector3f_add(camera->position, up);
-	camera->target = vector3f_add(camera->target, up);
+	camera->position = vector3f_add(camera->position, scaled);
+	camera->target = vector3f_add(camera->target, scaled);
+
+	return up;
 }
 
 void camera_rotate_x(camera_t *camera, const float angle) // jaw
