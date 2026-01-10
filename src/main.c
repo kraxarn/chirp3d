@@ -286,7 +286,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 static char *debug_hud_text(const app_state_t *state)
 {
-	static constexpr size_t debug_text_len = 256;
+	static constexpr size_t debug_text_len = 512;
 	static char debug_text[debug_text_len];
 
 	const vector3f_t position = physics_body_position(state->physics_engine, state->player_body_id);
