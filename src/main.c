@@ -112,6 +112,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 		.motion_type = MOTION_TYPE_DYNAMIC,
 		.layer = OBJ_LAYER_PLAYER,
 		.activate = false,
+		.allowed_dof = DOF_TRANSLATION_3D,
 	};
 	state->player_body_id = physics_add_capsule(state->physics_engine, &player_config);
 	physics_body_set_position(state->physics_engine, state->player_body_id, state->camera.position, true);

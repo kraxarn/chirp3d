@@ -33,6 +33,9 @@ typedef enum physics_allowed_dof_t
 	DOF_ROTATION_X    = 0b001000,
 	DOF_ROTATION_Y    = 0b010000,
 	DOF_ROTATION_Z    = 0b100000,
+
+	DOF_TRANSLATION_3D = DOF_TRANSLATION_X | DOF_TRANSLATION_Y | DOF_TRANSLATION_Z,
+	DOF_ROTATION_3D    = DOF_ROTATION_X | DOF_ROTATION_Y | DOF_ROTATION_Z,
 } physics_allowed_dof_t;
 
 typedef struct box_config_t
