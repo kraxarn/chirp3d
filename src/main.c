@@ -110,8 +110,10 @@ static SDL_AppResult build_scene(app_state_t *state)
 		.radius = 5.F,
 		.position = vector3f_zero(),
 		.motion_type = MOTION_TYPE_DYNAMIC,
+		.activate = false,
 	};
 	state->player_body_id = physics_add_capsule(state->physics_engine, &player_config);
+	physics_body_set_position(state->physics_engine, state->player_body_id, state->camera.position, true);
 
 	const vector3f_t gravity = {.y = -10.F};
 	physics_set_gravity(state->physics_engine, gravity);
