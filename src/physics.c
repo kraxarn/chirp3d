@@ -169,6 +169,10 @@ bool physics_update(const physics_engine_t *engine, const float delta)
 #define jph_vec3(x)        ((JPH_Vec3*)(x))
 #define jph_motion_type(x) ((JPH_MotionType)(x))
 
+// This might break if RVec3 uses doubles for example
+static_assert(sizeof(vector3f_t) == sizeof(JPH_Vec3));
+static_assert(sizeof(vector3f_t) == sizeof(JPH_RVec3));
+
 static JPH_Activation jph_activation(const bool activate)
 {
 	return (int) activate
