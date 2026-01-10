@@ -372,43 +372,40 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		{
 			const vector3f_t velocity = camera_to_z(&state->camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
-			state->camera.target = vector3f_add(state->camera.target, velocity);
 		}
 
 		if (input_is_down("move_backward"))
 		{
 			const vector3f_t velocity = camera_to_z(&state->camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
-			state->camera.target = vector3f_add(state->camera.target, velocity);
 		}
 
 		if (input_is_down("move_left"))
 		{
 			const vector3f_t velocity = camera_to_x(&state->camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
-			state->camera.target = vector3f_add(state->camera.target, velocity);
 		}
 
 		if (input_is_down("move_right"))
 		{
 			const vector3f_t velocity = camera_to_x(&state->camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
-			state->camera.target = vector3f_add(state->camera.target, velocity);
 		}
 
 		if (input_is_down("move_up"))
 		{
 			const vector3f_t velocity = camera_to_y(&state->camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
-			state->camera.target = vector3f_add(state->camera.target, velocity);
 		}
 
 		if (input_is_down("move_down"))
 		{
 			const vector3f_t velocity = camera_to_y(&state->camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
-			state->camera.target = vector3f_add(state->camera.target, velocity);
 		}
+
+		const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
+		state->camera.target = vector3f_add(state->camera.target, velocity);
 	}
 
 	state->camera.position = physics_body_position(state->physics_engine, state->player_body_id);
