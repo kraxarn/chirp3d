@@ -180,6 +180,11 @@ static JPH_Activation jph_activation(const bool activate)
 		: JPH_Activation_DontActivate;
 }
 
+void physics_set_gravity(const physics_engine_t *engine, const vector3f_t gravity)
+{
+	JPH_PhysicsSystem_SetGravity(engine->physics_system, jph_vec3(&gravity));
+}
+
 static JPH_BodyID add_body(physics_engine_t *engine, const JPH_BodyCreationSettings *settings, const bool activate)
 {
 	const JPH_Activation activation = jph_activation(activate);

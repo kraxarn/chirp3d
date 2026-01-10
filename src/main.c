@@ -113,6 +113,9 @@ static SDL_AppResult build_scene(app_state_t *state)
 	};
 	state->player_body_id = physics_add_capsule(state->physics_engine, &player_config);
 
+	const vector3f_t gravity = {.y = -10.F};
+	physics_set_gravity(state->physics_engine, gravity);
+
 	physics_optimize(state->physics_engine);
 
 	return SDL_APP_CONTINUE;
