@@ -28,7 +28,7 @@ typedef struct physics_engine_t
 	JPH_PhysicsSystem *physics_system;
 	JPH_BodyInterface *body_interface;
 
-	JPH_BodyID bodies[max_bodies]; // TODO: Is this a bit excessive maybe?
+	JPH_BodyID bodies[max_bodies];
 	size_t num_bodies;
 } physics_engine_t;
 
