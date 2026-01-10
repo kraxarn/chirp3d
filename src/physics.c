@@ -167,12 +167,14 @@ bool physics_update(const physics_engine_t *engine, const float delta)
 }
 
 #define jph_vec3(x)        ((JPH_Vec3*)(x))
+#define jph_quat(x)        ((JPH_Quat*)(x))
 #define jph_motion_type(x) ((JPH_MotionType)(x))
 #define jph_allowed_dof(x) ((JPH_AllowedDOFs)(x))
 
 // This might break if RVec3 uses doubles for example
 static_assert(sizeof(vector3f_t) == sizeof(JPH_Vec3));
 static_assert(sizeof(vector3f_t) == sizeof(JPH_RVec3));
+static_assert(sizeof(vector4f_t) == sizeof(JPH_Quat));
 
 static JPH_Activation jph_activation(const bool activate)
 {
@@ -254,6 +256,13 @@ void physics_body_set_position(const physics_engine_t *engine, const physics_bod
 	vector3f_t position, const bool activate)
 {
 	JPH_BodyInterface_SetPosition(engine->body_interface, body_id, jph_vec3(&position), jph_activation(activate));
+}
+
+vector4f_t physics_body_rotation(const physics_engine_t *engine, const physics_body_id_t body_id)
+{
+	vector4f_t rotation;
+	JPH_BodyInterface_GetRotation(engine->body_interface, body_id, jph_quat(&rotation));
+	return rotation;
 }
 
 vector3f_t physics_body_linear_velocity(const physics_engine_t *engine, const physics_body_id_t body_id)
