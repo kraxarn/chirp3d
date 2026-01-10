@@ -244,6 +244,12 @@ vector3f_t physics_body_position(const physics_engine_t *engine, const physics_b
 	return position;
 }
 
+void physics_body_set_position(const physics_engine_t *engine, const physics_body_id_t body_id,
+	vector3f_t position, const bool activate)
+{
+	JPH_BodyInterface_SetPosition(engine->body_interface, body_id, jph_vec3(&position), jph_activation(activate));
+}
+
 vector3f_t physics_body_linear_velocity(const physics_engine_t *engine, const physics_body_id_t body_id)
 {
 	vector3f_t velocity;

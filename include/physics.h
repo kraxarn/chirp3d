@@ -72,5 +72,8 @@ physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_co
 [[nodiscard]]
 vector3f_t physics_body_position(const physics_engine_t *engine, physics_body_id_t body_id);
 
+void physics_body_set_position(const physics_engine_t *engine, physics_body_id_t body_id,
+	vector3f_t position, bool activate);
+
 [[nodiscard]]
 vector3f_t physics_body_linear_velocity(const physics_engine_t *engine, physics_body_id_t body_id);
