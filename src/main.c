@@ -366,34 +366,42 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 		if (input_is_down("move_forward"))
 		{
-			camera_move_z(&state->camera, move_speed * state->dt);
+			const vector3f_t velocity = camera_move_z(&state->camera, move_speed * state->dt);
+			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_backward"))
 		{
-			camera_move_z(&state->camera, -(move_speed * state->dt));
+			const vector3f_t velocity = camera_move_z(&state->camera, -(move_speed * state->dt));
+			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_left"))
 		{
-			camera_move_x(&state->camera, -(move_speed * state->dt));
+			const vector3f_t velocity = camera_move_x(&state->camera, -(move_speed * state->dt));
+			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_right"))
 		{
-			camera_move_x(&state->camera, move_speed * state->dt);
+			const vector3f_t velocity = camera_move_x(&state->camera, move_speed * state->dt);
+			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_up"))
 		{
-			camera_move_y(&state->camera, move_speed * state->dt);
+			const vector3f_t velocity = camera_move_y(&state->camera, move_speed * state->dt);
+			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_down"))
 		{
-			camera_move_y(&state->camera, -(move_speed * state->dt));
+			const vector3f_t velocity = camera_move_y(&state->camera, -(move_speed * state->dt));
+			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 	}
+
+	state->camera.position = physics_body_position(state->physics_engine, state->player_body_id);
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 
