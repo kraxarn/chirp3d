@@ -257,7 +257,7 @@ vector3f_t physics_body_linear_velocity(const physics_engine_t *engine, const ph
 }
 
 void physics_body_add_linear_velocity(const physics_engine_t *engine,
-	const physics_body_id_t body_id, const vector3f_t velocity)
+	const physics_body_id_t body_id, vector3f_t velocity)
 {
 	JPH_BodyInterface_AddLinearVelocity(engine->body_interface, body_id, jph_vec3(&velocity));
 }

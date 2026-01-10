@@ -4,12 +4,17 @@
 
 #include "joltc.h"
 
-JPH_Vec3 *jph_vec3(vector3f_t *vec)
-{
-	static_assert(sizeof(vector3f_t) == sizeof(JPH_Vec3));
-	static_assert(sizeof(vector3f_t) == sizeof(JPH_RVec3));
+static_assert(sizeof(vector3f_t) == sizeof(JPH_Vec3));
+static_assert(sizeof(vector3f_t) == sizeof(JPH_RVec3));
 
+JPH_Vec3 *jph_mut_vec3(vector3f_t *vec)
+{
 	return (JPH_Vec3 *) vec;
+}
+
+const JPH_Vec3 *jph_const_vec3(const vector3f_t *vec)
+{
+	return (const JPH_Vec3 *) vec;
 }
 
 JPH_Quat *jph_quat(vector4f_t *vec)
