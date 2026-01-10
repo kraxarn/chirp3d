@@ -74,5 +74,3 @@ float vector3f_angle(vector3f_t vec1, vector3f_t vec2);
 
 [[nodiscard]]
 vector3f_t vector3f_invert(vector3f_t vec);
-
-char *vector3f_str(vector3f_t vec, char *str, size_t max_len);

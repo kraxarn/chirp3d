@@ -94,9 +94,3 @@ vector3f_t vector3f_invert(const vector3f_t vec)
 		.z = -vec.z,
 	};
 }
-
-char *vector3f_str(const vector3f_t vec, char *str, const size_t max_len)
-{
-	SDL_snprintf(str, max_len, "%6.2f %6.2f %6.2f", vec.x, vec.y, vec.z);
-	return str;
-}
