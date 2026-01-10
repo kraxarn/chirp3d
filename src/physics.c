@@ -166,16 +166,34 @@ bool physics_update(const physics_engine_t *engine, const float delta)
 	}
 }
 
-#define jph_vec3(x)        ((JPH_Vec3*)(x))
-#define jph_quat(x)        ((JPH_Quat*)(x))
-#define jph_motion_type(x) ((JPH_MotionType)(x))
-#define jph_allowed_dof(x) ((JPH_AllowedDOFs)(x))
+[[nodiscard]]
+static JPH_Vec3 *jph_vec3(const vector3f_t *vec)
+{
+	static_assert(sizeof(vector3f_t) == sizeof(JPH_Vec3));
+	static_assert(sizeof(vector3f_t) == sizeof(JPH_RVec3));
 
-// This might break if RVec3 uses doubles for example
-static_assert(sizeof(vector3f_t) == sizeof(JPH_Vec3));
-static_assert(sizeof(vector3f_t) == sizeof(JPH_RVec3));
-static_assert(sizeof(vector4f_t) == sizeof(JPH_Quat));
+	return (JPH_Vec3 *) vec;
+}
 
+static JPH_Quat *jph_quat(const vector4f_t *vec)
+{
+	static_assert(sizeof(vector4f_t) == sizeof(JPH_Quat));
+
+	return (JPH_Quat *) vec;
+}
+
+[[nodiscard]]
+static JPH_MotionType jph_motion_type(const physics_motion_type_t motion_type)
+{
+	return (JPH_MotionType) motion_type;
+}
+
+static JPH_AllowedDOFs jph_allowed_dof(const physics_allowed_dof_t allowed_dof)
+{
+	return (JPH_AllowedDOFs) allowed_dof;
+}
+
+[[nodiscard]]
 static JPH_Activation jph_activation(const bool activate)
 {
 	return (int) activate
