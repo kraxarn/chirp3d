@@ -168,6 +168,7 @@ bool physics_update(const physics_engine_t *engine, const float delta)
 
 #define jph_vec3(x)        ((JPH_Vec3*)(x))
 #define jph_motion_type(x) ((JPH_MotionType)(x))
+#define jph_allowed_dof(x) ((JPH_AllowedDOFs)(x))
 
 // This might break if RVec3 uses doubles for example
 static_assert(sizeof(vector3f_t) == sizeof(JPH_Vec3));
@@ -231,6 +232,11 @@ physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_co
 		(JPH_Shape *) shape, jph_vec3(&config->position), nullptr,
 		jph_motion_type(config->motion_type), config->layer
 	);
+
+	if (config->allowed_dof != 0)
+	{
+		JPH_BodyCreationSettings_SetAllowedDOFs(settings, jph_allowed_dof(config->allowed_dof));
+	}
 
 	const JPH_BodyID body_id = add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);

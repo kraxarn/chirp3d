@@ -24,6 +24,17 @@ typedef enum physics_motion_type_t
 	MOTION_TYPE_DYNAMIC   = 2, // Normal physics object
 } physics_motion_type_t;
 
+typedef enum physics_allowed_dof_t
+{
+	DOF_ALL           = 0b111111,
+	DOF_TRANSLATION_X = 0b000001,
+	DOF_TRANSLATION_Y = 0b000010,
+	DOF_TRANSLATION_Z = 0b000100,
+	DOF_ROTATION_X    = 0b001000,
+	DOF_ROTATION_Y    = 0b010000,
+	DOF_ROTATION_Z    = 0b100000,
+} physics_allowed_dof_t;
+
 typedef struct box_config_t
 {
 	physics_motion_type_t motion_type;
@@ -50,6 +61,7 @@ typedef struct capsule_config_t
 	physics_motion_type_t motion_type;
 	object_layer_t layer;
 	bool activate;
+	physics_allowed_dof_t allowed_dof;
 } capsule_config_t;
 
 [[nodiscard]]
