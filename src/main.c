@@ -289,6 +289,9 @@ static char *debug_hud_text(const app_state_t *state)
 	static constexpr size_t debug_text_len = 256;
 	static char debug_text[debug_text_len];
 
+	const vector3f_t position = physics_body_position(state->physics_engine, state->player_body_id);
+	const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
+
 	SDL_snprintf(debug_text, debug_text_len,
 #ifndef NDEBUG
 		"- debug mode -\n"
@@ -299,9 +302,11 @@ static char *debug_hud_text(const app_state_t *state)
 		"Video   : %s\n"
 		"Audio   : %s\n"
 		"Renderer: %s\n"
-		"Position: %6.2f %6.2f %6.2f\n"
+		"Camera  : %6.2f %6.2f %6.2f\n"
 		"Target  : %6.2f %6.2f %6.2f\n"
-		"Up      : %6.2f %6.2f %6.2f\n",
+		"Up      : %6.2f %6.2f %6.2f\n"
+		"Position: %6.2f %6.2f %6.2f\n"
+		"Velocity: %6.2f %6.2f %6.2f\n",
 		ENGINE_NAME, ENGINE_VERSION,
 		state->time.fps,
 		state->dt * 1'000.F,
@@ -310,7 +315,9 @@ static char *debug_hud_text(const app_state_t *state)
 		gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device)),
 		state->camera.position.x, state->camera.position.y, state->camera.position.z,
 		state->camera.target.x, state->camera.target.y, state->camera.target.z,
-		state->camera.up.x, state->camera.up.y, state->camera.up.z
+		state->camera.up.x, state->camera.up.y, state->camera.up.z,
+		position.x, position.y, position.z,
+		velocity.x, velocity.y, velocity.z
 	);
 
 	return debug_text;
@@ -343,9 +350,6 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	{
 		return fatal_error(state->window, "Failed to update physics");
 	}
-
-	const vector3f_t player_position = physics_body_position(state->physics_engine, state->player_body_id);
-	SDL_Log("Position: %.f %.f %.f", player_position.x, player_position.y, player_position.z);
 
 	if (SDL_GetWindowRelativeMouseMode(state->window))
 	{
