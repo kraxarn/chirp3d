@@ -31,7 +31,9 @@
 #include <SDL3/SDL_version.h>
 
 static constexpr auto mouse_sensitivity = 0.0015F;
-static constexpr auto move_speed = 20.F;
+static constexpr auto move_speed = 250.F;
+static constexpr auto max_move_speed = 50.F;
+static constexpr auto gravity_y = 100.F;
 
 static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
 {
@@ -102,6 +104,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 		.position = mesh_position(state->meshes[0]),
 		.half_extents = floor_size,
 		.activate = false,
+		.friction = 5.F,
 	};
 	physics_add_box(state->physics_engine, &floor_config);
 
@@ -117,7 +120,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 	state->player_body_id = physics_add_capsule(state->physics_engine, &player_config);
 	physics_body_set_position(state->physics_engine, state->player_body_id, state->camera.position, true);
 
-	const vector3f_t gravity = {.y = -10.F};
+	const vector3f_t gravity = {.y = -gravity_y};
 	physics_set_gravity(state->physics_engine, gravity);
 
 	physics_optimize(state->physics_engine);
