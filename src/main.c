@@ -16,6 +16,8 @@
 #include "shapes.h"
 #include "videodriver.h"
 
+#include "ui/imgui.h"
+
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
 
@@ -206,6 +208,29 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC))
 	{
 		SDL_LogWarn(LOG_CATEGORY_CORE, "VSync not supported: %s", SDL_GetError());
+	}
+
+	constexpr imgui_config_flags_t config_flags = IMGUI_CONFIG_NAV_ENABLE_KEYBOARD | IMGUI_CONFIG_NAV_ENABLE_GAMEPAD;
+	if (!imgui_create_context(config_flags))
+	{
+		return fatal_error(nullptr, "Failed to create ImGui context");
+	}
+
+	if (SDL_GetSystemTheme() == SDL_SYSTEM_THEME_LIGHT)
+	{
+		imgui_style_colors_light();
+	}
+	else
+	{
+		imgui_style_colors_dark();
+	}
+
+	const float content_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+	imgui_set_scale(content_scale);
+
+	if (!imgui_init_for_sdl3gpu(state->window, state->device))
+	{
+		return fatal_error(nullptr, "Failed to initialize ImGui");
 	}
 
 	vector2i_t depth_size;

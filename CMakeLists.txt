@@ -31,6 +31,9 @@ include(deps/tomlc17.cmake)
 include(deps/joltc.cmake)
 include(deps/par.cmake)
 
+add_subdirectory(ui)
+target_link_libraries(${PROJECT_NAME} PRIVATE chirp3d-ui)
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	# macOS
 	MACOSX_BUNDLE TRUE
