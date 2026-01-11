@@ -34,6 +34,7 @@ static constexpr auto mouse_sensitivity = 0.0015F;
 static constexpr auto move_speed = 250.F;
 static constexpr auto max_move_speed = 50.F;
 static constexpr auto gravity_y = 100.F;
+static constexpr auto jump_speed = 60.F;
 
 static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
 {
@@ -405,6 +406,20 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		{
 			const vector3f_t velocity = camera_to_y(&state->camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
+		}
+
+		if (input_is_down("jump"))
+		{
+			const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
+			if (velocity.y > -0.1F && velocity.y < 0.1F)
+			{
+				const vector3f_t jump_velocity = {
+					.x = velocity.x,
+					.y = jump_speed,
+					.z = velocity.z,
+				};
+				physics_body_set_linear_velocity(state->physics_engine, state->player_body_id, jump_velocity);
+			}
 		}
 	}
 
