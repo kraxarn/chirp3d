@@ -403,9 +403,6 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			const vector3f_t velocity = camera_to_y(&state->camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
-
-		const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
-		state->camera.target = vector3f_add(state->camera.target, velocity);
 	}
 
 	// TODO: There should be a better way to do this, right?
