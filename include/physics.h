@@ -45,6 +45,7 @@ typedef struct box_config_t
 	vector3f_t position;
 	vector3f_t half_extents;
 	bool activate;
+	float friction;
 } box_config_t;
 
 typedef struct sphere_config_t

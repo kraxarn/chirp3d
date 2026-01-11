@@ -191,6 +191,11 @@ physics_body_id_t physics_add_box(physics_engine_t *engine, const box_config_t *
 		jph_motion_type(config->motion_type), config->layer
 	);
 
+	if (config->friction != 0.F)
+	{
+		JPH_BodyCreationSettings_SetFriction(settings, config->friction);
+	}
+
 	const JPH_BodyID body_id = add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 	return body_id;
