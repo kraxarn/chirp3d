@@ -94,3 +94,13 @@ vector3f_t vector3f_invert(const vector3f_t vec)
 		.z = -vec.z,
 	};
 }
+
+vector3f_t vector3f_clamp(const vector3f_t vec,
+	const vector3f_t min, const vector3f_t max)
+{
+	return (vector3f_t){
+		.x = SDL_clamp(vec.x, min.x, max.x),
+		.y = SDL_clamp(vec.y, min.y, max.y),
+		.z = SDL_clamp(vec.z, min.z, max.z)
+	};
+}
