@@ -408,7 +408,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		state->camera.target = vector3f_add(state->camera.target, velocity);
 	}
 
-	state->camera.position = physics_body_position(state->physics_engine, state->player_body_id);
+	// TODO: There should be a better way to do this, right?
+	const vector3f_t player_position = physics_body_position(state->physics_engine, state->player_body_id);
+	state->camera.target = vector3f_add(state->camera.target, vector3f_sub(player_position, state->camera.position));
+	state->camera.position = player_position;
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 
