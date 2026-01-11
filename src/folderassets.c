@@ -244,7 +244,7 @@ assets_t *assets_create_from_folder(const char *path)
 			}
 
 			const toml_datum_t keycode = toml_get(value, "keycode");
-			if (keycode.type != TOML_STRING || keycode.u.str.len > sizeof(SDL_Keycode))
+			if (keycode.type != TOML_STRING)
 			{
 				SDL_LogWarn(LOG_CATEGORY_INPUT, "Invalid keycode in entry '%s'", key);
 			}
