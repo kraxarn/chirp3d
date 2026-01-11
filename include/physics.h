@@ -66,6 +66,7 @@ typedef struct capsule_config_t
 	object_layer_t layer;
 	bool activate;
 	physics_allowed_dof_t allowed_dof;
+	float max_linear_velocity;
 } capsule_config_t;
 
 [[nodiscard]]

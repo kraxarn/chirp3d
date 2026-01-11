@@ -229,6 +229,11 @@ physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_co
 		JPH_BodyCreationSettings_SetAllowedDOFs(settings, jph_allowed_dof(config->allowed_dof));
 	}
 
+	if (config->max_linear_velocity != 0.F)
+	{
+		JPH_BodyCreationSettings_SetMaxLinearVelocity(settings, config->max_linear_velocity);
+	}
+
 	const JPH_BodyID body_id = add_body(engine, settings, config->activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 	return body_id;
