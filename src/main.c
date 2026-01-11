@@ -408,6 +408,22 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		}
 	}
 
+	const vector3f_t min_velocity =
+	{
+		.x = -max_move_speed,
+		.y = -1'000.F,
+		.z = -max_move_speed,
+	};
+	const vector3f_t max_velocity =
+	{
+		.x = max_move_speed,
+		.y = 1'000.F,
+		.z = max_move_speed,
+	};
+	const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
+	const vector3f_t clamped_velocity = vector3f_clamp(velocity, min_velocity, max_velocity);
+	physics_body_set_linear_velocity(state->physics_engine, state->player_body_id, clamped_velocity);
+
 	// TODO: There should be a better way to do this, right?
 	const vector3f_t player_position = physics_body_position(state->physics_engine, state->player_body_id);
 	state->camera.target = vector3f_add(state->camera.target, vector3f_sub(player_position, state->camera.position));
