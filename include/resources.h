@@ -7,6 +7,11 @@ const Uint8 font_monogram_ttf[] =
 #embed FONT_MONOGRAM_TTF_PATH
 };
 
+const Uint8 font_maple_mono_nl_regular_ttf[] =
+{
+#embed FONT_MAPLE_MONO_NL_REGULAR_TTF_PATH
+};
+
 const Uint8 shader_default_vert_dxil[] =
 {
 #embed SHADER_DEFAULT_VERT_DXIL_PATH

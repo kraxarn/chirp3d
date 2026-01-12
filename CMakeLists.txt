@@ -22,14 +22,15 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 	ENGINE_IDENTIFIER="com.kraxarn.${PROJECT_NAME}"
 )
 
-include(resources.cmake)
-
 include(deps/sdl3.cmake)
 include(deps/qoi.cmake)
 include(deps/stb.cmake)
 include(deps/tomlc17.cmake)
 include(deps/joltc.cmake)
 include(deps/par.cmake)
+include(deps/maple-font.cmake)
+
+include(resources.cmake)
 
 add_subdirectory(ui)
 target_link_libraries(${PROJECT_NAME} PRIVATE chirp3d-ui)
