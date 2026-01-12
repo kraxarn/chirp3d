@@ -348,8 +348,7 @@ static char *debug_hud_text(const app_state_t *state)
 		"Camera  : %6.2f %6.2f %6.2f\n"
 		"Target  : %6.2f %6.2f %6.2f\n"
 		"Position: %6.2f %6.2f %6.2f\n"
-		"Velocity: %6.2f %6.2f %6.2f\n"
-		"Rotation: %6.2f %6.2f %6.2f %6.2f\n",
+		"Velocity: %6.2f %6.2f %6.2f\n",
 		ENGINE_NAME, ENGINE_VERSION,
 		state->time.fps,
 		state->dt * 1'000.F,
@@ -359,8 +358,7 @@ static char *debug_hud_text(const app_state_t *state)
 		state->camera.position.x, state->camera.position.y, state->camera.position.z,
 		state->camera.target.x, state->camera.target.y, state->camera.target.z,
 		position.x, position.y, position.z,
-		velocity.x, velocity.y, velocity.z,
-		rotation.x, rotation.y, rotation.z, rotation.w
+		velocity.x, velocity.y, velocity.z
 	);
 
 	return debug_text;
