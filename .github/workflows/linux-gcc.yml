@@ -19,6 +19,8 @@ jobs:
       # setup-clang script requires pwsh
       - name: Install PowerShell
         uses: PSModule/install-powershell@v1
+        with:
+          Version: 7.4.13
 
       - name: Set up compiler
         uses: egor-tensin/setup-clang@v2
