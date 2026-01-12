@@ -35,7 +35,7 @@ void imgui_destroy_context();
 void imgui_shutdown();
 
 [[nodiscard]]
-imgui_font_t *imgui_add_font(const Uint8 *data, size_t data_size);
+imgui_font_t *imgui_add_font(const Uint8 *data, size_t data_size, float font_size);
 
 void imgui_style_colors_dark();
 
