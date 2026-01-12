@@ -12,7 +12,7 @@ extern "C"
 // NOLINTBEGIN(*-use-trailing-return-type, *-use-using)
 
 // enum ImGuiConfigFlags_
-typedef enum imgui_config_flags_t
+typedef enum [[clang::flag_enum]] imgui_config_flags_t
 {
 	IMGUI_CONFIG_NONE                   = 0,
 	IMGUI_CONFIG_NAV_ENABLE_KEYBOARD    = 1 << 0,
