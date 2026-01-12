@@ -341,7 +341,6 @@ static char *debug_hud_text(const app_state_t *state)
 		"Renderer: %s\n"
 		"Camera  : %6.2f %6.2f %6.2f\n"
 		"Target  : %6.2f %6.2f %6.2f\n"
-		"Up      : %6.2f %6.2f %6.2f\n"
 		"Position: %6.2f %6.2f %6.2f\n"
 		"Velocity: %6.2f %6.2f %6.2f\n"
 		"Rotation: %6.2f %6.2f %6.2f %6.2f\n",
@@ -353,7 +352,6 @@ static char *debug_hud_text(const app_state_t *state)
 		gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device)),
 		state->camera.position.x, state->camera.position.y, state->camera.position.z,
 		state->camera.target.x, state->camera.target.y, state->camera.target.z,
-		state->camera.up.x, state->camera.up.y, state->camera.up.z,
 		position.x, position.y, position.z,
 		velocity.x, velocity.y, velocity.z,
 		rotation.x, rotation.y, rotation.z, rotation.w
