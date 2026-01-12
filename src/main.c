@@ -245,7 +245,8 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(state->window, "Failed to initialise depth texture");
 	}
 
-	SDL_IOStream *font_source = SDL_IOFromConstMem(font_monogram_ttf, sizeof(font_monogram_ttf));
+	SDL_IOStream *font_source = SDL_IOFromConstMem(font_maple_mono_nl_regular_ttf,
+		sizeof(font_maple_mono_nl_regular_ttf));
 	if (font_source == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load font data");
