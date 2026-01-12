@@ -59,9 +59,9 @@ auto imgui_init_for_sdl3gpu(SDL_Window *window, SDL_GPUDevice *device) -> bool
 	return ImGui_ImplSDLGPU3_Init(&init_info);
 }
 
-void imgui_process_event(const SDL_Event *event)
+auto imgui_process_event(const SDL_Event *event) -> bool
 {
-	ImGui_ImplSDL3_ProcessEvent(event);
+	return ImGui_ImplSDL3_ProcessEvent(event);
 }
 
 void imgui_new_frame()

@@ -39,7 +39,7 @@ void imgui_set_scale(float scale);
 
 bool imgui_init_for_sdl3gpu(SDL_Window *window, SDL_GPUDevice *device);
 
-void imgui_process_event(const SDL_Event *event);
+bool imgui_process_event(const SDL_Event *event);
 
 void imgui_new_frame();
 
