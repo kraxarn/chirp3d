@@ -30,14 +30,14 @@ void imgui_shutdown()
 	ImGui_ImplSDLGPU3_Shutdown();
 }
 
-auto imgui_add_font(const Uint8 *data, const size_t data_size) -> imgui_font_t *
+auto imgui_add_font(const Uint8 *data, const size_t data_size, const float font_size) -> imgui_font_t *
 {
 	// ImGui wants to own and free the data
 	void *font_data = IM_ALLOC(data_size);
 	SDL_memcpy(font_data, data, data_size);
 
 	const ImGuiIO &ig_io = ImGui::GetIO();
-	return ig_io.Fonts->AddFontFromMemoryTTF(font_data, static_cast<int>(data_size));
+	return ig_io.Fonts->AddFontFromMemoryTTF(font_data, static_cast<int>(data_size), font_size);
 }
 
 void imgui_style_colors_dark()
