@@ -12,13 +12,19 @@ jobs:
 
     steps:
       - name: Install System Dependencies
-        run: apt update && apt install -y git
+        run: apt update && apt install -y git curl
 
       - uses: actions/checkout@v5
 
       # setup-clang script requires pwsh
+      # https://learn.microsoft.com/en-us/powershell/scripting/install/install-other-linux#installation-using-a-binary-archive-file
       - name: Install PowerShell
-        run: snap install powershell --classic
+        run: |
+          curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.5.4/powershell-7.5.4-linux-arm64.tar.gz
+          mkdir -p /opt/microsoft/powershell/7
+          tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7
+          chmod +x /opt/microsoft/powershell/7/pwsh
+          sudo ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
 
       - name: Set up compiler
         uses: egor-tensin/setup-clang@v2
