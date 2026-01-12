@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Install Action Dependencies
-        run: apt update && apt install -y git curl
+        run: apt update && apt install -y git
 
       - uses: actions/checkout@v5
 
@@ -20,6 +20,7 @@ jobs:
       # https://learn.microsoft.com/en-us/powershell/scripting/install/install-other-linux#installation-using-a-binary-archive-file
       - name: Install PowerShell
         run: |
+          apt install -y curl ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu74 libssl3t64 libstdc++6 tzdata zlib1g
           curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.5.4/powershell-7.5.4-linux-arm64.tar.gz
           mkdir -p /opt/microsoft/powershell/7
           tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7
