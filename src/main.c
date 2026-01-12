@@ -216,6 +216,11 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(nullptr, "Failed to initialise ImGui context");
 	}
 
+	if (imgui_add_font(font_maple_mono_nl_regular_ttf, sizeof(font_maple_mono_nl_regular_ttf), 16.F) == nullptr)
+	{
+		return fatal_error(nullptr, "Failed to add font");
+	}
+
 	if (SDL_GetSystemTheme() == SDL_SYSTEM_THEME_LIGHT)
 	{
 		imgui_style_colors_light();
