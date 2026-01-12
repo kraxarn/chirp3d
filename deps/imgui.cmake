@@ -33,7 +33,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE imgui)
 
 # For testing
 option(BUILD_IMGUI_DEMO "Build ImGui demo app" OFF)
-if (IMGUI_DEMO)
+if (BUILD_IMGUI_DEMO)
 	add_executable(imgui-sdl3gpu-example
 		"${imgui_SOURCE_DIR}/examples/example_sdl3_sdlgpu3/main.cpp"
 	)
