@@ -25,6 +25,37 @@ typedef enum [[clang::flag_enum]] imgui_config_flags_t
 	IMGUI_CONFIG_IS_TOUCH_SCREEN = 1 << 21,
 } imgui_config_flags_t;
 
+//enum ImGuiWindowFlags_
+typedef enum [[clang::flag_enum]] imgui_window_flags_t
+{
+	IMGUI_WINDOW_NONE                        = 0,
+	IMGUI_WINDOW_NO_TITLE_BAR                = 1 << 0,
+	IMGUI_WINDOW_NO_RESIZE                   = 1 << 1,
+	IMGUI_WINDOW_NO_MOVE                     = 1 << 2,
+	IMGUI_WINDOW_NO_SCROLLBAR                = 1 << 3,
+	IMGUI_WINDOW_NO_SCROLL_WITH_MOUSE        = 1 << 4,
+	IMGUI_WINDOW_NO_COLLAPSE                 = 1 << 5,
+	IMGUI_WINDOW_ALWAYS_AUTO_RESIZE          = 1 << 6,
+	IMGUI_WINDOW_NO_BACKGROUND               = 1 << 7,
+	IMGUI_WINDOW_NO_SAVED_SETTINGS           = 1 << 8,
+	IMGUI_WINDOW_NO_MOUSE_INPUTS             = 1 << 9,
+	IMGUI_WINDOW_MENU_BAR                    = 1 << 10,
+	IMGUI_WINDOW_HORIZONTAL_SCROLLBAR        = 1 << 11,
+	IMGUI_WINDOW_NO_FOCUS_ON_APPEARING       = 1 << 12,
+	IMGUI_WINDOW_NO_BRING_TO_FRONT_ON_FOCUS  = 1 << 13,
+	IMGUI_WINDOW_ALWAYS_VERTICAL_SCROLLBAR   = 1 << 14,
+	IMGUI_WINDOW_ALWAYS_HORIZONTAL_SCROLLBAR = 1 << 15,
+	IMGUI_WINDOW_NO_NAV_INPUTS               = 1 << 16,
+	IMGUI_WINDOW_NO_NAV_FOCUS                = 1 << 17,
+	IMGUI_WINDOW_UNSAVED_DOCUMENT            = 1 << 18,
+
+	IMGUI_WINDOW_NO_NAV        = IMGUI_WINDOW_NO_NAV_INPUTS | IMGUI_WINDOW_NO_NAV_FOCUS,
+	IMGUI_WINDOW_NO_DECORATION = IMGUI_WINDOW_NO_TITLE_BAR | IMGUI_WINDOW_NO_RESIZE |
+	IMGUI_WINDOW_NO_SCROLLBAR | IMGUI_WINDOW_NO_COLLAPSE,
+	IMGUI_WINDOW_NO_INPUTS = IMGUI_WINDOW_NO_MOUSE_INPUTS | IMGUI_WINDOW_NO_NAV_INPUTS |
+	IMGUI_WINDOW_NO_NAV_FOCUS,
+} imgui_window_flags_t;
+
 typedef struct ImDrawData imgui_draw_data_t;
 typedef struct ImFont imgui_font_t;
 
