@@ -19,6 +19,11 @@ auto imgui_create_context(const imgui_config_flags_t config_flags) -> bool
 	return true;
 }
 
+void imgui_destroy_context()
+{
+	ImGui::DestroyContext();
+}
+
 void imgui_style_colors_dark()
 {
 	ImGui::StyleColorsDark();
@@ -52,4 +57,10 @@ auto imgui_init_for_sdl3gpu(SDL_Window *window, SDL_GPUDevice *device) -> bool
 	init_info.PresentMode = SDL_GPU_PRESENTMODE_VSYNC;
 
 	return ImGui_ImplSDLGPU3_Init(&init_info);
+}
+
+void imgui_shutdown()
+{
+	ImGui_ImplSDL3_Shutdown();
+	ImGui_ImplSDLGPU3_Shutdown();
 }

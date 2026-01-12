@@ -23,6 +23,8 @@ typedef enum imgui_config_flags_t
 
 bool imgui_create_context(imgui_config_flags_t config_flags);
 
+void imgui_destroy_context();
+
 void imgui_style_colors_dark();
 
 void imgui_style_colors_light();
@@ -30,6 +32,8 @@ void imgui_style_colors_light();
 void imgui_set_scale(float scale);
 
 bool imgui_init_for_sdl3gpu(SDL_Window *window, SDL_GPUDevice *device);
+
+void imgui_shutdown();
 
 #ifdef __cplusplus
 }

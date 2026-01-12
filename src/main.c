@@ -565,6 +565,9 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	assets_destroy(state->assets);
 	physics_destroy(state->physics_engine);
 
+	imgui_shutdown();
+	imgui_destroy_context();
+
 	SDL_ReleaseGPUTexture(state->device, state->depth_texture);
 	SDL_ReleaseGPUGraphicsPipeline(state->device, state->pipeline);
 	SDL_ReleaseWindowFromGPUDevice(state->device, state->window);
