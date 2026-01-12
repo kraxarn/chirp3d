@@ -12,15 +12,13 @@ jobs:
 
     steps:
       - name: Install System Dependencies
-        run: apt update && apt install -y git curl jq wget
+        run: apt update && apt install -y git
 
       - uses: actions/checkout@v5
 
       # setup-clang script requires pwsh
       - name: Install PowerShell
-        uses: PSModule/install-powershell@v1
-        with:
-          Version: 7.4.13
+        run: snap install powershell --classic
 
       - name: Set up compiler
         uses: egor-tensin/setup-clang@v2
