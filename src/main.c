@@ -1,20 +1,24 @@
 #include "appstate.h"
 #include "assets.h"
 #include "audiodriver.h"
+#include "camera.h"
 #include "font.h"
 #include "gpu.h"
 #include "gpudevicedriver.h"
 #include "gpudriver.h"
 #include "gpushaderformat.h"
-#include "image.h"
 #include "input.h"
 #include "logcategory.h"
 #include "math.h"
 #include "matrix.h"
+#include "mesh.h"
+#include "physics.h"
 #include "resources.h"
 #include "shader.h"
 #include "shapes.h"
+#include "vector.h"
 #include "videodriver.h"
+#include "windowconfig.h"
 
 #include "ui/imgui.h"
 
@@ -25,12 +29,23 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
+#include <SDL3/SDL_audio.h>
+#include <SDL3/SDL_error.h>
+#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_init.h>
+#include <SDL3/SDL_iostream.h>
+#include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_log.h>
+#include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_pixels.h>
+#include <SDL3/SDL_properties.h>
 #include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_version.h>
+#include <SDL3/SDL_video.h>
 
 static constexpr auto mouse_sensitivity = 0.0015F;
 static constexpr auto move_speed = 250.F;
