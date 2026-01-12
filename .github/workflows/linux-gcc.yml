@@ -11,7 +11,7 @@ jobs:
     container: ubuntu:questing
 
     steps:
-      - name: Install System Dependencies
+      - name: Install Action Dependencies
         run: apt update && apt install -y git curl
 
       - uses: actions/checkout@v5
