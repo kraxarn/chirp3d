@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_rect.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -58,6 +59,7 @@ typedef enum [[clang::flag_enum]] imgui_window_flags_t
 
 typedef struct ImDrawData imgui_draw_data_t;
 typedef struct ImFont imgui_font_t;
+typedef struct ImGuiViewport imgui_viewport_t;
 
 bool imgui_create_context(imgui_config_flags_t config_flags);
 
@@ -94,6 +96,12 @@ void imgui_render_draw_data(imgui_draw_data_t *draw_data,
 
 [[nodiscard]]
 bool imgui_want_capture_mouse();
+
+[[nodiscard]]
+imgui_viewport_t *imgui_main_viewport();
+
+[[nodiscard]]
+SDL_FRect imgui_viewport_work_area(const imgui_viewport_t *viewport);
 
 // NOLINTEND(*-use-trailing-return-type, *-use-using)
 

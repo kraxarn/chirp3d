@@ -4,6 +4,10 @@
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlgpu3.h"
 
+#include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_video.h>
+
 auto imgui_create_context(const imgui_config_flags_t config_flags) -> bool
 {
 	IMGUI_CHECKVERSION();
@@ -112,4 +116,19 @@ auto imgui_want_capture_mouse() -> bool
 {
 	const ImGuiIO &ig_io = ImGui::GetIO();
 	return ig_io.WantCaptureMouse;
+}
+
+auto imgui_main_viewport() -> imgui_viewport_t *
+{
+	return ImGui::GetMainViewport();
+}
+
+auto imgui_viewport_work_area(const imgui_viewport_t *viewport) -> SDL_FRect
+{
+	SDL_FRect rect;
+	rect.x = viewport->WorkPos.x;
+	rect.y = viewport->WorkPos.y;
+	rect.w = viewport->WorkSize.x;
+	rect.h = viewport->WorkSize.y;
+	return rect;
 }
