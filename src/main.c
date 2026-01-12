@@ -257,7 +257,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(state->window, "Failed to load font data");
 	}
 
-	constexpr Uint16 font_size = 18;
+	constexpr Uint16 font_size = 19;
 	const SDL_Color font_color = {.r = 0xf5, .g = 0xf5, .b = 0xf5, .a = SDL_ALPHA_OPAQUE};
 	state->font = font_create(state->window, state->device, font_source, font_size, font_color);
 	if (state->font == nullptr)
