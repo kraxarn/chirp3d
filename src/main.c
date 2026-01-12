@@ -517,6 +517,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 		return SDL_APP_SUCCESS;
 	}
 
+	imgui_process_event(event);
+
 	app_state_t *state = appstate;
 
 	if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == SDL_BUTTON_LEFT)

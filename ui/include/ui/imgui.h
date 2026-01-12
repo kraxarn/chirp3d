@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
 
 #ifdef __cplusplus
@@ -32,6 +33,8 @@ void imgui_style_colors_light();
 void imgui_set_scale(float scale);
 
 bool imgui_init_for_sdl3gpu(SDL_Window *window, SDL_GPUDevice *device);
+
+void imgui_process_event(const SDL_Event *event);
 
 void imgui_shutdown();
 
