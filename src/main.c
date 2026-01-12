@@ -175,13 +175,13 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	);
 	if (state->window == nullptr)
 	{
-		return fatal_error(nullptr, "Window creation failed");
+		return fatal_error(nullptr, "Failed to create window");
 	}
 
 	state->device = create_device(state->window);
 	if (state->device == nullptr)
 	{
-		return fatal_error(state->window, "GPU context creation failed");
+		return fatal_error(state->window, "Failed to initialise GPU context");
 	}
 
 	log_gpu_info(state->device);
@@ -213,7 +213,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	constexpr imgui_config_flags_t config_flags = IMGUI_CONFIG_NAV_ENABLE_KEYBOARD | IMGUI_CONFIG_NAV_ENABLE_GAMEPAD;
 	if (!imgui_create_context(config_flags))
 	{
-		return fatal_error(nullptr, "Failed to create ImGui context");
+		return fatal_error(nullptr, "Failed to initialise ImGui context");
 	}
 
 	if (SDL_GetSystemTheme() == SDL_SYSTEM_THEME_LIGHT)
@@ -230,7 +230,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 	if (!imgui_init_for_sdl3gpu(state->window, state->device))
 	{
-		return fatal_error(nullptr, "Failed to initialize ImGui");
+		return fatal_error(nullptr, "Failed to initialise ImGui");
 	}
 
 	vector2i_t depth_size;
@@ -242,7 +242,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	state->depth_texture = create_depth_texture(state->device, depth_size);
 	if (state->depth_texture == nullptr)
 	{
-		return fatal_error(state->window, "Failed to create depth texture");
+		return fatal_error(state->window, "Failed to initialise depth texture");
 	}
 
 	SDL_IOStream *font_source = SDL_IOFromConstMem(font_monogram_ttf, sizeof(font_monogram_ttf));
@@ -305,7 +305,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	{
 		SDL_ReleaseGPUShader(state->device, vert_shader);
 		SDL_ReleaseGPUShader(state->device, frag_shader);
-		return fatal_error(state->window, "Failed to create pipeline");
+		return fatal_error(state->window, "Failed to initialise pipeline");
 	}
 
 	SDL_ReleaseGPUShader(state->device, vert_shader);
@@ -314,7 +314,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	state->physics_engine = physics_create();
 	if (state->physics_engine == nullptr)
 	{
-		return fatal_error(state->window, "Failed to create physics engine");
+		return fatal_error(state->window, "Failed to initialise physics engine");
 	}
 
 	return build_scene(state);
