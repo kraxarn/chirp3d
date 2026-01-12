@@ -24,6 +24,12 @@ void imgui_destroy_context()
 	ImGui::DestroyContext();
 }
 
+void imgui_shutdown()
+{
+	ImGui_ImplSDL3_Shutdown();
+	ImGui_ImplSDLGPU3_Shutdown();
+}
+
 void imgui_style_colors_dark()
 {
 	ImGui::StyleColorsDark();
@@ -95,10 +101,4 @@ void imgui_render_draw_data(imgui_draw_data_t *draw_data,
 	SDL_GPUCommandBuffer *command_buffer, SDL_GPURenderPass *render_pass)
 {
 	ImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
-}
-
-void imgui_shutdown()
-{
-	ImGui_ImplSDL3_Shutdown();
-	ImGui_ImplSDLGPU3_Shutdown();
 }

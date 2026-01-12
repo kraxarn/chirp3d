@@ -31,6 +31,8 @@ bool imgui_create_context(imgui_config_flags_t config_flags);
 
 void imgui_destroy_context();
 
+void imgui_shutdown();
+
 void imgui_style_colors_dark();
 
 void imgui_style_colors_light();
@@ -54,8 +56,6 @@ void imgui_prepare_draw_data(imgui_draw_data_t *draw_data, SDL_GPUCommandBuffer 
 
 void imgui_render_draw_data(imgui_draw_data_t *draw_data,
 	SDL_GPUCommandBuffer *command_buffer, SDL_GPURenderPass *render_pass);
-
-void imgui_shutdown();
 
 // NOLINTEND(*-use-trailing-return-type, *-use-using)
 
