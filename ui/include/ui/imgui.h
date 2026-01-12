@@ -8,6 +8,9 @@ extern "C"
 {
 #endif
 
+// Ensure C23 compatibility
+// NOLINTBEGIN(*-use-trailing-return-type, *-use-using)
+
 // enum ImGuiConfigFlags_
 typedef enum imgui_config_flags_t
 {
@@ -53,6 +56,8 @@ void imgui_render_draw_data(imgui_draw_data_t *draw_data,
 	SDL_GPUCommandBuffer *command_buffer, SDL_GPURenderPass *render_pass);
 
 void imgui_shutdown();
+
+// NOLINTEND(*-use-trailing-return-type, *-use-using)
 
 #ifdef __cplusplus
 }
