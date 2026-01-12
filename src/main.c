@@ -348,7 +348,6 @@ static char *debug_hud_text(const app_state_t *state)
 
 	const vector3f_t position = physics_body_position(state->physics_engine, state->player_body_id);
 	const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
-	const vector4f_t rotation = physics_body_rotation(state->physics_engine, state->player_body_id);
 
 	SDL_snprintf(debug_text, debug_text_len,
 #ifndef NDEBUG
