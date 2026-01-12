@@ -402,8 +402,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	{
 		vector2f_t mouse;
 		SDL_GetRelativeMouseState(&mouse.x, &mouse.y);
-		camera_rotate_x(&state->camera, -(mouse.x * mouse_sensitivity));
-		camera_rotate_y(&state->camera, -(mouse.y * mouse_sensitivity));
+		if (!imgui_want_capture_mouse())
+		{
+			camera_rotate_x(&state->camera, -(mouse.x * mouse_sensitivity));
+			camera_rotate_y(&state->camera, -(mouse.y * mouse_sensitivity));
+		}
 
 		if (input_is_down("move_forward"))
 		{
@@ -540,7 +543,9 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 
 	app_state_t *state = appstate;
 
-	if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == SDL_BUTTON_LEFT)
+	if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN
+		&& event->button.button == SDL_BUTTON_LEFT
+		&& !imgui_want_capture_mouse())
 	{
 		SDL_SetWindowRelativeMouseMode(state->window, true);
 	}

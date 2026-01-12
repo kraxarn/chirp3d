@@ -57,6 +57,9 @@ void imgui_prepare_draw_data(imgui_draw_data_t *draw_data, SDL_GPUCommandBuffer 
 void imgui_render_draw_data(imgui_draw_data_t *draw_data,
 	SDL_GPUCommandBuffer *command_buffer, SDL_GPURenderPass *render_pass);
 
+[[nodiscard]]
+bool imgui_want_capture_mouse();
+
 // NOLINTEND(*-use-trailing-return-type, *-use-using)
 
 #ifdef __cplusplus

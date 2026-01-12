@@ -102,3 +102,9 @@ void imgui_render_draw_data(imgui_draw_data_t *draw_data,
 {
 	ImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
 }
+
+auto imgui_want_capture_mouse() -> bool
+{
+	const ImGuiIO &ig_io = ImGui::GetIO();
+	return ig_io.WantCaptureMouse;
+}
