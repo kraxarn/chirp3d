@@ -364,7 +364,7 @@ static char *debug_hud_text(const app_state_t *state)
 		"Target  : %6.2f %6.2f %6.2f\n"
 		"Position: %6.2f %6.2f %6.2f\n"
 		"Velocity: %6.2f %6.2f %6.2f\n",
-		ENGINE_NAME, ENGINE_VERSION,
+		ENGINE_NAME, ENGINE_VERSION, // NOLINT(*-include-cleaner)
 		state->time.fps,
 		state->dt * 1'000.F,
 		video_driver_display_name(SDL_GetCurrentVideoDriver()),
