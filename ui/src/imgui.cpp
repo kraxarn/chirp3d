@@ -30,6 +30,12 @@ void imgui_shutdown()
 	ImGui_ImplSDLGPU3_Shutdown();
 }
 
+auto imgui_add_font(void *data, const int data_size) -> imgui_font_t *
+{
+	const ImGuiIO &ig_io = ImGui::GetIO();
+	return ig_io.Fonts->AddFontFromMemoryTTF(data, data_size);
+}
+
 void imgui_style_colors_dark()
 {
 	ImGui::StyleColorsDark();

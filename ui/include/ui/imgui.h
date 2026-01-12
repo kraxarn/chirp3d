@@ -26,12 +26,16 @@ typedef enum imgui_config_flags_t
 } imgui_config_flags_t;
 
 typedef struct ImDrawData imgui_draw_data_t;
+typedef struct ImFont imgui_font_t;
 
 bool imgui_create_context(imgui_config_flags_t config_flags);
 
 void imgui_destroy_context();
 
 void imgui_shutdown();
+
+[[nodiscard]]
+imgui_font_t *imgui_add_font(void *data, int data_size);
 
 void imgui_style_colors_dark();
 
