@@ -41,6 +41,8 @@ void imgui_style_colors_dark();
 
 void imgui_style_colors_light();
 
+void imgui_style_colors_custom();
+
 void imgui_set_scale(float scale);
 
 bool imgui_init_for_sdl3gpu(SDL_Window *window, SDL_GPUDevice *device);
