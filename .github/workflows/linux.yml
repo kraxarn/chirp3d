@@ -26,6 +26,7 @@ jobs:
 
           - os: ubuntu-latest
             container: ubuntu:questing
+            compiler: gcc
             arch: amd64
             build-sdl: false
             compile-flags: '-march=x86-64-v3'
