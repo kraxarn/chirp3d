@@ -49,8 +49,6 @@ bool imgui_process_event(const SDL_Event *event);
 
 void imgui_new_frame();
 
-void imgui_show_demo_window(bool *open);
-
 void imgui_render();
 
 [[nodiscard]]

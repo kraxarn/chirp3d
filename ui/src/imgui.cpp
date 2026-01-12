@@ -87,11 +87,6 @@ void imgui_new_frame()
 	ImGui::NewFrame();
 }
 
-void imgui_show_demo_window(bool *open)
-{
-	ImGui::ShowDemoWindow(open);
-}
-
 void imgui_render()
 {
 	ImGui::Render();

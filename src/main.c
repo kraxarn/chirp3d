@@ -368,12 +368,6 @@ static char *debug_hud_text(const app_state_t *state)
 
 static void draw_debug_hud()
 {
-	static auto show_demo_window = true;
-
-	if (show_demo_window)
-	{
-		imgui_show_demo_window(&show_demo_window);
-	}
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate)
