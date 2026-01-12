@@ -1,6 +1,7 @@
 #include "gpu.h"
 #include "logcategory.h"
 #include "meshinfo.h"
+#include "ui/imgui.h"
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
@@ -124,8 +125,8 @@ SDL_GPUTexture *create_depth_texture(SDL_GPUDevice *device, const vector2i_t siz
 }
 
 bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, const SDL_FColor clear_color,
-	SDL_GPUTexture *depth_texture, SDL_GPUCommandBuffer **command_buffer,
-	SDL_GPURenderPass **render_pass, vector2f_t *size)
+	SDL_GPUTexture *depth_texture, imgui_draw_data_t *draw_data,
+	SDL_GPUCommandBuffer **command_buffer, SDL_GPURenderPass **render_pass, vector2f_t *size)
 {
 	current_command_buffer = SDL_AcquireGPUCommandBuffer(device);
 	if (current_command_buffer == nullptr)
@@ -149,6 +150,11 @@ bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, const SDL_FColor clea
 	if (swapchain_texture == nullptr)
 	{
 		return false;
+	}
+
+	if (draw_data != nullptr)
+	{
+		imgui_prepare_draw_data(draw_data, *command_buffer);
 	}
 
 	const SDL_GPUColorTargetInfo color_target_info = {

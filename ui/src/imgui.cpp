@@ -64,6 +64,39 @@ void imgui_process_event(const SDL_Event *event)
 	ImGui_ImplSDL3_ProcessEvent(event);
 }
 
+void imgui_new_frame()
+{
+	ImGui_ImplSDLGPU3_NewFrame();
+	ImGui_ImplSDL3_NewFrame();
+	ImGui::NewFrame();
+}
+
+void imgui_show_demo_window(bool *open)
+{
+	ImGui::ShowDemoWindow(open);
+}
+
+void imgui_render()
+{
+	ImGui::Render();
+}
+
+auto imgui_draw_data() -> imgui_draw_data_t *
+{
+	return ImGui::GetDrawData();
+}
+
+void imgui_prepare_draw_data(imgui_draw_data_t *draw_data, SDL_GPUCommandBuffer *command_buffer)
+{
+	ImGui_ImplSDLGPU3_PrepareDrawData(draw_data, command_buffer);
+}
+
+void imgui_render_draw_data(imgui_draw_data_t *draw_data,
+	SDL_GPUCommandBuffer *command_buffer, SDL_GPURenderPass *render_pass)
+{
+	ImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
+}
+
 void imgui_shutdown()
 {
 	ImGui_ImplSDL3_Shutdown();

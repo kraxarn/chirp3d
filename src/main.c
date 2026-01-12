@@ -360,6 +360,13 @@ static char *debug_hud_text(const app_state_t *state)
 	return debug_text;
 }
 
+static void draw_debug_hud()
+{
+	static auto show_demo_window = true;
+
+	imgui_show_demo_window(&show_demo_window);
+}
+
 SDL_AppResult SDL_AppIterate(void *appstate)
 {
 	app_state_t *state = appstate;
@@ -469,12 +476,19 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 
+	imgui_new_frame();
+	{
+		draw_debug_hud();
+	}
+	imgui_render();
+	imgui_draw_data_t *draw_data = imgui_draw_data();
+
 	SDL_GPUCommandBuffer *command_buffer = nullptr;
 	SDL_GPURenderPass *render_pass = nullptr;
 	vector2f_t size;
 
 	if (draw_begin(state->device, state->window, clear_color, state->depth_texture,
-		&command_buffer, &render_pass, &size))
+		draw_data, &command_buffer, &render_pass, &size))
 	{
 		const matrix4x4_t proj = matrix4x4_create_perspective(
 			deg2rad(state->camera.fov_y),
@@ -501,6 +515,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			font_draw_text(state->font, render_pass, command_buffer, size,
 				(vector2f_t){.x = 16.F, .y = 16.F}, debug_hud_text(state));
 		}
+
+		imgui_render_draw_data(draw_data, command_buffer, render_pass);
 	}
 	if (!draw_end())
 	{
