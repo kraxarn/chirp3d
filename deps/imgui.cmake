@@ -30,3 +30,13 @@ target_include_directories(imgui PUBLIC
 target_link_libraries(imgui PRIVATE SDL3::SDL3)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui)
+
+# For testing
+add_executable(imgui-sdl3gpu-example
+	"${imgui_SOURCE_DIR}/examples/example_sdl3_sdlgpu3/main.cpp"
+)
+target_include_directories(imgui-sdl3gpu-example PRIVATE
+	"${imgui_SOURCE_DIR}"
+	"${imgui_SOURCE_DIR}/backends"
+)
+target_link_libraries(imgui-sdl3gpu-example PRIVATE SDL3::SDL3 imgui)
