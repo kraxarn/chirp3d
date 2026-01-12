@@ -13,12 +13,14 @@ jobs:
     strategy:
       matrix:
         include:
+          # Supported until April 2027
           - os: ubuntu-22.04
             compiler: clang
             arch: amd64
             build-sdl: true
             compile-flags: '-march=x86-64-v3'
 
+          # Supported until April 2027
           - os: ubuntu-22.04-arm
             compiler: clang
             arch: arm64
