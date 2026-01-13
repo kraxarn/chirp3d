@@ -24,7 +24,6 @@ target_sources(cpufetch PRIVATE
 	"${cpufetch_SOURCE_DIR}/src/common/cpu.c"
 	"${cpufetch_SOURCE_DIR}/src/common/udev.c"
 	"${cpufetch_SOURCE_DIR}/src/common/printer.c"
-	"${cpufetch_SOURCE_DIR}/src/common/args.c"
 	"${cpufetch_SOURCE_DIR}/src/common/global.c"
 )
 
