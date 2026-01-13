@@ -2,6 +2,7 @@
 #include "assets.h"
 #include "audiodriver.h"
 #include "camera.h"
+#include "cpuinfo.h"
 #include "font.h"
 #include "gpu.h"
 #include "gpudevicedriver.h"
@@ -60,6 +61,15 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, message, SDL_GetError(), window);
 #endif
 	return SDL_APP_FAILURE;
+}
+
+static void log_cpu_info()
+{
+	const char *name = cpu_name();
+	if (name != nullptr)
+	{
+		SDL_LogDebug(LOG_CATEGORY_CORE, "CPU: %s", name);
+	}
 }
 
 static void log_gpu_info(SDL_GPUDevice *device)
@@ -199,6 +209,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(state->window, "Failed to initialise GPU context");
 	}
 
+	log_cpu_info();
 	log_gpu_info(state->device);
 
 	if (SDL_GetLogPriority(LOG_CATEGORY_CORE) >= SDL_LOG_PRIORITY_VERBOSE)
