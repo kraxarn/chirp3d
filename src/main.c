@@ -23,6 +23,14 @@
 
 #include "ui/imgui.h"
 
+#include "common/cpu.h"
+#include "common/soc.h"
+#ifdef ARCH_X86
+  #include "x86/cpuid.h"
+#elif ARCH_ARM
+  #include "arm/midr.h"
+#endif
+
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
 
@@ -65,11 +73,8 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 
 static void log_cpu_info()
 {
-	const char *name = cpu_name();
-	if (name != nullptr)
-	{
-		SDL_LogDebug(LOG_CATEGORY_CORE, "CPU: %s", name);
-	}
+	const struct cpuInfo *cpu_info = get_cpu_info();
+	SDL_LogDebug(LOG_CATEGORY_CORE, "CPU: %s", get_soc_name(cpu_info->soc));
 }
 
 static void log_gpu_info(SDL_GPUDevice *device)
