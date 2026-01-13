@@ -47,8 +47,6 @@ if (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
 			target_sources(cpufetch PRIVATE
 				"${cpufetch_SOURCE_DIR}/src/x86/freq/freq.c"
 				"${cpufetch_SOURCE_DIR}/src/x86/freq/freq_nov.c"
-				"${cpufetch_SOURCE_DIR}/src/x86/freq/freq_avx.c"
-				"${cpufetch_SOURCE_DIR}/src/x86/freq/freq_avx512.c"
 			)
 		endif ()
 	elseif ("${ARCH}" STREQUAL "aarch64")
