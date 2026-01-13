@@ -87,7 +87,7 @@ else ()
 endif ()
 
 target_include_directories(cpufetch PUBLIC
-	"${cpufetch_SOURCE_DIR}/src/common"
+	"${cpufetch_SOURCE_DIR}/src"
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE cpufetch)
