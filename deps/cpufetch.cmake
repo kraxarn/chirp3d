@@ -43,7 +43,7 @@ if (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
 			"${cpufetch_SOURCE_DIR}/src/x86/uarch.c"
 		)
 
-		if (LINUX)
+		if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
 			target_sources(cpufetch PRIVATE
 				"${cpufetch_SOURCE_DIR}/src/x86/freq/freq.c"
 				"${cpufetch_SOURCE_DIR}/src/x86/freq/freq_nov.c"
