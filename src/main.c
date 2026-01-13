@@ -2,7 +2,6 @@
 #include "assets.h"
 #include "audiodriver.h"
 #include "camera.h"
-#include "cpuinfo.h"
 #include "font.h"
 #include "gpu.h"
 #include "gpudevicedriver.h"
