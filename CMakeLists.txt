@@ -32,10 +32,10 @@ include(deps/par.cmake)
 include(deps/maple-font.cmake)
 include(deps/cpuinfo.cmake)
 
-include(resources.cmake)
+include(deps/imgui.cmake)
+include(deps/dcimgui.cmake)
 
-add_subdirectory(ui)
-target_link_libraries(${PROJECT_NAME} PRIVATE chirp3d-ui)
+include(resources.cmake)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	# macOS
