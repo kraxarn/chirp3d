@@ -298,7 +298,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 	build_atlas_data(font->size, font->uv_coordinates);
 
 	const Uint64 end = SDL_GetTicks();
-	SDL_LogDebug(LOG_CATEGORY_FONT, "Baked font in %llu ms", end - start);
+	SDL_LogDebug(LOG_CATEGORY_FONT, "Baked font in %lu ms", end - start);
 
 	return true;
 }

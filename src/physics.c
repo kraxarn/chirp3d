@@ -138,7 +138,7 @@ void physics_optimize(const physics_engine_t *engine)
 	JPH_PhysicsSystem_OptimizeBroadPhase(engine->physics_system);
 
 	const Uint64 end = SDL_GetTicks();
-	SDL_LogDebug(LOG_CATEGORY_PHYSICS, "Optimised broad phase in %llu ms", end - start);
+	SDL_LogDebug(LOG_CATEGORY_PHYSICS, "Optimised broad phase in %lu ms", end - start);
 }
 
 bool physics_update(const physics_engine_t *engine, const float delta)
