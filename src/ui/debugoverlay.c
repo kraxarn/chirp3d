@@ -168,7 +168,7 @@ void draw_debug_overlay(const app_state_t *state)
 
 			if (ImGui_MenuItemEx("Demo window", nullptr, demo_open, true))
 			{
-				demo_open = (int) demo_open != 0;
+				demo_open = (int) demo_open == 0;
 			}
 
 			ImGui_EndPopup();
