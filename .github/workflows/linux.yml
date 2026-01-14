@@ -52,9 +52,17 @@ jobs:
         run: apt install -y build-essential make pkg-config cmake libsdl3-dev
 
       # https://wiki.libsdl.org/SDL3/README-linux
-      - name: Install Build Dependencies
+      - name: Install SDL3 Dependencies
         if: ${{ matrix.build-sdl }}
         run: sudo apt install -y build-essential make pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
+
+      - name: Install Build Dependencies
+        if: ${{ matrix.container != '' }}
+        run: apt install -y python3-venv
+
+      - name: Install Build Dependencies
+        if: ${{ matrix.container == '' }}
+        run: sudo apt install -y python3-venv
 
       - name: Configure CMake
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_FLAGS="${{ matrix.compile-flags }}" -DCMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
