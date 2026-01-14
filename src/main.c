@@ -790,7 +790,6 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	}
 	SDL_free((void *) state->meshes);
 
-	font_destroy(state->font);
 	assets_destroy(state->assets);
 	physics_destroy(state->physics_engine);
 
