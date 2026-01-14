@@ -2,7 +2,6 @@
 #include "assets.h"
 #include "audiodriver.h"
 #include "camera.h"
-#include "font.h"
 #include "gpu.h"
 #include "gpudevicedriver.h"
 #include "gpudriver.h"
@@ -314,21 +313,6 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	if (state->depth_texture == nullptr)
 	{
 		return fatal_error(state->window, "Failed to initialise depth texture");
-	}
-
-	SDL_IOStream *font_source = SDL_IOFromConstMem(font_maple_mono_nl_regular_ttf,
-		sizeof(font_maple_mono_nl_regular_ttf));
-	if (font_source == nullptr)
-	{
-		return fatal_error(state->window, "Failed to load font data");
-	}
-
-	constexpr Uint16 font_size = 19;
-	const SDL_Color font_color = {.r = 0xf5, .g = 0xf5, .b = 0xf5, .a = SDL_ALPHA_OPAQUE};
-	state->font = font_create(state->window, state->device, font_source, font_size, font_color);
-	if (state->font == nullptr)
-	{
-		return fatal_error(state->window, "Failed to load font");
 	}
 
 	state->camera = camera_create_default();

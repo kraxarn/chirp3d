@@ -23,7 +23,6 @@ typedef struct app_state_t
 	SDL_GPUGraphicsPipeline *pipeline;
 	SDL_GPUTexture *depth_texture;
 
-	font_t *font;
 	assets_t *assets;
 	camera_t camera;
 	physics_engine_t *physics_engine;
