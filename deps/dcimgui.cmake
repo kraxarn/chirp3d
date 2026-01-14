@@ -25,45 +25,41 @@ endif ()
 add_custom_command(OUTPUT
 	"${dcimgui_SOURCE_DIR}/generated/dcimgui.cpp"
 	"${dcimgui_SOURCE_DIR}/generated/dcimgui.h"
+	COMMAND "${Python_EXECUTABLE}" -m venv "${VENV}"
+	COMMAND "${VENV_PIP}" install -r "${dcimgui_SOURCE_DIR}/requirements.txt"
 	COMMAND "${VENV_PYTHON}" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
 	--output "${dcimgui_SOURCE_DIR}/generated/dcimgui"
 	"${imgui_SOURCE_DIR}/imgui.h"
+	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}"
 	VERBATIM
 )
 
 add_custom_command(OUTPUT
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3.cpp"
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3.h"
+	COMMAND "${Python_EXECUTABLE}" -m venv "${VENV}"
+	COMMAND "${VENV_PIP}" install -r "${dcimgui_SOURCE_DIR}/requirements.txt"
 	COMMAND "${VENV_PYTHON}" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
 	--backend
 	--include "${imgui_SOURCE_DIR}/imgui.h"
 	--imconfig-path "${imgui_SOURCE_DIR}/imconfig.h"
 	--output "${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3"
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.h"
+	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}"
 	VERBATIM
 )
 
 add_custom_command(OUTPUT
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3.cpp"
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3.h"
+	COMMAND "${Python_EXECUTABLE}" -m venv "${VENV}"
+	COMMAND "${VENV_PIP}" install -r "${dcimgui_SOURCE_DIR}/requirements.txt"
 	COMMAND "${VENV_PYTHON}" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
 	--backend
 	--include "${imgui_SOURCE_DIR}/imgui.h"
 	--imconfig-path "${imgui_SOURCE_DIR}/imconfig.h"
 	--output "${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3"
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_sdlgpu3.h"
-	VERBATIM
-)
-
-add_custom_command(
-	TARGET dcimgui PRE_BUILD
-	COMMAND "${Python_EXECUTABLE}" -m venv "${VENV}"
-	COMMAND "${VENV_PIP}" install -r "${dcimgui_SOURCE_DIR}/requirements.txt"
-	VERBATIM
-)
-
-add_custom_command(
-	TARGET dcimgui POST_BUILD
 	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}"
 	VERBATIM
 )
