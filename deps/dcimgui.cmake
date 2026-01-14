@@ -61,8 +61,6 @@ add_custom_command(OUTPUT
 	VERBATIM
 )
 
-file(REMOVE_RECURSE "${VENV}")
-
 target_link_libraries(dcimgui PRIVATE imgui SDL3::SDL3)
 
 target_include_directories(dcimgui PRIVATE
