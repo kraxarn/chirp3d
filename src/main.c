@@ -370,43 +370,6 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	return build_scene(state);
 }
 
-static char *debug_hud_text(const app_state_t *state)
-{
-	static constexpr size_t debug_text_len = 512;
-	static char debug_text[debug_text_len];
-
-	const vector3f_t position = physics_body_position(state->physics_engine, state->player_body_id);
-	const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
-
-	SDL_snprintf(debug_text, debug_text_len,
-#ifndef NDEBUG
-		"- debug mode -\n"
-#endif
-		"%s %s\n"
-		"FPS     : %u\n"
-		"Delta   : %.2f ms\n"
-		"Video   : %s\n"
-		"Audio   : %s\n"
-		"Renderer: %s\n"
-		"Camera  : %6.2f %6.2f %6.2f\n"
-		"Target  : %6.2f %6.2f %6.2f\n"
-		"Position: %6.2f %6.2f %6.2f\n"
-		"Velocity: %6.2f %6.2f %6.2f\n",
-		ENGINE_NAME, ENGINE_VERSION, // NOLINT(*-include-cleaner)
-		state->time.fps,
-		state->dt * 1'000.F,
-		video_driver_display_name(SDL_GetCurrentVideoDriver()),
-		audio_driver_display_name(SDL_GetCurrentAudioDriver()),
-		gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device)),
-		state->camera.position.x, state->camera.position.y, state->camera.position.z,
-		state->camera.target.x, state->camera.target.y, state->camera.target.z,
-		position.x, position.y, position.z,
-		velocity.x, velocity.y, velocity.z
-	);
-
-	return debug_text;
-}
-
 typedef enum [[clang::flag_enum]] debug_overlay_elements_t
 {
 	DEBUG_OVERLAY_DELTA   = 1 << 0,
