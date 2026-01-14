@@ -10,6 +10,8 @@ FetchContent_MakeAvailable(dcimgui)
 
 add_library(dcimgui STATIC)
 
+find_package(Python 3.10 COMPONENTS Interpreter REQUIRED)
+
 set(VENV "${dcimgui_SOURCE_DIR}/venv")
 
 add_custom_command(OUTPUT
@@ -20,7 +22,7 @@ add_custom_command(OUTPUT
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3.cpp"
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3.h"
 
-	COMMAND python3 -m venv "${VENV}"
+	COMMAND "${Python_EXECUTABLE}" -m venv "${VENV}"
 	COMMAND "${VENV}/bin/pip3" install -r "${dcimgui_SOURCE_DIR}/requirements.txt"
 
 	COMMAND "${VENV}/bin/python3" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
