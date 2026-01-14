@@ -29,6 +29,13 @@ add_custom_command(OUTPUT
 	--backend
 	--include "${imgui_SOURCE_DIR}/imgui.h"
 	--imconfig-path "${imgui_SOURCE_DIR}/imconfig.h"
+	--output "${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3"
+	"${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.h"
+
+	COMMAND "${VENV}/bin/python3" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
+	--backend
+	--include "${imgui_SOURCE_DIR}/imgui.h"
+	--imconfig-path "${imgui_SOURCE_DIR}/imconfig.h"
 	--output "${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3"
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_sdlgpu3.h"
 
@@ -45,6 +52,7 @@ target_include_directories(dcimgui PRIVATE
 
 target_sources(dcimgui PRIVATE
 	"${dcimgui_SOURCE_DIR}/generated/dcimgui.cpp"
+	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3.cpp"
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3.cpp"
 )
 
