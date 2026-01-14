@@ -63,7 +63,7 @@ void draw_debug_overlay(const app_state_t *state)
 		ImGui_Text("- debug mode -");
 #endif
 
-		ImGui_Text("%s %s", ENGINE_NAME, ENGINE_VERSION);
+		ImGui_Text("%s %s", ENGINE_NAME, ENGINE_VERSION); // NOLINT(*-include-cleaner)
 
 		if (ImGui_BeginTable("table_debug", 3, ImGuiTableFlags_None))
 		{
