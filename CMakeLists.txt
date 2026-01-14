@@ -30,7 +30,7 @@ include(deps/tomlc17.cmake)
 include(deps/joltc.cmake)
 include(deps/par.cmake)
 include(deps/maple-font.cmake)
-include(deps/cpufetch.cmake)
+include(deps/cpuinfo.cmake)
 
 include(resources.cmake)
 

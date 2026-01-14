@@ -2,7 +2,6 @@
 #include "assets.h"
 #include "audiodriver.h"
 #include "camera.h"
-#include "cpuinfo.h"
 #include "font.h"
 #include "gpu.h"
 #include "gpudevicedriver.h"
@@ -21,6 +20,7 @@
 #include "videodriver.h"
 #include "windowconfig.h"
 
+#include "cpuinfo.h"
 #include "ui/imgui.h"
 
 #define SDL_MAIN_USE_CALLBACKS
@@ -65,7 +65,15 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 
 static void log_cpu_info()
 {
-	SDL_LogDebug(LOG_CATEGORY_CORE, "CPU: %s", cpu_name());
+	if (!cpuinfo_initialize())
+	{
+		// Assume error is already logged to stderr
+		return;
+	}
+
+	SDL_LogDebug(LOG_CATEGORY_CORE, "CPU: %s", cpuinfo_get_package(0)->name);
+
+	cpuinfo_deinitialize();
 }
 
 static void log_gpu_info(SDL_GPUDevice *device)
