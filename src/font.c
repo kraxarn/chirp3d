@@ -331,8 +331,8 @@ font_t *font_create(SDL_Window *window, SDL_GPUDevice *device,
 	constexpr Uint16 max_font_size = 100;
 	if (font->size > max_font_size)
 	{
-		SDL_free(font);
 		SDL_SetError("Font size too large (%u > %u)", font->size, max_font_size);
+		SDL_free(font);
 		return nullptr;
 	}
 
