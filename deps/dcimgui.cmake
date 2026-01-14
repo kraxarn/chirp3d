@@ -15,6 +15,8 @@ set(VENV "${dcimgui_SOURCE_DIR}/venv")
 add_custom_command(OUTPUT
 	"${dcimgui_SOURCE_DIR}/generated/dcimgui.cpp"
 	"${dcimgui_SOURCE_DIR}/generated/dcimgui.h"
+	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3.cpp"
+	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3.h"
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3.cpp"
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3.h"
 
