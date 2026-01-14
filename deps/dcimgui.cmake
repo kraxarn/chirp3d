@@ -52,4 +52,10 @@ target_include_directories(dcimgui PUBLIC
 	"${dcimgui_SOURCE_DIR}/generated"
 )
 
+file(COPY_FILE
+	"${imgui_SOURCE_DIR}/imconfig.h"
+	"${dcimgui_SOURCE_DIR}/generated/imconfig.h"
+	ONLY_IF_DIFFERENT
+)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE dcimgui)
