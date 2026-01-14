@@ -28,8 +28,6 @@ target_include_directories(imgui PUBLIC
 # For SDL3 backend
 target_link_libraries(imgui PRIVATE SDL3::SDL3)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE imgui)
-
 # For testing
 option(BUILD_IMGUI_DEMO "Build ImGui demo app" OFF)
 if (BUILD_IMGUI_DEMO)
