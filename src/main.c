@@ -383,7 +383,11 @@ static void draw_debug_overlay(const app_state_t *state)
 	static auto open = true;
 	static auto demo_open = false;
 
+#ifdef NDEBUG
+	static debug_overlay_elements_t elements = 0;
+#else
 	static debug_overlay_elements_t elements = DEBUG_OVERLAY_CAMERA | DEBUG_OVERLAY_PHYSICS;
+#endif
 
 	if (demo_open)
 	{
