@@ -77,11 +77,7 @@ target_include_directories(dcimgui PUBLIC
 	"${dcimgui_SOURCE_DIR}/generated"
 )
 
-# Workaround for some weird CI behaviour
-file(WRITE
-	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3.h"
-	""
-)
+file(MAKE_DIRECTORY "${dcimgui_SOURCE_DIR}/generated/backends")
 
 file(COPY_FILE
 	"${imgui_SOURCE_DIR}/imconfig.h"
