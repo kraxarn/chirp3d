@@ -2,6 +2,7 @@
 #include "assets.h"
 #include "audiodriver.h"
 #include "camera.h"
+#include "cpuinfo.h"
 #include "font.h"
 #include "gpu.h"
 #include "gpudevicedriver.h"
@@ -21,14 +22,6 @@
 #include "windowconfig.h"
 
 #include "ui/imgui.h"
-
-#include "common/cpu.h"
-#include "common/soc.h"
-#ifdef ARCH_X86
-  #include "x86/cpuid.h"
-#elif ARCH_ARM
-  #include "arm/midr.h"
-#endif
 
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -72,8 +65,7 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 
 static void log_cpu_info()
 {
-	const struct cpuInfo *cpu_info = get_cpu_info();
-	SDL_LogDebug(LOG_CATEGORY_CORE, "CPU: %s", get_soc_name(cpu_info->soc));
+	SDL_LogDebug(LOG_CATEGORY_CORE, "CPU: %s", cpu_name());
 }
 
 static void log_gpu_info(SDL_GPUDevice *device)
