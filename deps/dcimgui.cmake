@@ -30,6 +30,7 @@ add_custom_command(OUTPUT
 	COMMAND "${VENV_PYTHON}" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
 	--output "${dcimgui_SOURCE_DIR}/generated/dcimgui"
 	"${imgui_SOURCE_DIR}/imgui.h"
+	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}"
 	VERBATIM
 )
 
@@ -44,6 +45,7 @@ add_custom_command(OUTPUT
 	--imconfig-path "${imgui_SOURCE_DIR}/imconfig.h"
 	--output "${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3"
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.h"
+	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}"
 	VERBATIM
 )
 
@@ -58,6 +60,7 @@ add_custom_command(OUTPUT
 	--imconfig-path "${imgui_SOURCE_DIR}/imconfig.h"
 	--output "${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3"
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_sdlgpu3.h"
+	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}"
 	VERBATIM
 )
 
