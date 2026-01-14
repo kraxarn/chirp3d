@@ -32,11 +32,11 @@ const char *cpu_name()
 
 #ifdef ARCH_X86
 	SDL_strlcpy(cpu_name, get_str_cpu_name(cpu_info, false), cpu_name_len);
-	SDL_free(cpu_info);
+	free_cpuinfo_struct(cpu_info);
 	return cpu_name;
 #elif ARCH_ARM
 	SDL_strlcpy(cpu_name, get_soc_name(cpu_info->soc), cpu_name_len);
-	SDL_free(cpu_info);
+	free_cpuinfo_struct(cpu_info);
 	return cpu_name;
 #endif
 
