@@ -248,12 +248,6 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 	state->last_update = SDL_GetTicks();
 
-#ifdef NDEBUG
-	state->debug_hud = false;
-#else
-	state->debug_hud = true;
-#endif
-
 	const window_config_t window_config = state->assets->window_config;
 
 	state->window = SDL_CreateWindow(window_config.title,
@@ -760,11 +754,6 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 	if (SDL_GetWindowRelativeMouseMode(state->window))
 	{
 		input_update(event);
-
-		if (event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_F3)
-		{
-			state->debug_hud = (int) state->debug_hud == 0;
-		}
 	}
 
 	if (event->type == SDL_EVENT_WINDOW_RESIZED)

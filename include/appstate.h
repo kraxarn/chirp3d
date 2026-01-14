@@ -34,6 +34,4 @@ typedef struct app_state_t
 	mesh_t **meshes;
 	size_t num_meshes;
 	physics_body_id_t player_body_id;
-
-	bool debug_hud;
 } app_state_t;
