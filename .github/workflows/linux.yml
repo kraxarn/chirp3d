@@ -63,9 +63,10 @@ jobs:
         run: cmake --build build
 
       - name: Upload Artifact
+        if: ${{ matrix.compiler == 'clang' }}
         uses: actions/upload-artifact@v4
         with:
-          name: chirp3d-linux-${{ matrix.arch }}-${{ matrix.compiler }}
+          name: chirp3d-linux-${{ matrix.arch }}
           path: |
             ${{runner.workspace}}/chirp3d/build/chirp3d
             ${{runner.workspace}}/chirp3d/build/libSDL3.so.0.4.0
