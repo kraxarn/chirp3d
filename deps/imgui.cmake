@@ -16,6 +16,8 @@ target_sources(imgui PRIVATE
 	"${imgui_SOURCE_DIR}/imgui_draw.cpp"
 	"${imgui_SOURCE_DIR}/imgui_tables.cpp"
 	"${imgui_SOURCE_DIR}/imgui_widgets.cpp"
+	# The C bindings are hard-coded to require the demo as well
+	"${imgui_SOURCE_DIR}/imgui_demo.cpp"
 	# ImGui SDL3 GPU backend
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_sdlgpu3.cpp"
@@ -33,7 +35,6 @@ option(BUILD_IMGUI_DEMO "Build ImGui demo app" OFF)
 if (BUILD_IMGUI_DEMO)
 	add_executable(imgui-sdl3gpu-example
 		"${imgui_SOURCE_DIR}/examples/example_sdl3_sdlgpu3/main.cpp"
-		"${imgui_SOURCE_DIR}/imgui_demo.cpp"
 	)
 	target_include_directories(imgui-sdl3gpu-example PRIVATE
 		"${imgui_SOURCE_DIR}"

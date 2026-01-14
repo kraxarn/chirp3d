@@ -21,7 +21,9 @@
 #include "windowconfig.h"
 
 #include "cpuinfo.h"
-#include "ui/imgui.h"
+#include "dcimgui.h"
+#include "backends/dcimgui_impl_sdl3.h"
+#include "backends/dcimgui_impl_sdlgpu3.h"
 
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -100,6 +102,63 @@ static void log_gpu_info(SDL_GPUDevice *device)
 		}
 	}
 #endif
+}
+
+static bool init_imgui(const app_state_t *state)
+{
+	CIMGUI_CHECKVERSION();
+
+	if (ImGui_CreateContext(nullptr) == nullptr)
+	{
+		return SDL_SetError("Failed to initialise ImGui context");
+	}
+
+	ImGuiIO *im_io = ImGui_GetIO();
+	im_io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+
+	// ImGui wants to own and free the data
+	void *font_data = CIM_ALLOC(sizeof(font_maple_mono_nl_regular_ttf));
+	SDL_memcpy(font_data, font_maple_mono_nl_regular_ttf, sizeof(font_maple_mono_nl_regular_ttf));
+
+	if (ImFontAtlas_AddFontFromMemoryTTF(im_io->Fonts, font_data, sizeof(font_maple_mono_nl_regular_ttf),
+		16.F, nullptr, nullptr) == nullptr)
+	{
+		return SDL_SetError("Failed to add font");
+	}
+
+	if (SDL_GetSystemTheme() == SDL_SYSTEM_THEME_LIGHT)
+	{
+		ImGui_StyleColorsLight(nullptr);
+	}
+	else
+	{
+		ImGui_StyleColorsDark(nullptr);
+	}
+
+	const float content_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+	ImGuiStyle *style = ImGui_GetStyle();
+	ImGuiStyle_ScaleAllSizes(style, content_scale);
+	style->FontScaleDpi = content_scale;
+
+	if (!cImGui_ImplSDL3_InitForSDLGPU(state->window))
+	{
+		return SDL_SetError("Failed to initialise SDL3 backend");
+	}
+
+	ImGui_ImplSDLGPU3_InitInfo init_info = {
+		.Device = state->device,
+		.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(state->device, state->window),
+		.MSAASamples = SDL_GPU_SAMPLECOUNT_1,
+		.SwapchainComposition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
+		.PresentMode = SDL_GPU_PRESENTMODE_VSYNC,
+	};
+
+	if (!cImGui_ImplSDLGPU3_Init(&init_info))
+	{
+		return SDL_SetError("Failed to initialise SDL3 GPU backend");
+	}
+
+	return true;
 }
 
 static SDL_AppResult build_scene(app_state_t *state)
@@ -240,30 +299,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		SDL_LogWarn(LOG_CATEGORY_CORE, "VSync not supported: %s", SDL_GetError());
 	}
 
-	constexpr imgui_config_flags_t config_flags = IMGUI_CONFIG_NAV_ENABLE_KEYBOARD | IMGUI_CONFIG_NAV_ENABLE_GAMEPAD;
-	if (!imgui_create_context(config_flags))
-	{
-		return fatal_error(nullptr, "Failed to initialise ImGui context");
-	}
-
-	if (imgui_add_font(font_maple_mono_nl_regular_ttf, sizeof(font_maple_mono_nl_regular_ttf), 16.F) == nullptr)
-	{
-		return fatal_error(nullptr, "Failed to add font");
-	}
-
-	if (SDL_GetSystemTheme() == SDL_SYSTEM_THEME_LIGHT)
-	{
-		imgui_style_colors_light();
-	}
-	else
-	{
-		imgui_style_colors_dark();
-	}
-
-	const float content_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
-	imgui_set_scale(content_scale);
-
-	if (!imgui_init_for_sdl3gpu(state->window, state->device))
+	if (!init_imgui(state))
 	{
 		return fatal_error(nullptr, "Failed to initialise ImGui");
 	}
@@ -429,7 +465,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	{
 		vector2f_t mouse;
 		SDL_GetRelativeMouseState(&mouse.x, &mouse.y);
-		if (!imgui_want_capture_mouse())
+		if (!ImGui_GetIO()->WantCaptureMouse)
 		{
 			camera_rotate_x(&state->camera, -(mouse.x * mouse_sensitivity));
 			camera_rotate_y(&state->camera, -(mouse.y * mouse_sensitivity));
@@ -509,12 +545,14 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 
-	imgui_new_frame();
+	cImGui_ImplSDLGPU3_NewFrame();
+	cImGui_ImplSDL3_NewFrame();
+	ImGui_NewFrame();
 	{
 		draw_debug_hud();
 	}
-	imgui_render();
-	imgui_draw_data_t *draw_data = imgui_draw_data();
+	ImGui_Render();
+	ImDrawData *draw_data = ImGui_GetDrawData();
 
 	SDL_GPUCommandBuffer *command_buffer = nullptr;
 	SDL_GPURenderPass *render_pass = nullptr;
@@ -549,7 +587,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 				(vector2f_t){.x = 16.F, .y = 16.F}, debug_hud_text(state));
 		}
 
-		imgui_render_draw_data(draw_data, command_buffer, render_pass);
+		cImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
 	}
 	if (!draw_end())
 	{
@@ -566,13 +604,13 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 		return SDL_APP_SUCCESS;
 	}
 
-	imgui_process_event(event);
+	cImGui_ImplSDL3_ProcessEvent(event);
 
 	app_state_t *state = appstate;
 
 	if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN
 		&& event->button.button == SDL_BUTTON_LEFT
-		&& !imgui_want_capture_mouse())
+		&& !ImGui_GetIO()->WantCaptureMouse)
 	{
 		SDL_SetWindowRelativeMouseMode(state->window, true);
 	}
@@ -618,8 +656,9 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	assets_destroy(state->assets);
 	physics_destroy(state->physics_engine);
 
-	imgui_shutdown();
-	imgui_destroy_context();
+	cImGui_ImplSDL3_Shutdown();
+	cImGui_ImplSDLGPU3_Shutdown();
+	ImGui_DestroyContext(nullptr);
 
 	SDL_ReleaseGPUTexture(state->device, state->depth_texture);
 	SDL_ReleaseGPUGraphicsPipeline(state->device, state->pipeline);

@@ -2,7 +2,8 @@
 
 #include "meshinfo.h"
 #include "vector.h"
-#include "ui/imgui.h"
+
+#include "dcimgui.h"
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_pixels.h>
@@ -19,7 +20,7 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 SDL_GPUTexture *create_depth_texture(SDL_GPUDevice *device, vector2i_t size);
 
 bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, SDL_FColor clear_color,
-	SDL_GPUTexture *depth_texture, imgui_draw_data_t *draw_data,
+	SDL_GPUTexture *depth_texture, ImDrawData *draw_data,
 	SDL_GPUCommandBuffer **command_buffer, SDL_GPURenderPass **render_pass, vector2f_t *size);
 
 bool draw_end();
