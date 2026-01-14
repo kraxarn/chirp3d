@@ -15,52 +15,52 @@ find_package(Python 3.10 COMPONENTS Interpreter REQUIRED)
 set(VENV "${dcimgui_SOURCE_DIR}/venv")
 
 if (WIN32)
-	set(VENV_PIP "${VENV}/scripts/pip.exe")
-	set(VENV_PYTHON "${VENV}/scripts/python.exe")
+	set(VENV_PIP "scripts/pip.exe")
+	set(VENV_PYTHON "scripts/python.exe")
 else ()
-	set(VENV_PIP "${VENV}/bin/pip")
-	set(VENV_PYTHON "${VENV}/bin/python")
+	set(VENV_PIP "bin/pip")
+	set(VENV_PYTHON "bin/python")
 endif ()
 
 add_custom_command(OUTPUT
 	"${dcimgui_SOURCE_DIR}/generated/dcimgui.cpp"
 	"${dcimgui_SOURCE_DIR}/generated/dcimgui.h"
-	COMMAND "${Python_EXECUTABLE}" -m venv "${VENV}"
-	COMMAND "${VENV_PIP}" install -r "${dcimgui_SOURCE_DIR}/requirements.txt"
-	COMMAND "${VENV_PYTHON}" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
+	COMMAND "${Python_EXECUTABLE}" -m venv "${VENV}/imgui"
+	COMMAND "${VENV}/imgui/${VENV_PIP}" install -r "${dcimgui_SOURCE_DIR}/requirements.txt"
+	COMMAND "${VENV}/imgui/${VENV_PYTHON}" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
 	--output "${dcimgui_SOURCE_DIR}/generated/dcimgui"
 	"${imgui_SOURCE_DIR}/imgui.h"
-	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}"
+	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}/imgui"
 	VERBATIM
 )
 
 add_custom_command(OUTPUT
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3.cpp"
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3.h"
-	COMMAND "${Python_EXECUTABLE}" -m venv "${VENV}"
-	COMMAND "${VENV_PIP}" install -r "${dcimgui_SOURCE_DIR}/requirements.txt"
-	COMMAND "${VENV_PYTHON}" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
+	COMMAND "${Python_EXECUTABLE}" -m venv "${VENV}/sdl3"
+	COMMAND "${VENV}/sdl3/${VENV_PIP}" install -r "${dcimgui_SOURCE_DIR}/requirements.txt"
+	COMMAND "${VENV}/sdl3/${VENV_PYTHON}" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
 	--backend
 	--include "${imgui_SOURCE_DIR}/imgui.h"
 	--imconfig-path "${imgui_SOURCE_DIR}/imconfig.h"
 	--output "${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdl3"
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.h"
-	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}"
+	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}/sdl3"
 	VERBATIM
 )
 
 add_custom_command(OUTPUT
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3.cpp"
 	"${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3.h"
-	COMMAND "${Python_EXECUTABLE}" -m venv "${VENV}"
-	COMMAND "${VENV_PIP}" install -r "${dcimgui_SOURCE_DIR}/requirements.txt"
-	COMMAND "${VENV_PYTHON}" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
+	COMMAND "${Python_EXECUTABLE}" -m venv "${VENV}/sdl3gpu"
+	COMMAND "${VENV}/sdl3gpu/${VENV_PIP}" install -r "${dcimgui_SOURCE_DIR}/requirements.txt"
+	COMMAND "${VENV}/sdl3gpu/${VENV_PYTHON}" "${dcimgui_SOURCE_DIR}/dear_bindings.py"
 	--backend
 	--include "${imgui_SOURCE_DIR}/imgui.h"
 	--imconfig-path "${imgui_SOURCE_DIR}/imconfig.h"
 	--output "${dcimgui_SOURCE_DIR}/generated/backends/dcimgui_impl_sdlgpu3"
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_sdlgpu3.h"
-	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}"
+	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${VENV}/sdl3gpu"
 	VERBATIM
 )
 
