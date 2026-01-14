@@ -60,6 +60,10 @@ target_include_directories(dcimgui PUBLIC
 	"${dcimgui_SOURCE_DIR}/generated"
 )
 
+file(MAKE_DIRECTORY
+	"${dcimgui_SOURCE_DIR}/generated"
+)
+
 file(COPY_FILE
 	"${imgui_SOURCE_DIR}/imconfig.h"
 	"${dcimgui_SOURCE_DIR}/generated/imconfig.h"
