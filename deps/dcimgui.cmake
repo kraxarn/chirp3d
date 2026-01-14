@@ -14,6 +14,14 @@ find_package(Python 3.10 COMPONENTS Interpreter REQUIRED)
 
 set(VENV "${dcimgui_SOURCE_DIR}/venv")
 
+if (WIN32)
+	set(VENV_PIP "${VENV}/scripts/pip.exe")
+	set(VENV_PYTHON "${VENV}/scripts/python.exe")
+else ()
+	set(VENV_PIP "${VENV}/bin/pip")
+	set(VENV_PYTHON "${VENV}/bin/python")
+endif ()
+
 add_custom_command(OUTPUT
 	"${dcimgui_SOURCE_DIR}/generated/dcimgui.cpp"
 	"${dcimgui_SOURCE_DIR}/generated/dcimgui.h"
