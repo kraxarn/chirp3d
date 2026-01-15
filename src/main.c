@@ -16,8 +16,8 @@
 #include "vector.h"
 #include "windowconfig.h"
 #include "ui/debugoverlay.h"
+#include "systeminfo.h"
 
-#include "cpuinfo.h"
 #include "dcimgui.h"
 #include "backends/dcimgui_impl_sdl3.h"
 #include "backends/dcimgui_impl_sdlgpu3.h"
@@ -61,43 +61,13 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 	return SDL_APP_FAILURE;
 }
 
-static void log_cpu_info()
+static void log_system_info(SDL_GPUDevice *device)
 {
-	if (!cpuinfo_initialize())
-	{
-		// Assume error is already logged to stderr
-		return;
-	}
+	SDL_LogDebug(LOG_CATEGORY_CORE, "CPU: %s",
+		system_info_cpu_name());
 
-	SDL_LogDebug(LOG_CATEGORY_CORE, "CPU: %s", cpuinfo_get_package(0)->name);
-
-	cpuinfo_deinitialize();
-}
-
-static void log_gpu_info(SDL_GPUDevice *device)
-{
-#if SDL_VERSION_ATLEAST(3, 4, 0)
-	const SDL_PropertiesID props = SDL_GetGPUDeviceProperties(device);
-
-	const char *name = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_NAME_STRING, nullptr);
-	if (name != nullptr)
-	{
-		SDL_LogDebug(LOG_CATEGORY_CORE, "GPU: %s", name);
-	}
-
-	const char *driver_name = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_DRIVER_NAME_STRING, nullptr);
-	if (driver_name != nullptr)
-	{
-		const char *driver_version = SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_DRIVER_INFO_STRING,
-			SDL_GetStringProperty(props, SDL_PROP_GPU_DEVICE_DRIVER_VERSION_STRING, nullptr)
-		);
-
-		if (driver_version != nullptr)
-		{
-			SDL_LogDebug(LOG_CATEGORY_CORE, "Driver: %s %s", driver_name, driver_version);
-		}
-	}
-#endif
+	SDL_LogDebug(LOG_CATEGORY_CORE, "GPU: %s (%s)",
+		system_info_gpu_name(device), system_info_gpu_driver(device));
 }
 
 static bool init_imgui(const app_state_t *state)
@@ -262,8 +232,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(state->window, "Failed to initialise GPU context");
 	}
 
-	log_cpu_info();
-	log_gpu_info(state->device);
+	log_system_info(state->device);
 
 	if (SDL_GetLogPriority(LOG_CATEGORY_CORE) >= SDL_LOG_PRIORITY_VERBOSE)
 	{
