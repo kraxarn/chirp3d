@@ -116,24 +116,23 @@ static void show_physics_properties(bool *open,
 
 	ImGui_Begin("physics properties", open, flags);
 	{
-		constexpr auto step = 5.F;
 		constexpr float min_value = -1'000.F;
 		constexpr float max_value = +1'000.F;
 
-		ImGui_DragFloatEx("Move speed", &config->move_speed, step,
+		ImGui_SliderFloatEx("Move speed", &config->move_speed,
 			min_value, max_value, "%.f", ImGuiSliderFlags_None);
 
-		ImGui_DragFloatEx("Max move speed", &config->max_move_speed, step,
+		ImGui_SliderFloatEx("Max move speed", &config->max_move_speed,
 			min_value, max_value, "%.f", ImGuiSliderFlags_None);
 
-		if (ImGui_DragFloatEx("Gravity", &config->gravity_y, step,
+		if (ImGui_SliderFloatEx("Gravity", &config->gravity_y,
 			min_value, max_value, "%.f", ImGuiSliderFlags_None))
 		{
 			const vector3f_t gravity = {.y = -config->gravity_y};
 			physics_set_gravity(engine, gravity);
 		}
 
-		ImGui_DragFloatEx("Jump speed", &config->jump_speed, step,
+		ImGui_SliderFloatEx("Jump speed", &config->jump_speed,
 			min_value, max_value, "%.f", ImGuiSliderFlags_None);
 
 		if (ImGui_Button("Reset to default values"))
