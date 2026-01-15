@@ -78,6 +78,23 @@ static void draw_camera_info(const camera_t camera)
 		camera.target.x, camera.target.y, camera.target.z);
 }
 
+static void draw_physics_info(const physics_engine_t *physics_engine,
+	const physics_body_id_t body_id)
+{
+	const vector3f_t position = physics_body_position(physics_engine, body_id);
+	const vector3f_t velocity = physics_body_linear_velocity(physics_engine, body_id);
+
+	ImGui_TableNextColumn();
+	ImGui_Text("Position");
+	ImGui_TableNextColumn();
+	ImGui_Text("%-6.2f %-6.2f %-6.2f", position.x, position.y, position.z);
+
+	ImGui_TableNextColumn();
+	ImGui_Text("Velocity");
+	ImGui_TableNextColumn();
+	ImGui_Text("%-6.2f %-6.2f %-6.2f", velocity.x, velocity.y, velocity.z);
+}
+
 void draw_debug_overlay(const app_state_t *state)
 {
 	static auto open = true;
@@ -148,18 +165,7 @@ void draw_debug_overlay(const app_state_t *state)
 
 			if ((elements & DEBUG_OVERLAY_PHYSICS) > 0)
 			{
-				const vector3f_t position = physics_body_position(state->physics_engine, state->player_body_id);
-				const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
-
-				ImGui_TableNextColumn();
-				ImGui_Text("Position");
-				ImGui_TableNextColumn();
-				ImGui_Text("%-6.2f %-6.2f %-6.2f", position.x, position.y, position.z);
-
-				ImGui_TableNextColumn();
-				ImGui_Text("Velocity");
-				ImGui_TableNextColumn();
-				ImGui_Text("%-6.2f %-6.2f %-6.2f", velocity.x, velocity.y, velocity.z);
+				draw_physics_info(state->physics_engine, state->player_body_id);
 			}
 
 			ImGui_EndTable();
