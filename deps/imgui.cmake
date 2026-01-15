@@ -36,7 +36,6 @@ file(WRITE "${imgui_SOURCE_DIR}/imconfig.h"
 if (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	file(APPEND "${imgui_SOURCE_DIR}/imconfig.h"
 		"#define IMGUI_DISABLE_DEMO_WINDOWS\n"
-		"#define IMGUI_DISABLE_DEBUG_TOOLS\n"
 	)
 endif ()
 
