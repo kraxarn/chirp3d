@@ -3,6 +3,7 @@
 #include "audiodriver.h"
 #include "gpudevicedriver.h"
 #include "physics.h"
+#include "physicsconfig.h"
 #include "systeminfo.h"
 #include "videodriver.h"
 
@@ -105,9 +106,37 @@ static void menu_element_item(const char *label,
 	}
 }
 
-void draw_debug_overlay(const app_state_t *state)
+static void show_physics_properties(bool *open, physics_config_t *config)
+{
+	constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse;
+
+	ImGui_SetNextWindowBgAlpha(0.75F);
+
+	ImGui_Begin("physics properties", open, flags);
+	{
+		constexpr auto step = 10.F;
+		constexpr float min_value = -1'000.F;
+		constexpr float max_value = +1'000.F;
+
+		ImGui_DragFloatEx("Move speed", &config->move_speed, step,
+			min_value, max_value, "%.f", ImGuiSliderFlags_None);
+
+		ImGui_DragFloatEx("Max move speed", &config->max_move_speed, step,
+			min_value, max_value, "%.f", ImGuiSliderFlags_None);
+
+		ImGui_DragFloatEx("Gravity", &config->gravity_y, step,
+			min_value, max_value, "%.f", ImGuiSliderFlags_None);
+
+		ImGui_DragFloatEx("Jump speed", &config->jump_speed, step,
+			min_value, max_value, "%.f", ImGuiSliderFlags_None);
+	}
+	ImGui_End();
+}
+
+void draw_debug_overlay(app_state_t *state)
 {
 	static auto open = true;
+	static auto physics_open = false;
 
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
 	static auto demo_open = false;
@@ -125,6 +154,11 @@ void draw_debug_overlay(const app_state_t *state)
 		ImGui_ShowDemoWindow(&demo_open);
 	}
 #endif
+
+	if (physics_open)
+	{
+		show_physics_properties(&physics_open, &state->physics_config);
+	}
 
 	constexpr auto padding = 16.F;
 	constexpr auto alpha = 0.35F;
@@ -200,13 +234,19 @@ void draw_debug_overlay(const app_state_t *state)
 			menu_element_item("Player physics",
 				&elements, DEBUG_OVERLAY_PHYSICS);
 
-#ifndef IMGUI_DISABLE_DEMO_WINDOWS
 			ImGui_Separator();
-			if (ImGui_MenuItemEx("Demo window", nullptr, demo_open, true))
+
+#ifndef IMGUI_DISABLE_DEMO_WINDOWS
+			if (ImGui_MenuItemEx("ImGui demo", nullptr, demo_open, true))
 			{
 				demo_open = (int) demo_open == 0;
 			}
 #endif
+
+			if (ImGui_MenuItemEx("Physics properties", nullptr, physics_open, true))
+			{
+				physics_open = (int) physics_open == 0;
+			}
 
 			ImGui_EndPopup();
 		}
