@@ -116,7 +116,7 @@ static void show_physics_properties(bool *open,
 
 	ImGui_Begin("physics properties", open, flags);
 	{
-		constexpr auto step = 10.F;
+		constexpr auto step = 5.F;
 		constexpr float min_value = -1'000.F;
 		constexpr float max_value = +1'000.F;
 
