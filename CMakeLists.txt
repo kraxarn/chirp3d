@@ -31,6 +31,7 @@ include(deps/joltc.cmake)
 include(deps/par.cmake)
 include(deps/maple-font.cmake)
 include(deps/cpuinfo.cmake)
+include(deps/cgltf.cmake)
 
 include(deps/imgui.cmake)
 include(deps/dcimgui.cmake)
