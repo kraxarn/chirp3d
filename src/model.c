@@ -29,7 +29,7 @@ static const char *cgltf_error_string(const cgltf_result result)
 		case cgltf_result_file_not_found: return "File not found";
 		case cgltf_result_io_error: return "I/O error";
 		case cgltf_result_out_of_memory: return "Out of memory";
-		case cgltf_result_legacy_gltf: return "Legacy GLTF";
+		case cgltf_result_legacy_gltf: return "Legacy glTF";
 		default: return "Unknown error";
 	}
 }
