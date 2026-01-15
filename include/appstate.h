@@ -2,11 +2,12 @@
 
 #include "assets.h"
 #include "camera.h"
-#include "font.h"
 #include "mesh.h"
 #include "physics.h"
+#include "physicsconfig.h"
 
 #include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
 
 typedef struct time_info_t
@@ -26,6 +27,7 @@ typedef struct app_state_t
 	assets_t *assets;
 	camera_t camera;
 	physics_engine_t *physics_engine;
+	physics_config_t physics_config;
 
 	Uint64 last_update;
 	time_info_t time;

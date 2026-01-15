@@ -10,13 +10,14 @@
 #include "matrix.h"
 #include "mesh.h"
 #include "physics.h"
+#include "physicsconfig.h"
 #include "resources.h"
 #include "shader.h"
 #include "shapes.h"
+#include "systeminfo.h"
 #include "vector.h"
 #include "windowconfig.h"
 #include "ui/debugoverlay.h"
-#include "systeminfo.h"
 
 #include "dcimgui.h"
 #include "backends/dcimgui_impl_sdl3.h"
@@ -45,10 +46,6 @@
 #include <SDL3/SDL_video.h>
 
 static constexpr auto mouse_sensitivity = 0.0015F;
-static constexpr auto move_speed = 250.F;
-static constexpr auto max_move_speed = 50.F;
-static constexpr auto gravity_y = 100.F;
-static constexpr auto jump_speed = 60.F;
 
 static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
 {
@@ -175,7 +172,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 	state->player_body_id = physics_add_capsule(state->physics_engine, &player_config);
 	physics_body_set_position(state->physics_engine, state->player_body_id, state->camera.position, true);
 
-	const vector3f_t gravity = {.y = -gravity_y};
+	const vector3f_t gravity = {.y = -state->physics_config.gravity_y};
 	physics_set_gravity(state->physics_engine, gravity);
 
 	physics_optimize(state->physics_engine);
@@ -274,6 +271,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 
 	state->camera = camera_create_default();
+	state->physics_config = physics_config_create_default();
 
 	SDL_IOStream *vert_source;
 	SDL_IOStream *frag_source;
@@ -372,6 +370,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			camera_rotate_y(&state->camera, -(mouse.y * mouse_sensitivity));
 		}
 
+		const float move_speed = state->physics_config.move_speed;
+		const float jump_speed = state->physics_config.jump_speed;
+
 		if (input_is_down("move_forward"))
 		{
 			const vector3f_t velocity = camera_to_z(&state->camera, move_speed * state->dt);
@@ -425,15 +426,15 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	const vector3f_t min_velocity =
 	{
-		.x = -max_move_speed,
+		.x = -state->physics_config.max_move_speed,
 		.y = -1'000.F,
-		.z = -max_move_speed,
+		.z = -state->physics_config.max_move_speed,
 	};
 	const vector3f_t max_velocity =
 	{
-		.x = max_move_speed,
+		.x = state->physics_config.max_move_speed,
 		.y = 1'000.F,
-		.z = max_move_speed,
+		.z = state->physics_config.max_move_speed,
 	};
 	const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
 	const vector3f_t clamped_velocity = vector3f_clamp(velocity, min_velocity, max_velocity);
