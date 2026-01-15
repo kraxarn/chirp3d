@@ -107,7 +107,8 @@ static void menu_element_item(const char *label,
 	}
 }
 
-static void show_physics_properties(bool *open, physics_config_t *config)
+static void show_physics_properties(bool *open,
+	const physics_engine_t *engine, physics_config_t *config)
 {
 	constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse;
 
@@ -125,8 +126,12 @@ static void show_physics_properties(bool *open, physics_config_t *config)
 		ImGui_DragFloatEx("Max move speed", &config->max_move_speed, step,
 			min_value, max_value, "%.f", ImGuiSliderFlags_None);
 
-		ImGui_DragFloatEx("Gravity", &config->gravity_y, step,
-			min_value, max_value, "%.f", ImGuiSliderFlags_None);
+		if (ImGui_DragFloatEx("Gravity", &config->gravity_y, step,
+			min_value, max_value, "%.f", ImGuiSliderFlags_None))
+		{
+			const vector3f_t gravity = {.y = -config->gravity_y};
+			physics_set_gravity(engine, gravity);
+		}
 
 		ImGui_DragFloatEx("Jump speed", &config->jump_speed, step,
 			min_value, max_value, "%.f", ImGuiSliderFlags_None);
@@ -158,7 +163,8 @@ void draw_debug_overlay(app_state_t *state)
 
 	if (physics_open)
 	{
-		show_physics_properties(&physics_open, &state->physics_config);
+		show_physics_properties(&physics_open,
+			state->physics_engine, &state->physics_config);
 	}
 
 	constexpr auto padding = 16.F;
