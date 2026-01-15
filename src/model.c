@@ -24,7 +24,7 @@ static const char *cgltf_error_string(const cgltf_result result)
 		case cgltf_result_data_too_short: return "Data too short";
 		case cgltf_result_unknown_format: return "Unknown format";
 		case cgltf_result_invalid_json: return "Invalid JSON";
-		case cgltf_result_invalid_gltf: return "Invalid GLTF";
+		case cgltf_result_invalid_gltf: return "Invalid glTF";
 		case cgltf_result_invalid_options: return "Invalid options";
 		case cgltf_result_file_not_found: return "File not found";
 		case cgltf_result_io_error: return "I/O error";
