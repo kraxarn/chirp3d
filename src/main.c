@@ -364,11 +364,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	{
 		vector2f_t mouse;
 		SDL_GetRelativeMouseState(&mouse.x, &mouse.y);
-		if (!ImGui_GetIO()->WantCaptureMouse)
-		{
-			camera_rotate_x(&state->camera, -(mouse.x * mouse_sensitivity));
-			camera_rotate_y(&state->camera, -(mouse.y * mouse_sensitivity));
-		}
+		camera_rotate_x(&state->camera, -(mouse.x * mouse_sensitivity));
+		camera_rotate_y(&state->camera, -(mouse.y * mouse_sensitivity));
 
 		const float move_speed = state->physics_config.move_speed;
 		const float jump_speed = state->physics_config.jump_speed;
