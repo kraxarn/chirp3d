@@ -1,7 +1,9 @@
 #include "assets.h"
 #include "image.h"
 
+#include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_surface.h>
 
 void assets_destroy(assets_t *assets)
 {
