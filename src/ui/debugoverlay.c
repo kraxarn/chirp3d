@@ -63,6 +63,21 @@ static void draw_system_info(SDL_GPUDevice *device)
 	ImGui_Text("%s", gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(device)));
 }
 
+static void draw_camera_info(const camera_t camera)
+{
+	ImGui_TableNextColumn();
+	ImGui_Text("Camera");
+	ImGui_TableNextColumn();
+	ImGui_Text("%-6.2f %-6.2f %-6.2f",
+		camera.position.x, camera.position.y, camera.position.z);
+
+	ImGui_TableNextColumn();
+	ImGui_Text("Target");
+	ImGui_TableNextColumn();
+	ImGui_Text("%-6.2f %-6.2f %-6.2f",
+		camera.target.x, camera.target.y, camera.target.z);
+}
+
 void draw_debug_overlay(const app_state_t *state)
 {
 	static auto open = true;
@@ -128,17 +143,7 @@ void draw_debug_overlay(const app_state_t *state)
 
 			if ((elements & DEBUG_OVERLAY_CAMERA) > 0)
 			{
-				ImGui_TableNextColumn();
-				ImGui_Text("Camera");
-				ImGui_TableNextColumn();
-				ImGui_Text("%-6.2f %-6.2f %-6.2f", state->camera.position.x,
-					state->camera.position.y, state->camera.position.z);
-
-				ImGui_TableNextColumn();
-				ImGui_Text("Target");
-				ImGui_TableNextColumn();
-				ImGui_Text("%-6.2f %-6.2f %-6.2f", state->camera.target.x,
-					state->camera.target.y, state->camera.target.z);
+				draw_camera_info(state->camera);
 			}
 
 			if ((elements & DEBUG_OVERLAY_PHYSICS) > 0)
