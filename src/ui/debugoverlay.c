@@ -4,6 +4,7 @@
 #include "gpudevicedriver.h"
 #include "physics.h"
 #include "videodriver.h"
+#include "systeminfo.h"
 
 #include "dcimgui.h"
 
@@ -84,6 +85,21 @@ void draw_debug_overlay(const app_state_t *state)
 
 			if ((elements & DEBUG_OVERLAY_SYSTEM) > 0)
 			{
+				ImGui_TableNextColumn();
+				ImGui_Text("CPU");
+				ImGui_TableNextColumn();
+				ImGui_Text("%s", system_info_cpu_name());
+
+				ImGui_TableNextColumn();
+				ImGui_Text("GPU");
+				ImGui_TableNextColumn();
+				ImGui_Text("%s", system_info_gpu_name(state->device));
+
+				ImGui_TableNextColumn();
+				ImGui_Text("Driver");
+				ImGui_TableNextColumn();
+				ImGui_Text("%s", system_info_gpu_driver(state->device));
+
 				ImGui_TableNextRow();
 				ImGui_TableSetColumnIndex(0);
 				ImGui_Text("Video");
