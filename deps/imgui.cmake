@@ -41,16 +41,3 @@ endif ()
 
 # For SDL3 backend
 target_link_libraries(imgui PRIVATE SDL3::SDL3)
-
-# For testing
-option(BUILD_IMGUI_DEMO "Build ImGui demo app" OFF)
-if (BUILD_IMGUI_DEMO)
-	add_executable(imgui-sdl3gpu-example
-		"${imgui_SOURCE_DIR}/examples/example_sdl3_sdlgpu3/main.cpp"
-	)
-	target_include_directories(imgui-sdl3gpu-example PRIVATE
-		"${imgui_SOURCE_DIR}"
-		"${imgui_SOURCE_DIR}/backends"
-	)
-	target_link_libraries(imgui-sdl3gpu-example PRIVATE SDL3::SDL3 imgui)
-endif ()
