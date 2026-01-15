@@ -17,8 +17,8 @@ icon = ""
 map = "test"
 
 [assets]
-maps = ["test"]
 textures = ["dark", "green", "light", "orange", "purple", "red"]
+models = ["blaster"]
 
 [input]
 move_forward  = { keycode = "w", axis = "left_y",  axis_range = [0.05, 1.0  ] }
