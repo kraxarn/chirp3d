@@ -26,15 +26,17 @@ target_include_directories(imgui PUBLIC
 	"${imgui_SOURCE_DIR}"
 )
 
-target_compile_definitions(imgui PUBLIC
-	IMGUI_DISABLE_DEFAULT_FONT
-	IMGUI_STB_TRUETYPE_FILENAME="${stb_SOURCE_DIR}/stb_truetype.h"
+file(WRITE "${imgui_SOURCE_DIR}/imconfig.h"
+	"#pragma once\n"
+	"#define IMGUI_DISABLE_DEFAULT_FONT\n"
+	"#define IMGUI_STB_TRUETYPE_FILENAME \"${stb_SOURCE_DIR}/stb_truetype.h\"\n"
+	"#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS\n"
 )
 
 if (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-	target_compile_definitions(imgui PUBLIC
-		IMGUI_DISABLE_DEMO_WINDOWS
-		IMGUI_DISABLE_DEBUG_TOOLS
+	file(APPEND "${imgui_SOURCE_DIR}/imconfig.h"
+		"#define IMGUI_DISABLE_DEMO_WINDOWS\n"
+		"#define IMGUI_DISABLE_DEBUG_TOOLS\n"
 	)
 endif ()
 
