@@ -135,6 +135,11 @@ static void show_physics_properties(bool *open,
 
 		ImGui_DragFloatEx("Jump speed", &config->jump_speed, step,
 			min_value, max_value, "%.f", ImGuiSliderFlags_None);
+
+		if (ImGui_Button("Reset to default values"))
+		{
+			*config = physics_config_create_default();
+		}
 	}
 	ImGui_End();
 }
