@@ -1,6 +1,7 @@
 #include "ui/debugoverlay.h"
 #include "appstate.h"
 #include "audiodriver.h"
+#include "camera.h"
 #include "gpudevicedriver.h"
 #include "physics.h"
 #include "physicsconfig.h"
