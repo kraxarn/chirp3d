@@ -16,7 +16,6 @@ target_sources(imgui PRIVATE
 	"${imgui_SOURCE_DIR}/imgui_draw.cpp"
 	"${imgui_SOURCE_DIR}/imgui_tables.cpp"
 	"${imgui_SOURCE_DIR}/imgui_widgets.cpp"
-	# The C bindings are hard-coded to require the demo as well
 	"${imgui_SOURCE_DIR}/imgui_demo.cpp"
 	# ImGui SDL3 GPU backend
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
@@ -30,6 +29,13 @@ target_include_directories(imgui PUBLIC
 target_compile_definitions(imgui PUBLIC
 	"IMGUI_DISABLE_DEFAULT_FONT"
 )
+
+if (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+	target_compile_definitions(imgui PUBLIC
+		"IMGUI_DISABLE_DEMO_WINDOWS"
+		"IMGUI_DISABLE_DEBUG_TOOLS"
+	)
+endif ()
 
 # For SDL3 backend
 target_link_libraries(imgui PRIVATE SDL3::SDL3)
