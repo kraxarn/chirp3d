@@ -188,16 +188,16 @@ void draw_debug_overlay(const app_state_t *state)
 
 		if (ImGui_BeginPopupContextWindow())
 		{
-			menu_element_item("Debug: Delta time",
+			menu_element_item("Delta time",
 				&elements, DEBUG_OVERLAY_DELTA);
 
-			menu_element_item("Debug: System info",
+			menu_element_item("System info",
 				&elements, DEBUG_OVERLAY_SYSTEM);
 
-			menu_element_item("Debug: Camera position/target",
+			menu_element_item("Camera positions",
 				&elements, DEBUG_OVERLAY_CAMERA);
 
-			menu_element_item("Debug: Physics properties",
+			menu_element_item("Player physics",
 				&elements, DEBUG_OVERLAY_PHYSICS);
 
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
