@@ -201,6 +201,7 @@ void draw_debug_overlay(const app_state_t *state)
 				&elements, DEBUG_OVERLAY_PHYSICS);
 
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
+			ImGui_Separator();
 			if (ImGui_MenuItemEx("Demo window", nullptr, demo_open, true))
 			{
 				demo_open = (int) demo_open == 0;
