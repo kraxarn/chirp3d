@@ -27,13 +27,13 @@ target_include_directories(imgui PUBLIC
 )
 
 target_compile_definitions(imgui PUBLIC
-	"IMGUI_DISABLE_DEFAULT_FONT"
+	IMGUI_DISABLE_DEFAULT_FONT
 )
 
 if (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	target_compile_definitions(imgui PUBLIC
-		"IMGUI_DISABLE_DEMO_WINDOWS"
-		"IMGUI_DISABLE_DEBUG_TOOLS"
+		IMGUI_DISABLE_DEMO_WINDOWS
+		IMGUI_DISABLE_DEBUG_TOOLS
 	)
 endif ()
 
