@@ -28,6 +28,7 @@ target_include_directories(imgui PUBLIC
 
 target_compile_definitions(imgui PUBLIC
 	IMGUI_DISABLE_DEFAULT_FONT
+	IMGUI_STB_TRUETYPE_FILENAME="${stb_SOURCE_DIR}/stb_truetype.h"
 )
 
 if (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
