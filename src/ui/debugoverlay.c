@@ -108,7 +108,10 @@ static void menu_element_item(const char *label,
 void draw_debug_overlay(const app_state_t *state)
 {
 	static auto open = true;
+
+#ifndef NDEBUG
 	static auto demo_open = false;
+#endif
 
 #ifdef NDEBUG
 	static debug_overlay_elements_t elements = 0;
@@ -116,10 +119,12 @@ void draw_debug_overlay(const app_state_t *state)
 	static debug_overlay_elements_t elements = DEBUG_OVERLAY_CAMERA | DEBUG_OVERLAY_PHYSICS;
 #endif
 
+#ifndef NDEBUG
 	if (demo_open)
 	{
 		ImGui_ShowDemoWindow(&demo_open);
 	}
+#endif
 
 	constexpr auto padding = 16.F;
 	constexpr auto alpha = 0.35F;
@@ -195,10 +200,12 @@ void draw_debug_overlay(const app_state_t *state)
 			menu_element_item("Debug: Physics properties",
 				&elements, DEBUG_OVERLAY_PHYSICS);
 
+#ifndef NDEBUG
 			if (ImGui_MenuItemEx("Demo window", nullptr, demo_open, true))
 			{
 				demo_open = (int) demo_open == 0;
 			}
+#endif
 
 			ImGui_EndPopup();
 		}
