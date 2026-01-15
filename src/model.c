@@ -36,9 +36,20 @@ static const char *cgltf_error_string(const cgltf_result result)
 	}
 }
 
+static int append_debug_info(char *str, const size_t str_len,
+	const char *key, const cgltf_size value)
+{
+	if (value <= 0)
+	{
+		return 0;
+	}
+
+	return SDL_snprintf(str, str_len, "%s, %s: %zu", str, key, value);
+}
+
 static void log_debug_info(const cgltf_data *data)
 {
-	static char type_str[5];
+	char type_str[5];
 
 	switch (data->file_type)
 	{
@@ -55,11 +66,30 @@ static void log_debug_info(const cgltf_data *data)
 			return;
 	}
 
-	SDL_LogDebug(LOG_CATEGORY_MODEL,
-		"Loaded model (type: %s, meshes: %zu, materials: %zu, buffers: %zu, images: %zu, textures: %zu)",
-		type_str, data->meshes_count, data->materials_count, data->buffers_count,
-		data->images_count, data->textures_count
-	);
+	constexpr size_t model_info_len = 256;
+	char model_info[model_info_len];
+	SDL_zeroa(model_info);
+
+	append_debug_info(model_info, model_info_len, "meshes", data->meshes_count);
+	append_debug_info(model_info, model_info_len, "materials", data->materials_count);
+	append_debug_info(model_info, model_info_len, "accessors", data->accessors_count);
+	append_debug_info(model_info, model_info_len, "buffer views", data->buffer_views_count);
+	append_debug_info(model_info, model_info_len, "buffers", data->buffers_count);
+	append_debug_info(model_info, model_info_len, "images", data->images_count);
+	append_debug_info(model_info, model_info_len, "textures", data->textures_count);
+	append_debug_info(model_info, model_info_len, "samplers", data->samplers_count);
+	append_debug_info(model_info, model_info_len, "skins", data->skins_count);
+	append_debug_info(model_info, model_info_len, "cameras", data->cameras_count);
+	append_debug_info(model_info, model_info_len, "lights", data->lights_count);
+	append_debug_info(model_info, model_info_len, "nodes", data->nodes_count);
+	append_debug_info(model_info, model_info_len, "scenes", data->scenes_count);
+	append_debug_info(model_info, model_info_len, "animations", data->animations_count);
+	append_debug_info(model_info, model_info_len, "variants", data->variants_count);
+	append_debug_info(model_info, model_info_len, "extensions", data->data_extensions_count);
+	append_debug_info(model_info, model_info_len, "extensions used", data->extensions_used_count);
+	append_debug_info(model_info, model_info_len, "extensions required", data->extensions_required_count);
+
+	SDL_LogDebug(LOG_CATEGORY_MODEL, "Loaded model (type: %s%s)", type_str, model_info);
 }
 
 bool load_gltf(SDL_IOStream *stream, const bool close_io)
