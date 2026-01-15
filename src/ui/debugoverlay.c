@@ -20,6 +20,16 @@ typedef enum [[clang::flag_enum]] debug_overlay_elements_t
 	DEBUG_OVERLAY_PHYSICS = 1 << 3,
 } debug_overlay_elements_t;
 
+static void draw_delta(const float delta)
+{
+	constexpr auto ms_s = 1'000.F;
+
+	ImGui_TableNextColumn();
+	ImGui_Text("Delta");
+	ImGui_TableNextColumn();
+	ImGui_Text("%.2f ms", delta * ms_s);
+}
+
 void draw_debug_overlay(const app_state_t *state)
 {
 	static auto open = true;
@@ -75,10 +85,7 @@ void draw_debug_overlay(const app_state_t *state)
 
 			if ((elements & DEBUG_OVERLAY_DELTA) > 0)
 			{
-				ImGui_TableNextColumn();
-				ImGui_Text("Delta");
-				ImGui_TableNextColumn();
-				ImGui_Text("%.2f ms", state->dt * 1'000.F);
+				draw_delta(state->dt);
 			}
 
 			if ((elements & DEBUG_OVERLAY_SYSTEM) > 0)
