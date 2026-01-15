@@ -30,6 +30,39 @@ static void draw_delta(const float delta)
 	ImGui_Text("%.2f ms", delta * ms_s);
 }
 
+static void draw_system_info(SDL_GPUDevice *device)
+{
+	ImGui_TableNextColumn();
+	ImGui_Text("CPU");
+	ImGui_TableNextColumn();
+	ImGui_Text("%s", system_info_cpu_name());
+
+	ImGui_TableNextColumn();
+	ImGui_Text("GPU");
+	ImGui_TableNextColumn();
+	ImGui_Text("%s", system_info_gpu_name(device));
+
+	ImGui_TableNextColumn();
+	ImGui_Text("Driver");
+	ImGui_TableNextColumn();
+	ImGui_Text("%s", system_info_gpu_driver(device));
+
+	ImGui_TableNextColumn();
+	ImGui_Text("Video");
+	ImGui_TableNextColumn();
+	ImGui_Text("%s", video_driver_display_name(SDL_GetCurrentVideoDriver()));
+
+	ImGui_TableNextColumn();
+	ImGui_Text("Audio");
+	ImGui_TableNextColumn();
+	ImGui_Text("%s", audio_driver_display_name(SDL_GetCurrentAudioDriver()));
+
+	ImGui_TableNextColumn();
+	ImGui_Text("Renderer");
+	ImGui_TableNextColumn();
+	ImGui_Text("%s", gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(device)));
+}
+
 void draw_debug_overlay(const app_state_t *state)
 {
 	static auto open = true;
@@ -90,35 +123,7 @@ void draw_debug_overlay(const app_state_t *state)
 
 			if ((elements & DEBUG_OVERLAY_SYSTEM) > 0)
 			{
-				ImGui_TableNextColumn();
-				ImGui_Text("CPU");
-				ImGui_TableNextColumn();
-				ImGui_Text("%s", system_info_cpu_name());
-
-				ImGui_TableNextColumn();
-				ImGui_Text("GPU");
-				ImGui_TableNextColumn();
-				ImGui_Text("%s", system_info_gpu_name(state->device));
-
-				ImGui_TableNextColumn();
-				ImGui_Text("Driver");
-				ImGui_TableNextColumn();
-				ImGui_Text("%s", system_info_gpu_driver(state->device));
-
-				ImGui_TableNextColumn();
-				ImGui_Text("Video");
-				ImGui_TableNextColumn();
-				ImGui_Text("%s", video_driver_display_name(SDL_GetCurrentVideoDriver()));
-
-				ImGui_TableNextColumn();
-				ImGui_Text("Audio");
-				ImGui_TableNextColumn();
-				ImGui_Text("%s", audio_driver_display_name(SDL_GetCurrentAudioDriver()));
-
-				ImGui_TableNextColumn();
-				ImGui_Text("Renderer");
-				ImGui_TableNextColumn();
-				ImGui_Text("%s", gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device)));
+				draw_system_info(state->device);
 			}
 
 			if ((elements & DEBUG_OVERLAY_CAMERA) > 0)
