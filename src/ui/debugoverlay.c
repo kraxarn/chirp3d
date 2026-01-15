@@ -3,8 +3,8 @@
 #include "audiodriver.h"
 #include "gpudevicedriver.h"
 #include "physics.h"
-#include "videodriver.h"
 #include "systeminfo.h"
+#include "videodriver.h"
 
 #include "dcimgui.h"
 
@@ -109,7 +109,7 @@ void draw_debug_overlay(const app_state_t *state)
 {
 	static auto open = true;
 
-#ifndef NDEBUG
+#ifndef IMGUI_DISABLE_DEMO_WINDOWS
 	static auto demo_open = false;
 #endif
 
@@ -119,7 +119,7 @@ void draw_debug_overlay(const app_state_t *state)
 	static debug_overlay_elements_t elements = DEBUG_OVERLAY_CAMERA | DEBUG_OVERLAY_PHYSICS;
 #endif
 
-#ifndef NDEBUG
+#ifndef IMGUI_DISABLE_DEMO_WINDOWS
 	if (demo_open)
 	{
 		ImGui_ShowDemoWindow(&demo_open);
@@ -200,7 +200,7 @@ void draw_debug_overlay(const app_state_t *state)
 			menu_element_item("Debug: Physics properties",
 				&elements, DEBUG_OVERLAY_PHYSICS);
 
-#ifndef NDEBUG
+#ifndef IMGUI_DISABLE_DEMO_WINDOWS
 			if (ImGui_MenuItemEx("Demo window", nullptr, demo_open, true))
 			{
 				demo_open = (int) demo_open == 0;
