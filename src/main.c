@@ -39,11 +39,9 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_pixels.h>
-#include <SDL3/SDL_properties.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
-#include <SDL3/SDL_version.h>
 #include <SDL3/SDL_video.h>
 
 static constexpr auto mouse_sensitivity = 0.0015F;
