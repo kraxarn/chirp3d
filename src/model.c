@@ -1,7 +1,9 @@
 #include "model.h"
+#include "logcategory.h"
 
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_iostream.h>
+#include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
 
 #define CGLTF_MALLOC(size) SDL_malloc(size)
@@ -34,6 +36,32 @@ static const char *cgltf_error_string(const cgltf_result result)
 	}
 }
 
+static void log_debug_info(const cgltf_data *data)
+{
+	static char type_str[5];
+
+	switch (data->file_type)
+	{
+		case cgltf_file_type_gltf:
+			SDL_strlcpy(type_str, "gltf", sizeof(type_str));
+			break;
+
+		case cgltf_file_type_glb:
+			SDL_strlcpy(type_str, "glb", sizeof(type_str));
+			break;
+
+		default:
+			SDL_LogWarn(LOG_CATEGORY_MODEL, "Unknown model format");
+			return;
+	}
+
+	SDL_LogDebug(LOG_CATEGORY_MODEL,
+		"Loaded model (type: %s, meshes: %zu, materials: %zu, buffers: %zu, images: %zu, textures: %zu)",
+		type_str, data->meshes_count, data->materials_count, data->buffers_count,
+		data->images_count, data->textures_count
+	);
+}
+
 bool load_gltf(SDL_IOStream *stream, const bool close_io)
 {
 	cgltf_size file_size;
@@ -53,6 +81,8 @@ bool load_gltf(SDL_IOStream *stream, const bool close_io)
 	{
 		return SDL_SetError("%s", cgltf_error_string(result));
 	}
+
+	log_debug_info(data);
 
 	cgltf_free(data);
 	return true;
