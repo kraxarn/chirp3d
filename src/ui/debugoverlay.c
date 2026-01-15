@@ -66,20 +66,18 @@ void draw_debug_overlay(const app_state_t *state)
 
 		ImGui_Text("%s %s", ENGINE_NAME, ENGINE_VERSION); // NOLINT(*-include-cleaner)
 
-		if (ImGui_BeginTable("table_debug", 3, ImGuiTableFlags_None))
+		if (ImGui_BeginTable("table_debug", 2, ImGuiTableFlags_None))
 		{
-			ImGui_TableNextRow();
-			ImGui_TableSetColumnIndex(0);
+			ImGui_TableNextColumn();
 			ImGui_Text("FPS");
-			ImGui_TableSetColumnIndex(1);
+			ImGui_TableNextColumn();
 			ImGui_Text("%u", state->time.fps);
 
 			if ((elements & DEBUG_OVERLAY_DELTA) > 0)
 			{
-				ImGui_TableNextRow();
-				ImGui_TableSetColumnIndex(0);
+				ImGui_TableNextColumn();
 				ImGui_Text("Delta");
-				ImGui_TableSetColumnIndex(1);
+				ImGui_TableNextColumn();
 				ImGui_Text("%.2f ms", state->dt * 1'000.F);
 			}
 
@@ -100,38 +98,33 @@ void draw_debug_overlay(const app_state_t *state)
 				ImGui_TableNextColumn();
 				ImGui_Text("%s", system_info_gpu_driver(state->device));
 
-				ImGui_TableNextRow();
-				ImGui_TableSetColumnIndex(0);
+				ImGui_TableNextColumn();
 				ImGui_Text("Video");
-				ImGui_TableSetColumnIndex(1);
+				ImGui_TableNextColumn();
 				ImGui_Text("%s", video_driver_display_name(SDL_GetCurrentVideoDriver()));
 
-				ImGui_TableNextRow();
-				ImGui_TableSetColumnIndex(0);
+				ImGui_TableNextColumn();
 				ImGui_Text("Audio");
-				ImGui_TableSetColumnIndex(1);
+				ImGui_TableNextColumn();
 				ImGui_Text("%s", audio_driver_display_name(SDL_GetCurrentAudioDriver()));
 
-				ImGui_TableNextRow();
-				ImGui_TableSetColumnIndex(0);
+				ImGui_TableNextColumn();
 				ImGui_Text("Renderer");
-				ImGui_TableSetColumnIndex(1);
+				ImGui_TableNextColumn();
 				ImGui_Text("%s", gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(state->device)));
 			}
 
 			if ((elements & DEBUG_OVERLAY_CAMERA) > 0)
 			{
-				ImGui_TableNextRow();
-				ImGui_TableSetColumnIndex(0);
+				ImGui_TableNextColumn();
 				ImGui_Text("Camera");
-				ImGui_TableSetColumnIndex(1);
+				ImGui_TableNextColumn();
 				ImGui_Text("%-6.2f %-6.2f %-6.2f", state->camera.position.x,
 					state->camera.position.y, state->camera.position.z);
 
-				ImGui_TableNextRow();
-				ImGui_TableSetColumnIndex(0);
+				ImGui_TableNextColumn();
 				ImGui_Text("Target");
-				ImGui_TableSetColumnIndex(1);
+				ImGui_TableNextColumn();
 				ImGui_Text("%-6.2f %-6.2f %-6.2f", state->camera.target.x,
 					state->camera.target.y, state->camera.target.z);
 			}
@@ -141,16 +134,14 @@ void draw_debug_overlay(const app_state_t *state)
 				const vector3f_t position = physics_body_position(state->physics_engine, state->player_body_id);
 				const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
 
-				ImGui_TableNextRow();
-				ImGui_TableSetColumnIndex(0);
+				ImGui_TableNextColumn();
 				ImGui_Text("Position");
-				ImGui_TableSetColumnIndex(1);
+				ImGui_TableNextColumn();
 				ImGui_Text("%-6.2f %-6.2f %-6.2f", position.x, position.y, position.z);
 
-				ImGui_TableNextRow();
-				ImGui_TableSetColumnIndex(0);
+				ImGui_TableNextColumn();
 				ImGui_Text("Velocity");
-				ImGui_TableSetColumnIndex(1);
+				ImGui_TableNextColumn();
 				ImGui_Text("%-6.2f %-6.2f %-6.2f", velocity.x, velocity.y, velocity.z);
 			}
 
