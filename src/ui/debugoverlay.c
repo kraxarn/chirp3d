@@ -95,6 +95,16 @@ static void draw_physics_info(const physics_engine_t *physics_engine,
 	ImGui_Text("%-6.2f %-6.2f %-6.2f", velocity.x, velocity.y, velocity.z);
 }
 
+static void menu_element_item(const char *label,
+	debug_overlay_elements_t *elements, const debug_overlay_elements_t element)
+{
+	const bool selected = (*elements & element) > 0;
+	if (ImGui_MenuItemEx(label, nullptr, selected, true))
+	{
+		*elements ^= element;
+	}
+}
+
 void draw_debug_overlay(const app_state_t *state)
 {
 	static auto open = true;
@@ -173,28 +183,17 @@ void draw_debug_overlay(const app_state_t *state)
 
 		if (ImGui_BeginPopupContextWindow())
 		{
-			if (ImGui_MenuItemEx("Debug: Delta time", nullptr,
-				(elements & DEBUG_OVERLAY_DELTA) > 0, true))
-			{
-				elements ^= DEBUG_OVERLAY_DELTA;
-			}
+			menu_element_item("Debug: Delta time",
+				&elements, DEBUG_OVERLAY_DELTA);
 
-			if (ImGui_MenuItemEx("Debug: System info", nullptr,
-				(elements & DEBUG_OVERLAY_SYSTEM) > 0, true))
-			{
-				elements ^= DEBUG_OVERLAY_SYSTEM;
-			}
+			menu_element_item("Debug: System info",
+				&elements, DEBUG_OVERLAY_SYSTEM);
 
-			if (ImGui_MenuItemEx("Debug: Camera position/target", nullptr,
-				(elements & DEBUG_OVERLAY_CAMERA) > 0, true))
-			{
-				elements ^= DEBUG_OVERLAY_CAMERA;
-			}
-			if (ImGui_MenuItemEx("Debug: Physics properties", nullptr,
-				(elements & DEBUG_OVERLAY_PHYSICS) > 0, true))
-			{
-				elements ^= DEBUG_OVERLAY_PHYSICS;
-			}
+			menu_element_item("Debug: Camera position/target",
+				&elements, DEBUG_OVERLAY_CAMERA);
+
+			menu_element_item("Debug: Physics properties",
+				&elements, DEBUG_OVERLAY_PHYSICS);
 
 			if (ImGui_MenuItemEx("Demo window", nullptr, demo_open, true))
 			{
