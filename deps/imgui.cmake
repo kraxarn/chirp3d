@@ -27,6 +27,10 @@ target_include_directories(imgui PUBLIC
 	"${imgui_SOURCE_DIR}"
 )
 
+target_compile_definitions(imgui PUBLIC
+	"IMGUI_DISABLE_DEFAULT_FONT"
+)
+
 # For SDL3 backend
 target_link_libraries(imgui PRIVATE SDL3::SDL3)
 
