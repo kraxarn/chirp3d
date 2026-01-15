@@ -9,6 +9,7 @@
 #include "math.h"
 #include "matrix.h"
 #include "mesh.h"
+#include "model.h"
 #include "physics.h"
 #include "physicsconfig.h"
 #include "resources.h"
@@ -327,6 +328,12 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	if (state->physics_engine == nullptr)
 	{
 		return fatal_error(state->window, "Failed to initialise physics engine");
+	}
+
+	SDL_IOStream *model_stream = assets_load(state->assets, "models/blaster");
+	if (!load_gltf(model_stream, true))
+	{
+		return fatal_error(state->window, "Failed to load model");
 	}
 
 	return build_scene(state);
