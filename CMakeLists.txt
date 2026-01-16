@@ -6,8 +6,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 if (APPLE)
 	# Metal requires macOS 10.14 / iOS 13
-	# arm64 requires macOS 11, and that's the only arch we support atm
-	set(CMAKE_OSX_DEPLOYMENT_TARGET "11")
+	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14")
 endif ()
 
 add_executable(${PROJECT_NAME})
