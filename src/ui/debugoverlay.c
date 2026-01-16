@@ -116,8 +116,8 @@ static void show_physics_properties(bool *open,
 
 	ImGui_Begin("physics properties", open, flags);
 	{
-		constexpr float min_value = -1'000.F;
-		constexpr float max_value = +1'000.F;
+		constexpr auto min_value = 0.F;
+		constexpr auto max_value = 1'000.F;
 
 		ImGui_SliderFloatEx("Move speed", &config->move_speed,
 			min_value, max_value, "%.f", ImGuiSliderFlags_None);
