@@ -17,6 +17,7 @@ jobs:
             compiler-flags: '-march=x86-64-v3'
 
           - arch: arm64
+            compiler-flags: '-mfloat-abi=hard -mfpu=neon'
 
     steps:
       - uses: actions/checkout@v5
