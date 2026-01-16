@@ -37,7 +37,7 @@ jobs:
         if: ${{ matrix.arch == 'aarch64' }}
         shell: powershell
         run: |
-          winget install llvm
+          winget install llvm --accept-package-agreements --accept-source-agreements
           $bin_dir = Join-Path $env:ProgramFiles LLVM bin
           echo $bin_dir >> $env:GITHUB_PATH
 
