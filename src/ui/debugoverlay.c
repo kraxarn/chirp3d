@@ -197,9 +197,8 @@ void draw_debug_overlay(app_state_t *state)
 
 #ifndef NDEBUG
 		ImGui_Text("- debug mode -");
-#endif
-
 		ImGui_Text("%s %s", ENGINE_NAME, ENGINE_VERSION); // NOLINT(*-include-cleaner)
+#endif
 
 		if (ImGui_BeginTable("table_debug", 2, ImGuiTableFlags_None))
 		{
