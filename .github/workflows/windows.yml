@@ -8,19 +8,7 @@ env:
 
 jobs:
   build:
-    name: '${{ matrix.arch }}'
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            arch: 'x86_64'
-            compile-flags: '-march=x86-64-v3'
-
-          - os: windows-11-arm
-            arch: 'aarch64'
-            compiler-flags: '-mfloat-abi=hard -mfpu=neon'
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v5
@@ -29,10 +17,11 @@ jobs:
         uses: egor-tensin/setup-clang@v2
         with:
           version: 'latest'
+          platform: 'x64'
           cc: '1'
 
       - name: Configure CMake
-        run: cmake -S . -B build -G "${{env.CMAKE_GENERATOR}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="${{ matrix.compile-flags }}" -DCMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
+        run: cmake -S . -B build -G "${{env.CMAKE_GENERATOR}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="-march=x86-64-v3" -DCMAKE_CXX_FLAGS="-march=x86-64-v3"
 
       - name: Build
         run: cmake --build build
@@ -40,7 +29,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: chirp3d-windows-${{ matrix.arch }}
+          name: chirp3d-windows-x64
           path: |
             ${{runner.workspace}}\chirp3d\build\chirp3d.exe
             ${{runner.workspace}}\chirp3d\build\SDL3.dll
