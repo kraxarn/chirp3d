@@ -38,7 +38,7 @@ jobs:
         shell: powershell
         run: |
           winget install llvm --accept-package-agreements --accept-source-agreements
-          $bin_dir = Join-Path $env:ProgramFiles LLVM bin
+          $bin_dir = Join-Path (Join-Path $env:ProgramFiles LLVM) bin
           echo $bin_dir >> $env:GITHUB_PATH
 
       - name: Configure CMake
