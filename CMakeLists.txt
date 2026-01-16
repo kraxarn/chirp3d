@@ -9,7 +9,12 @@ if (APPLE)
 	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14")
 endif ()
 
-add_executable(${PROJECT_NAME})
+if (ANDROID)
+	add_library(${PROJECT_NAME} SHARED)
+else ()
+	add_executable(${PROJECT_NAME})
+endif ()
+
 add_subdirectory(src)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
