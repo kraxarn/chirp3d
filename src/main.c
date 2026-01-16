@@ -31,6 +31,7 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
+#include <SDL3/SDL_cpuinfo.h>
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_filesystem.h>
@@ -55,6 +56,26 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, message, SDL_GetError(), window);
 #endif
 	return SDL_APP_FAILURE;
+}
+
+[[nodiscard]]
+static bool cpu_supported()
+{
+#ifdef ARCH_X86_64
+	if (!SDL_HasAVX2() || !SDL_HasSSE42())
+	{
+		return SDL_SetError("CPU doesn't support required AVX2 and SSE4.2 features");
+	}
+#elifdef ARCH_AARCH64
+	if (!SDL_HasNEON())
+	{
+		return SDL_SetError("CPU doesn't support required NEON features");
+	}
+#else
+	return SDL_SetError("Unknown CPU architecture");
+#endif
+
+	return true;
 }
 
 static void log_system_info(SDL_GPUDevice *device)
@@ -183,6 +204,11 @@ static SDL_AppResult build_scene(app_state_t *state)
 
 SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 {
+	if (!cpu_supported())
+	{
+		return fatal_error(nullptr, "Unsupported CPU");
+	}
+
 #ifdef NDEBUG
 	SDL_SetLogPriorities(SDL_LOG_PRIORITY_INFO);
 #else
