@@ -13,13 +13,15 @@ jobs:
       matrix:
         include:
           - arch: x86_64
+            compiler-flags: '-march=x86-64-v3'
+
           - arch: arm64
 
     steps:
       - uses: actions/checkout@v5
 
       - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}" -DCMAKE_C_FLAGS="${{ matrix.compile-flags }}" -DCMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
 
       - name: Build
         run: cmake --build build
