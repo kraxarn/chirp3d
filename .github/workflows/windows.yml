@@ -15,9 +15,11 @@ jobs:
       matrix:
         include:
           - arch: 'x86_64'
+            system-processor: 'AMD64'
             compile-flags: '-march=x86-64-v3'
 
           - arch: 'aarch64'
+            system-processor: 'ARM64'
             compile-flags: '-target aarch64-pc-windows-msvc'
 
     steps:
@@ -31,7 +33,7 @@ jobs:
           cc: '1'
 
       - name: Configure CMake
-        run: cmake -S . -B build -G "${{env.CMAKE_GENERATOR}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="${{ matrix.compile-flags }}" -DCMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
+        run: cmake -S . -B build -G "${{env.CMAKE_GENERATOR}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_SYSTEM_PROCESSOR="${{ matrix.system-processor }}" -DCMAKE_C_FLAGS="${{ matrix.compile-flags }}" -DCMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
 
       - name: Build
         run: cmake --build build
