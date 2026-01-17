@@ -133,12 +133,12 @@ void physics_destroy(physics_engine_t *engine)
 
 void physics_optimize(const physics_engine_t *engine)
 {
-	const Uint64 start = SDL_GetTicks();
+	const Uint32 start = SDL_GetTicks();
 
 	JPH_PhysicsSystem_OptimizeBroadPhase(engine->physics_system);
 
-	const Uint64 end = SDL_GetTicks();
-	SDL_LogDebug(LOG_CATEGORY_PHYSICS, "Optimised broad phase in %lu ms", end - start);
+	const Uint32 end = SDL_GetTicks();
+	SDL_LogDebug(LOG_CATEGORY_PHYSICS, "Optimised broad phase in %u ms", end - start);
 }
 
 bool physics_update(const physics_engine_t *engine, const float delta)

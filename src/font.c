@@ -180,7 +180,7 @@ static void build_atlas_data(const float font_size, vector2f_aligned_t *coordina
 
 static bool font_bake(font_t *font, const Uint8 *data)
 {
-	const Uint64 start = SDL_GetTicks();
+	const Uint32 start = SDL_GetTicks();
 
 	stbtt_fontinfo font_info;
 	if (!stbtt_InitFont(&font_info, data, 0))
@@ -297,8 +297,8 @@ static bool font_bake(font_t *font, const Uint8 *data)
 
 	build_atlas_data(font->size, font->uv_coordinates);
 
-	const Uint64 end = SDL_GetTicks();
-	SDL_LogDebug(LOG_CATEGORY_FONT, "Baked font in %lu ms", end - start);
+	const Uint32 end = SDL_GetTicks();
+	SDL_LogDebug(LOG_CATEGORY_FONT, "Baked font in %u ms", end - start);
 
 	return true;
 }
