@@ -6,7 +6,11 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 if (APPLE)
 	# Metal requires macOS 10.14 / iOS 13
-	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14")
+	if (IOS)
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "13")
+	else ()
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14")
+	endif ()
 endif ()
 
 if (ANDROID)
