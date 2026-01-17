@@ -4,6 +4,7 @@
 #include "matrix.h"
 #include "meshinfo.h"
 #include "uniformdata.h"
+#include "vector.h"
 
 #include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_error.h>
@@ -14,6 +15,7 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
+#include <SDL3/SDL_video.h>
 
 // >.<
 #define STBTT_ifloor(x) ((int) SDL_floor(x))
