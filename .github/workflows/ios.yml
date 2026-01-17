@@ -1,0 +1,25 @@
+name: iOS
+
+on: [ push, pull_request ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configure CMake
+        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=$BUILD_TYPE -D CMAKE_SYSTEM_NAME=iOS -D CMAKE_OSX_SYSROOT=iphoneos -D CMAKE_OSX_ARCHITECTURES=arm64
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chirp3d-ios-arm64
+          path: ${{runner.workspace}}/chirp3d/build/chirp3d.app
