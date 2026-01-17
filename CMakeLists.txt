@@ -58,7 +58,7 @@ include(deps/dcimgui.cmake)
 include(resources.cmake)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-	# macOS
+	# macOS / iOS
 	MACOSX_BUNDLE TRUE
 	MACOSX_BUNDLE_GUI_IDENTIFIER "${ENGINE_IDENTIFIER}"
 	MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
