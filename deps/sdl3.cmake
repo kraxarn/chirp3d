@@ -22,6 +22,8 @@ else ()
 	set(SDL_RENDER OFF)
 	set(SDL_SENSOR OFF)
 	set(SDL_VIDEO ON)
+	set(SDL_OPENGL OFF)
+	set(SDL_OPENGLES OFF)
 	FetchContent_MakeAvailable(sdl)
 endif ()
 
