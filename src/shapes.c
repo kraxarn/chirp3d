@@ -6,41 +6,6 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_stdinc.h>
 
-#if 0
-static void compute_normals(vertex_t *vertices, const size_t num_vertices,
-	const mesh_index_t *indices, const size_t num_indicies)
-{
-	for (size_t i = 0; i < num_vertices; i++)
-	{
-		vertices[i].normal = vector3f_zero();
-	}
-
-	for (size_t i = 0; i < num_indicies; i += 3)
-	{
-		const mesh_index_t mi0 = indices[i];
-		const mesh_index_t mi1 = indices[i + 1];
-		const mesh_index_t mi2 = indices[i + 2];
-
-		const vertex_t mv0 = vertices[mi0];
-		const vertex_t mv1 = vertices[mi1];
-		const vertex_t mv2 = vertices[mi2];
-
-		const vector3f_t me1 = vector3f_sub(mv1.position, mv0.position);
-		const vector3f_t me2 = vector3f_sub(mv2.position, mv0.position);
-		const vector3f_t normal = vector3f_normalize(vector3f_cross(me1, me2));
-
-		vertices[mi0].normal = vector3f_add(vertices[mi0].normal, normal);
-		vertices[mi1].normal = vector3f_add(vertices[mi1].normal, normal);
-		vertices[mi2].normal = vector3f_add(vertices[mi2].normal, normal);
-	}
-
-	for (size_t i = 0; i < num_vertices; i++)
-	{
-		vertices[i].normal = vector3f_normalize(vertices[i].normal);
-	}
-}
-#endif
-
 mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 {
 	const vector3f_t min = {
