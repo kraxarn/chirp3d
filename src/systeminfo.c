@@ -5,8 +5,14 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_version.h>
+#include <SDL3/SDL_platform.h>
 
 static constexpr size_t name_length = 64;
+
+const char *system_info_platform()
+{
+	return SDL_GetPlatform();
+}
 
 const char *system_info_cpu_name()
 {

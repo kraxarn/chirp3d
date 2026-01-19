@@ -80,6 +80,9 @@ static bool cpu_supported()
 
 static void log_system_info(SDL_GPUDevice *device)
 {
+	SDL_LogDebug(LOG_CATEGORY_CORE, "Platform: %s",
+		system_info_platform());
+
 	SDL_LogDebug(LOG_CATEGORY_CORE, "CPU: %s",
 		system_info_cpu_name());
 

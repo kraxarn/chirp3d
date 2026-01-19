@@ -35,6 +35,11 @@ static void draw_delta(const float delta)
 static void draw_system_info(SDL_GPUDevice *device)
 {
 	ImGui_TableNextColumn();
+	ImGui_Text("Platform");
+	ImGui_TableNextColumn();
+	ImGui_Text("%s", system_info_platform());
+
+	ImGui_TableNextColumn();
 	ImGui_Text("CPU");
 	ImGui_TableNextColumn();
 	ImGui_Text("%s", system_info_cpu_name());
