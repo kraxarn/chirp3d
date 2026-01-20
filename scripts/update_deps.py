@@ -67,12 +67,9 @@ def latest_git_ref(repo_name: str) -> str:
 	return refs[0]["object"]["sha"]
 
 
-def latest_tag(repo_name: str, include_prerelease: bool) -> str:
+def latest_tag(repo_name: str) -> str:
 	tags = http.get(f"https://api.github.com/repos/{repo_name}/tags").json()
-	for tag in tags:
-		if include_prerelease or "-" not in tag["name"]:
-			return tag["name"]
-	return ""
+	return tags[0]["name"]
 
 
 for file in os.listdir("deps"):
@@ -80,7 +77,7 @@ for file in os.listdir("deps"):
 	if len(info.git_repository) <= 0:
 		continue
 	full_name = info.git_repository[19:len(info.git_repository) - 4]
-	latest_version = latest_git_ref(full_name) if is_commit(info.git_tag) else latest_tag(full_name, False)
+	latest_version = latest_git_ref(full_name) if is_commit(info.git_tag) else latest_tag(full_name)
 	log(full_name, info.git_tag, latest_version)
 
 http.close()
