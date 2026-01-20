@@ -2,7 +2,7 @@ include(FetchContent)
 
 FetchContent_Declare(stb
 	GIT_REPOSITORY https://github.com/nothings/stb.git
-	GIT_TAG c39c7023ebb833ce099750fe35509aca5662695e
+	GIT_TAG f1c79c02822848a9bed4315b12c8c8f3761e1296
 )
 
 message(STATUS "Downloading stb")
