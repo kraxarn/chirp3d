@@ -53,8 +53,10 @@ def is_commit(git_tag: str) -> bool:
 
 
 def latest_git_ref(repo_name: str) -> str:
-	refs = http.get(f"https://api.github.com/repos/{repo_name}/git/refs").json()
-	return refs[0]["object"]["sha"]
+	repo = http.get(f"https://api.github.com/repos/{repo_name}").json()
+	branch = repo["default_branch"]
+	ref = http.get(f"https://api.github.com/repos/{repo_name}/git/ref/heads/{branch}").json()
+	return ref["object"]["sha"]
 
 
 def latest_tag(repo_name: str) -> str:
