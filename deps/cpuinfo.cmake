@@ -2,7 +2,7 @@ include(FetchContent)
 
 FetchContent_Declare(cpuinfo
 	GIT_REPOSITORY https://github.com/pytorch/cpuinfo.git
-	GIT_TAG 0fea7f5f88243ee354df0e0082b5f27d13fc9551
+	GIT_TAG 180008660ad84067d1ac40944bdaef922c93d45e
 )
 
 message(STATUS "Downloading cpuinfo")
