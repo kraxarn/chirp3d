@@ -42,16 +42,6 @@ class DepInfo:
 		return info
 
 
-@dataclasses.dataclass
-class RepoInfo:
-	full_name: str
-
-	@staticmethod
-	def get(repo_name: str) -> RepoInfo:
-		repo = http.get(f"https://api.github.com/repos/{repo_name}").json()
-		return RepoInfo(full_name=repo["full_name"])
-
-
 def is_commit(git_tag: str) -> bool:
 	if len(git_tag) != 40:
 		return False
