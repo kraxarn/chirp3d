@@ -11,3 +11,6 @@ android/.gradle
 android/local.properties
 android/keystore.properties
 android/app/src/main/java/org/libsdl/app/*.java
+
+# Python scripts
+.venv/
