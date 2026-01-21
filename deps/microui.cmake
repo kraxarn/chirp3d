@@ -20,7 +20,7 @@ option(BUILD_MU_DEMO "Build microui demo app" OFF)
 if (BUILD_MU_DEMO)
 	add_executable(microui-example
 		"${microui_SOURCE_DIR}/demo/main.c"
-		"${microui_SOURCE_DIR}/demo/renderer.c"
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/ui/renderer.c"
 	)
 	target_include_directories(microui-example PRIVATE
 		"${microui_SOURCE_DIR}/demo"
