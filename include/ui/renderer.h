@@ -27,6 +27,8 @@ void r_set_clip_rect(mu_Rect rect);
 
 void r_clear(mu_Color color);
 
+void r_draw();
+
 void r_present();
 
 SDL_AppResult r_handle_event(const SDL_Event *event);

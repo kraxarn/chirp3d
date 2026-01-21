@@ -273,6 +273,34 @@ void r_clear(const mu_Color color)
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void r_draw()
+{
+	mu_Command *cmd = nullptr;
+	while (mu_next_command(ctx, &cmd))
+	{
+		switch (cmd->type)
+		{
+			case MU_COMMAND_TEXT:
+				r_draw_text(cmd->text.str, cmd->text.pos, cmd->text.color);
+				break;
+
+			case MU_COMMAND_RECT:
+				r_draw_rect(cmd->rect.rect, cmd->rect.color);
+				break;
+
+			case MU_COMMAND_ICON:
+				r_draw_icon(cmd->icon.id, cmd->icon.rect, cmd->icon.color);
+				break;
+
+			case MU_COMMAND_CLIP:
+				r_set_clip_rect(cmd->clip.rect);
+				break;
+		}
+	}
+
+	r_present();
+}
+
 void r_present()
 {
 	flush();
