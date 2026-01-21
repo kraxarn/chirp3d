@@ -4,11 +4,8 @@
 
 #include <stddef.h>
 
-#include <SDL2/SDL_stdinc.h>
-#include <SDL2/SDL_mouse.h>
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_events.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_stdinc.h>
 
 /*
  * Based of:
@@ -294,25 +291,6 @@ static void process_frame(mu_Context *ctx)
 	mu_end(ctx);
 }
 
-static constexpr char button_map[256] = {
-	[ SDL_BUTTON_LEFT & 0xff ]   = MU_MOUSE_LEFT,
-	[ SDL_BUTTON_RIGHT & 0xff ]  = MU_MOUSE_RIGHT,
-	[ SDL_BUTTON_MIDDLE & 0xff ] = MU_MOUSE_MIDDLE,
-};
-
-static constexpr char key_map[256] = {
-	[ SDLK_LSHIFT & 0xff ]    = MU_KEY_SHIFT,
-	[ SDLK_RSHIFT & 0xff ]    = MU_KEY_SHIFT,
-	[ SDLK_LCTRL & 0xff ]     = MU_KEY_CTRL,
-	[ SDLK_RCTRL & 0xff ]     = MU_KEY_CTRL,
-	[ SDLK_LALT & 0xff ]      = MU_KEY_ALT,
-	[ SDLK_RALT & 0xff ]      = MU_KEY_ALT,
-	[ SDLK_RETURN & 0xff ]    = MU_KEY_RETURN,
-	[ SDLK_BACKSPACE & 0xff ] = MU_KEY_BACKSPACE,
-	[ SDLK_LEFT & 0xff ]      = MU_KEY_LEFT,
-	[ SDLK_RIGHT & 0xff ]     = MU_KEY_RIGHT,
-};
-
 static int text_width(mu_Font font, const char *text, int len)
 {
 	if (len == -1)
@@ -330,8 +308,7 @@ static int text_height(mu_Font font)
 
 int main()
 {
-	// init SDL and renderer
-	SDL_Init(SDL_INIT_EVERYTHING);
+	// init renderer
 	r_init();
 
 	// init microui
@@ -341,7 +318,8 @@ int main()
 	ctx->text_height = text_height;
 
 	// main loop
-	for (;;)
+	auto running = true;
+	while (running)
 	{
 		// handle SDL events
 		SDL_Event e;
@@ -349,47 +327,48 @@ int main()
 		{
 			switch (e.type)
 			{
-				case SDL_QUIT: exit(EXIT_SUCCESS);
+				case SDL_EVENT_QUIT:
+					running = false;
 					break;
 
-				case SDL_MOUSEMOTION:
+				case SDL_EVENT_MOUSE_MOTION:
 					mu_input_mousemove(ctx, e.motion.x, e.motion.y);
 					break;
 
-				case SDL_MOUSEWHEEL:
+				case SDL_EVENT_MOUSE_WHEEL:
 					mu_input_scroll(ctx, 0, e.wheel.y * -30);
 					break;
 
-				case SDL_TEXTINPUT:
+				case SDL_EVENT_TEXT_INPUT:
 					mu_input_text(ctx, e.text.text);
 					break;
 
-				case SDL_MOUSEBUTTONDOWN:
-				case SDL_MOUSEBUTTONUP:
-					auto b = (int) button_map[e.button.button & 0xff];
+				case SDL_EVENT_MOUSE_BUTTON_DOWN:
+				case SDL_EVENT_MOUSE_BUTTON_UP:
+					const int b = r_get_button_modifier(e.button);
 
-					if (b && e.type == SDL_MOUSEBUTTONDOWN)
+					if (b && e.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
 					{
 						mu_input_mousedown(ctx, e.button.x, e.button.y, b);
 					}
 
-					if (b && e.type == SDL_MOUSEBUTTONUP)
+					if (b && e.type == SDL_EVENT_MOUSE_BUTTON_UP)
 					{
 						mu_input_mouseup(ctx, e.button.x, e.button.y, b);
 					}
 
 					break;
 
-				case SDL_KEYDOWN:
-				case SDL_KEYUP:
-					auto c = (int) key_map[e.key.keysym.sym & 0xff];
+				case SDL_EVENT_KEY_DOWN:
+				case SDL_EVENT_KEY_UP:
+					const int c = r_get_event_key_modifier(e.key);
 
-					if (c && e.type == SDL_KEYDOWN)
+					if (c && e.type == SDL_EVENT_KEY_DOWN)
 					{
 						mu_input_keydown(ctx, c);
 					}
 
-					if (c && e.type == SDL_KEYUP)
+					if (c && e.type == SDL_EVENT_KEY_UP)
 					{
 						mu_input_keyup(ctx, c);
 					}

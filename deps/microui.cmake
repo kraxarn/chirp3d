@@ -27,13 +27,7 @@ if (BUILD_MU_DEMO)
 		"${CMAKE_CURRENT_SOURCE_DIR}/include"
 	)
 	target_link_libraries(microui-example PRIVATE microui)
-
-	find_package(SDL2 REQUIRED)
-	target_link_libraries(microui-example PRIVATE SDL2::SDL2)
-	target_include_directories(microui-example PRIVATE
-		"${SDL2_INCLUDE_DIRS}"
-	)
-
+	target_link_libraries(microui-example PRIVATE SDL3::SDL3)
 	find_package(OpenGL REQUIRED)
 	target_link_libraries(microui-example PRIVATE OpenGL::GL)
 endif ()

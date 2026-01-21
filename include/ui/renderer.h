@@ -2,6 +2,8 @@
 
 #include "microui.h"
 
+#include <SDL3/SDL_events.h>
+
 void r_init();
 
 void r_draw_rect(mu_Rect rect, mu_Color color);
@@ -9,6 +11,12 @@ void r_draw_rect(mu_Rect rect, mu_Color color);
 void r_draw_text(const char *text, mu_Vec2 pos, mu_Color color);
 
 void r_draw_icon(int id, mu_Rect rect, mu_Color color);
+
+[[nodiscard]]
+int r_get_event_key_modifier(SDL_KeyboardEvent event);
+
+[[nodiscard]]
+int r_get_button_modifier(SDL_MouseButtonEvent event);
 
 int r_get_text_width(const char *text, int len);
 

@@ -5,10 +5,15 @@
 
 #include <stddef.h>
 
-#include <SDL2/SDL_opengl.h>
-#include <SDL2/SDL_video.h>
-#include <SDL2/SDL_assert.h>
-#include <SDL2/SDL_stdinc.h>
+#include <SDL3/SDL_assert.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_init.h>
+#include <SDL3/SDL_keyboard.h>
+#include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_opengl.h>
+#include <SDL3/SDL_scancode.h>
+#include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_video.h>
 
 /*
  * Based of:
@@ -28,14 +33,34 @@ static int buf_idx;
 
 static SDL_Window *window;
 
+static constexpr char button_map[256] = {
+	[ SDL_BUTTON_LEFT & 0xff ]   = MU_MOUSE_LEFT,
+	[ SDL_BUTTON_RIGHT & 0xff ]  = MU_MOUSE_RIGHT,
+	[ SDL_BUTTON_MIDDLE & 0xff ] = MU_MOUSE_MIDDLE,
+};
+
+static const char key_map[256] = {
+	[ SDL_SCANCODE_LSHIFT ]    = MU_KEY_SHIFT,
+	[ SDL_SCANCODE_RSHIFT ]    = MU_KEY_SHIFT,
+	[ SDL_SCANCODE_LCTRL ]     = MU_KEY_CTRL,
+	[ SDL_SCANCODE_RCTRL ]     = MU_KEY_CTRL,
+	[ SDL_SCANCODE_LALT ]      = MU_KEY_ALT,
+	[ SDL_SCANCODE_RALT ]      = MU_KEY_ALT,
+	[ SDL_SCANCODE_RETURN ]    = MU_KEY_RETURN,
+	[ SDL_SCANCODE_BACKSPACE ] = MU_KEY_BACKSPACE,
+};
+
 void r_init()
 {
+	SDL_Init(SDL_INIT_VIDEO);
+
 	// init SDL window
 	window = SDL_CreateWindow(nullptr,
-		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		width, height, SDL_WINDOW_OPENGL
 	);
 	SDL_GL_CreateContext(window);
+
+	SDL_StartTextInput(window);
 
 	// init gl
 	glEnable(GL_BLEND);
@@ -173,6 +198,16 @@ void r_draw_icon(const int id, const mu_Rect rect, const mu_Color color)
 	int x = rect.x + ((rect.w - src.w) / 2);
 	int y = rect.y + ((rect.h - src.h) / 2);
 	push_quad(mu_rect(x, y, src.w, src.h), src, color);
+}
+
+int r_get_event_key_modifier(const SDL_KeyboardEvent event)
+{
+	return key_map[event.scancode];
+}
+
+int r_get_button_modifier(const SDL_MouseButtonEvent event)
+{
+	return button_map[event.button];
 }
 
 int r_get_text_width(const char *text, int len)
