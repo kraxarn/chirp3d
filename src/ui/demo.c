@@ -304,31 +304,10 @@ static void process_frame(mu_Context *ctx)
 	mu_end(ctx);
 }
 
-static int text_width([[maybe_unused]] mu_Font font, const char *text, int len)
-{
-	if (len == -1)
-	{
-		len = SDL_strlen(text);
-	}
-
-	return r_get_text_width(text, len);
-}
-
-static int text_height([[maybe_unused]] mu_Font font)
-{
-	return r_get_text_height();
-}
-
 int main()
 {
 	// init renderer
-	r_init();
-
-	// init microui
-	mu_Context *ctx = SDL_malloc(sizeof(mu_Context));
-	mu_init(ctx);
-	ctx->text_width = text_width;
-	ctx->text_height = text_height;
+	mu_Context *ctx = r_init();
 
 	// main loop
 	auto running = true;

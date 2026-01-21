@@ -4,7 +4,7 @@
 
 #include <SDL3/SDL_events.h>
 
-void r_init();
+mu_Context *r_init();
 
 void r_draw_rect(mu_Rect rect, mu_Color color);
 

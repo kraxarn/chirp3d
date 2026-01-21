@@ -32,6 +32,7 @@ static int height = 600;
 static int buf_idx;
 
 static SDL_Window *window;
+static mu_Context *ctx;
 
 static constexpr char button_map[256] = {
 	[ SDL_BUTTON_LEFT & 0xff ]   = MU_MOUSE_LEFT,
@@ -50,9 +51,30 @@ static const char key_map[256] = {
 	[ SDL_SCANCODE_BACKSPACE ] = MU_KEY_BACKSPACE,
 };
 
-void r_init()
+static int text_width([[maybe_unused]] mu_Font font, const char *text, int len)
+{
+	if (len == -1)
+	{
+		len = SDL_strlen(text);
+	}
+
+	return r_get_text_width(text, len);
+}
+
+static int text_height([[maybe_unused]] mu_Font font)
+{
+	return r_get_text_height();
+}
+
+mu_Context *r_init()
 {
 	SDL_Init(SDL_INIT_VIDEO);
+
+	// init microui
+	ctx = SDL_malloc(sizeof(mu_Context));
+	mu_init(ctx);
+	ctx->text_width = text_width;
+	ctx->text_height = text_height;
 
 	// init SDL window
 	window = SDL_CreateWindow(nullptr,
@@ -82,6 +104,8 @@ void r_init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	SDL_assert(glGetError() == 0);
+
+	return ctx;
 }
 
 static void flush(void)
