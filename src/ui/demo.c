@@ -4,6 +4,11 @@
 
 #include <stddef.h>
 
+#define SDL_MAIN_USE_CALLBACKS
+#include <SDL3/SDL_main.h>
+
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_init.h>
 #include <SDL3/SDL_stdinc.h>
 
 /*
@@ -304,48 +309,53 @@ static void process_frame(mu_Context *ctx)
 	mu_end(ctx);
 }
 
-int main()
+SDL_AppResult SDL_AppInit(void **appstate,
+	[[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 {
-	// init renderer
-	mu_Context *ctx = r_init();
+	*appstate = r_init();
+	return SDL_APP_CONTINUE;
+}
 
-	// main loop
-	auto running = true;
-	while (running)
+SDL_AppResult SDL_AppIterate(void *appstate)
+{
+	process_frame((mu_Context *) appstate);
+
+	r_clear(mu_color(bg[0], bg[1], bg[2], 255));
+	mu_Command *cmd = nullptr;
+
+	while (mu_next_command((mu_Context *) appstate, &cmd))
 	{
-		r_handle_events(ctx, &running);
-
-		// process frame
-		process_frame(ctx);
-
-		// render
-		r_clear(mu_color(bg[0], bg[1], bg[2], 255));
-		mu_Command *cmd = nullptr;
-
-		while (mu_next_command(ctx, &cmd))
+		switch (cmd->type)
 		{
-			switch (cmd->type)
-			{
-				case MU_COMMAND_TEXT:
-					r_draw_text(cmd->text.str, cmd->text.pos, cmd->text.color);
-					break;
+			case MU_COMMAND_TEXT:
+				r_draw_text(cmd->text.str, cmd->text.pos, cmd->text.color);
+				break;
 
-				case MU_COMMAND_RECT:
-					r_draw_rect(cmd->rect.rect, cmd->rect.color);
-					break;
+			case MU_COMMAND_RECT:
+				r_draw_rect(cmd->rect.rect, cmd->rect.color);
+				break;
 
-				case MU_COMMAND_ICON:
-					r_draw_icon(cmd->icon.id, cmd->icon.rect, cmd->icon.color);
-					break;
+			case MU_COMMAND_ICON:
+				r_draw_icon(cmd->icon.id, cmd->icon.rect, cmd->icon.color);
+				break;
 
-				case MU_COMMAND_CLIP:
-					r_set_clip_rect(cmd->clip.rect);
-					break;
-			}
+			case MU_COMMAND_CLIP:
+				r_set_clip_rect(cmd->clip.rect);
+				break;
 		}
-
-		r_present();
 	}
 
-	return 0;
+	r_present();
+
+	return SDL_APP_CONTINUE;
+}
+
+SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
+{
+	return r_handle_event(event);
+}
+
+void SDL_AppQuit([[maybe_unused]] void *appstate,
+	[[maybe_unused]] SDL_AppResult result)
+{
 }

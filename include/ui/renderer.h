@@ -3,6 +3,7 @@
 #include "microui.h"
 
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_init.h>
 
 mu_Context *r_init();
 
@@ -28,4 +29,4 @@ void r_clear(mu_Color color);
 
 void r_present();
 
-void r_handle_events(mu_Context *ctx, bool *running);
+SDL_AppResult r_handle_event(const SDL_Event *event);

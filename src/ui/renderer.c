@@ -279,65 +279,62 @@ void r_present()
 	SDL_GL_SwapWindow(window);
 }
 
-void r_handle_events(mu_Context *ctx, bool *running)
+SDL_AppResult r_handle_event(const SDL_Event *event)
 {
-	SDL_Event event;
-	while (SDL_PollEvent(&event))
+	switch (event->type)
 	{
-		switch (event.type)
-		{
-			case SDL_EVENT_QUIT:
-				*running = false;
-				break;
+		case SDL_EVENT_QUIT:
+			return SDL_APP_SUCCESS;
 
-			case SDL_EVENT_MOUSE_MOTION:
-				mu_input_mousemove(ctx, event.motion.x, event.motion.y);
-				break;
+		case SDL_EVENT_MOUSE_MOTION:
+			mu_input_mousemove(ctx, event->motion.x, event->motion.y);
+			break;
 
-			case SDL_EVENT_MOUSE_WHEEL:
-				mu_input_scroll(ctx, 0, event.wheel.y * -30);
-				break;
+		case SDL_EVENT_MOUSE_WHEEL:
+			mu_input_scroll(ctx, 0, event->wheel.y * -30);
+			break;
 
-			case SDL_EVENT_TEXT_INPUT:
-				mu_input_text(ctx, event.text.text);
-				break;
+		case SDL_EVENT_TEXT_INPUT:
+			mu_input_text(ctx, event->text.text);
+			break;
 
-			case SDL_EVENT_MOUSE_BUTTON_DOWN:
-			case SDL_EVENT_MOUSE_BUTTON_UP:
-				const int b = r_get_button_modifier(event.button);
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
+		case SDL_EVENT_MOUSE_BUTTON_UP:
+			const int b = r_get_button_modifier(event->button);
 
-				if (b && event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
-				{
-					mu_input_mousedown(ctx, event.button.x, event.button.y, b);
-				}
+			if (b && event->type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+			{
+				mu_input_mousedown(ctx, event->button.x, event->button.y, b);
+			}
 
-				if (b && event.type == SDL_EVENT_MOUSE_BUTTON_UP)
-				{
-					mu_input_mouseup(ctx, event.button.x, event.button.y, b);
-				}
+			if (b && event->type == SDL_EVENT_MOUSE_BUTTON_UP)
+			{
+				mu_input_mouseup(ctx, event->button.x, event->button.y, b);
+			}
 
-				break;
+			break;
 
-			case SDL_EVENT_KEY_DOWN:
-			case SDL_EVENT_KEY_UP:
-				const int c = r_get_event_key_modifier(event.key);
+		case SDL_EVENT_KEY_DOWN:
+		case SDL_EVENT_KEY_UP:
+			const int c = r_get_event_key_modifier(event->key);
 
-				if (c && event.type == SDL_EVENT_KEY_DOWN)
-				{
-					mu_input_keydown(ctx, c);
-				}
+			if (c && event->type == SDL_EVENT_KEY_DOWN)
+			{
+				mu_input_keydown(ctx, c);
+			}
 
-				if (c && event.type == SDL_EVENT_KEY_UP)
-				{
-					mu_input_keyup(ctx, c);
-				}
+			if (c && event->type == SDL_EVENT_KEY_UP)
+			{
+				mu_input_keyup(ctx, c);
+			}
 
-				break;
+			break;
 
-			case SDL_EVENT_WINDOW_RESIZED:
-				width = event.window.data1;
-				height = event.window.data2;
-				break;
-		}
+		case SDL_EVENT_WINDOW_RESIZED:
+			width = event->window.data1;
+			height = event->window.data2;
+			break;
 	}
+
+	return SDL_APP_CONTINUE;
 }
