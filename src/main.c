@@ -23,7 +23,6 @@
 #include "dcimgui.h"
 #include "backends/dcimgui_impl_sdl3.h"
 #include "backends/dcimgui_impl_sdlgpu3.h"
-#include "cpuinfo.h"
 
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -32,7 +31,6 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
-#include <SDL3/SDL_cpuinfo.h>
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_filesystem.h>
@@ -57,26 +55,6 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, message, SDL_GetError(), window);
 #endif
 	return SDL_APP_FAILURE;
-}
-
-[[nodiscard]]
-static bool cpu_supported()
-{
-#if CPUINFO_ARCH_X86_64
-	if (!SDL_HasAVX2() || !SDL_HasSSE42())
-	{
-		return SDL_SetError("CPU doesn't support required AVX2 and SSE4.2 features");
-	}
-#elif CPUINFO_ARCH_ARM64
-	if (!SDL_HasNEON())
-	{
-		return SDL_SetError("CPU doesn't support required NEON features");
-	}
-#else
-	#error Unknown CPU architecture
-#endif
-
-	return true;
 }
 
 static void log_system_info(SDL_GPUDevice *device)
@@ -208,7 +186,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 
 SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 {
-	if (!cpu_supported())
+	if (!system_info_cpu_supported())
 	{
 		return fatal_error(nullptr, "Unsupported CPU");
 	}

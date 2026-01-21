@@ -6,6 +6,7 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_version.h>
 #include <SDL3/SDL_platform.h>
+#include <SDL3/SDL_cpuinfo.h>
 
 static constexpr size_t name_length = 64;
 
@@ -31,6 +32,25 @@ const char *system_info_cpu_name()
 
 	cpuinfo_deinitialize();
 	return cpu_name;
+}
+
+bool system_info_cpu_supported()
+{
+#if CPUINFO_ARCH_X86_64
+	if (!SDL_HasAVX2() || !SDL_HasSSE42())
+	{
+		return SDL_SetError("CPU doesn't support required AVX2 and SSE4.2 features");
+	}
+#elif CPUINFO_ARCH_ARM64
+	if (!SDL_HasNEON())
+	{
+		return SDL_SetError("CPU doesn't support required NEON features");
+	}
+#else
+#error Unknown CPU architecture
+#endif
+
+	return true;
 }
 
 const char *system_info_gpu_name(SDL_GPUDevice *device)

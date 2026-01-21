@@ -9,6 +9,9 @@ const char *system_info_platform();
 const char *system_info_cpu_name();
 
 [[nodiscard]]
+bool system_info_cpu_supported();
+
+[[nodiscard]]
 const char *system_info_gpu_name(SDL_GPUDevice *device);
 
 [[nodiscard]]
