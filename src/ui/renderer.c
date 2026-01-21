@@ -1,34 +1,38 @@
 #include "renderer.h"
 #include "atlas.inl"
 
-#include <assert.h>
+#include "microui.h"
+
+#include <stddef.h>
 
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_video.h>
+#include <SDL2/SDL_assert.h>
+#include <SDL2/SDL_stdinc.h>
 
-#define BUFFER_SIZE 16384
+static constexpr size_t buffer_size = 16'384;
 
-static GLfloat tex_buf[BUFFER_SIZE * 8];
-static GLfloat vert_buf[BUFFER_SIZE * 8];
-static GLubyte color_buf[BUFFER_SIZE * 16];
-static GLuint index_buf[BUFFER_SIZE * 6];
+static GLfloat tex_buf[buffer_size * 8];
+static GLfloat vert_buf[buffer_size * 8];
+static GLubyte color_buf[buffer_size * 16];
+static GLuint index_buf[buffer_size * 6];
 
-static int width = 800;
-static int height = 600;
+static constexpr int width = 800;
+static constexpr int height = 600;
 static int buf_idx;
 
 static SDL_Window *window;
 
-
-void r_init(void)
+void r_init()
 {
-	/* init SDL window */
-	window = SDL_CreateWindow(
-		NULL, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		width, height, SDL_WINDOW_OPENGL);
+	// init SDL window
+	window = SDL_CreateWindow(nullptr,
+		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+		width, height, SDL_WINDOW_OPENGL
+	);
 	SDL_GL_CreateContext(window);
 
-	/* init gl */
+	// init gl
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_CULL_FACE);
@@ -39,7 +43,7 @@ void r_init(void)
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 
-	/* init texture */
+	// init texture
 	GLuint id;
 	glGenTextures(1, &id);
 	glBindTexture(GL_TEXTURE_2D, id);
@@ -47,9 +51,8 @@ void r_init(void)
 		GL_ALPHA, GL_UNSIGNED_BYTE, atlas_texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	assert(glGetError() == 0);
+	SDL_assert(glGetError() == 0);
 }
-
 
 static void flush(void)
 {
@@ -77,22 +80,24 @@ static void flush(void)
 	buf_idx = 0;
 }
 
-
-static void push_quad(mu_Rect dst, mu_Rect src, mu_Color color)
+static void push_quad(const mu_Rect dst, const mu_Rect src, const mu_Color color)
 {
-	if (buf_idx == BUFFER_SIZE) { flush(); }
+	if (buf_idx == buffer_size)
+	{
+		flush();
+	}
 
-	int texvert_idx = buf_idx * 8;
-	int color_idx = buf_idx * 16;
-	int element_idx = buf_idx * 4;
-	int index_idx = buf_idx * 6;
+	const int texvert_idx = buf_idx * 8;
+	const int color_idx = buf_idx * 16;
+	const int element_idx = buf_idx * 4;
+	const int index_idx = buf_idx * 6;
 	buf_idx++;
 
-	/* update texture buffer */
-	float x = src.x / (float) ATLAS_WIDTH;
-	float y = src.y / (float) ATLAS_HEIGHT;
-	float w = src.w / (float) ATLAS_WIDTH;
-	float h = src.h / (float) ATLAS_HEIGHT;
+	// update texture buffer
+	const float x = (float) src.x / (float) ATLAS_WIDTH;
+	const float y = (float) src.y / (float) ATLAS_HEIGHT;
+	const float w = (float) src.w / (float) ATLAS_WIDTH;
+	const float h = (float) src.h / (float) ATLAS_HEIGHT;
 	tex_buf[texvert_idx + 0] = x;
 	tex_buf[texvert_idx + 1] = y;
 	tex_buf[texvert_idx + 2] = x + w;
@@ -102,7 +107,7 @@ static void push_quad(mu_Rect dst, mu_Rect src, mu_Color color)
 	tex_buf[texvert_idx + 6] = x + w;
 	tex_buf[texvert_idx + 7] = y + h;
 
-	/* update vertex buffer */
+	// update vertex buffer
 	vert_buf[texvert_idx + 0] = dst.x;
 	vert_buf[texvert_idx + 1] = dst.y;
 	vert_buf[texvert_idx + 2] = dst.x + dst.w;
@@ -113,10 +118,10 @@ static void push_quad(mu_Rect dst, mu_Rect src, mu_Color color)
 	vert_buf[texvert_idx + 7] = dst.y + dst.h;
 
 	/* update color buffer */
-	memcpy(color_buf + color_idx + 0, &color, 4);
-	memcpy(color_buf + color_idx + 4, &color, 4);
-	memcpy(color_buf + color_idx + 8, &color, 4);
-	memcpy(color_buf + color_idx + 12, &color, 4);
+	SDL_memcpy(color_buf + color_idx + 0, &color, 4);
+	SDL_memcpy(color_buf + color_idx + 4, &color, 4);
+	SDL_memcpy(color_buf + color_idx + 8, &color, 4);
+	SDL_memcpy(color_buf + color_idx + 12, &color, 4);
 
 	/* update index buffer */
 	index_buf[index_idx + 0] = element_idx + 0;
@@ -127,21 +132,29 @@ static void push_quad(mu_Rect dst, mu_Rect src, mu_Color color)
 	index_buf[index_idx + 5] = element_idx + 1;
 }
 
-
-void r_draw_rect(mu_Rect rect, mu_Color color)
+void r_draw_rect(const mu_Rect rect, const mu_Color color)
 {
 	push_quad(rect, atlas[ATLAS_WHITE], color);
 }
 
-
-void r_draw_text(const char *text, mu_Vec2 pos, mu_Color color)
+void r_draw_text(const char *text, const mu_Vec2 pos, const mu_Color color)
 {
-	mu_Rect dst = {pos.x, pos.y, 0, 0};
+	mu_Rect dst = {
+		.x = pos.x,
+		.y = pos.y,
+		.w = 0,
+		.h = 0,
+	};
+
 	for (const char *p = text; *p; p++)
 	{
-		if ((*p & 0xc0) == 0x80) { continue; }
-		int chr = mu_min((unsigned char) *p, 127);
-		mu_Rect src = atlas[ATLAS_FONT + chr];
+		if ((*p & 0xc0) == 0x80)
+		{
+			continue;
+		}
+
+		const int chr = mu_min((unsigned char) *p, 127);
+		const mu_Rect src = atlas[ATLAS_FONT + chr];
 		dst.w = src.w;
 		dst.h = src.h;
 		push_quad(dst, src, color);
@@ -149,51 +162,54 @@ void r_draw_text(const char *text, mu_Vec2 pos, mu_Color color)
 	}
 }
 
-
-void r_draw_icon(int id, mu_Rect rect, mu_Color color)
+void r_draw_icon(const int id, const mu_Rect rect, const mu_Color color)
 {
 	mu_Rect src = atlas[id];
-	int x = rect.x + (rect.w - src.w) / 2;
-	int y = rect.y + (rect.h - src.h) / 2;
+	int x = rect.x + ((rect.w - src.w) / 2);
+	int y = rect.y + ((rect.h - src.h) / 2);
 	push_quad(mu_rect(x, y, src.w, src.h), src, color);
 }
-
 
 int r_get_text_width(const char *text, int len)
 {
 	int res = 0;
 	for (const char *p = text; *p && len--; p++)
 	{
-		if ((*p & 0xc0) == 0x80) { continue; }
-		int chr = mu_min((unsigned char) *p, 127);
+		if ((*p & 0xc0) == 0x80)
+		{
+			continue;
+		}
+
+		const int chr = mu_min((unsigned char) *p, 127);
 		res += atlas[ATLAS_FONT + chr].w;
 	}
 	return res;
 }
 
-
-int r_get_text_height(void)
+int r_get_text_height()
 {
 	return 18;
 }
 
-
-void r_set_clip_rect(mu_Rect rect)
+void r_set_clip_rect(const mu_Rect rect)
 {
 	flush();
 	glScissor(rect.x, height - (rect.y + rect.h), rect.w, rect.h);
 }
 
-
-void r_clear(mu_Color clr)
+void r_clear(const mu_Color color)
 {
 	flush();
-	glClearColor(clr.r / 255., clr.g / 255., clr.b / 255., clr.a / 255.);
+	glClearColor(
+		(GLclampf) color.r / 255.F,
+		(GLclampf) color.g / 255.F,
+		(GLclampf) color.b / 255.F,
+		(GLclampf) color.a / 255.F
+	);
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-
-void r_present(void)
+void r_present()
 {
 	flush();
 	SDL_GL_SwapWindow(window);
