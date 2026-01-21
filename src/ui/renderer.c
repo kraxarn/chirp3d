@@ -27,8 +27,8 @@ static GLfloat vert_buf[buffer_size * 8];
 static GLubyte color_buf[buffer_size * 16];
 static GLuint index_buf[buffer_size * 6];
 
-static constexpr int width = 800;
-static constexpr int height = 600;
+static int width = 800;
+static int height = 600;
 static int buf_idx;
 
 static SDL_Window *window;
@@ -56,7 +56,7 @@ void r_init()
 
 	// init SDL window
 	window = SDL_CreateWindow(nullptr,
-		width, height, SDL_WINDOW_OPENGL
+		width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
 	);
 	SDL_GL_CreateContext(window);
 
@@ -257,58 +257,62 @@ void r_present()
 
 void r_handle_events(mu_Context *ctx, bool *running)
 {
-	// handle SDL events
-	SDL_Event e;
-	while (SDL_PollEvent(&e))
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
 	{
-		switch (e.type)
+		switch (event.type)
 		{
 			case SDL_EVENT_QUIT:
 				*running = false;
 				break;
 
 			case SDL_EVENT_MOUSE_MOTION:
-				mu_input_mousemove(ctx, e.motion.x, e.motion.y);
+				mu_input_mousemove(ctx, event.motion.x, event.motion.y);
 				break;
 
 			case SDL_EVENT_MOUSE_WHEEL:
-				mu_input_scroll(ctx, 0, e.wheel.y * -30);
+				mu_input_scroll(ctx, 0, event.wheel.y * -30);
 				break;
 
 			case SDL_EVENT_TEXT_INPUT:
-				mu_input_text(ctx, e.text.text);
+				mu_input_text(ctx, event.text.text);
 				break;
 
 			case SDL_EVENT_MOUSE_BUTTON_DOWN:
 			case SDL_EVENT_MOUSE_BUTTON_UP:
-				const int b = r_get_button_modifier(e.button);
+				const int b = r_get_button_modifier(event.button);
 
-				if (b && e.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+				if (b && event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
 				{
-					mu_input_mousedown(ctx, e.button.x, e.button.y, b);
+					mu_input_mousedown(ctx, event.button.x, event.button.y, b);
 				}
 
-				if (b && e.type == SDL_EVENT_MOUSE_BUTTON_UP)
+				if (b && event.type == SDL_EVENT_MOUSE_BUTTON_UP)
 				{
-					mu_input_mouseup(ctx, e.button.x, e.button.y, b);
+					mu_input_mouseup(ctx, event.button.x, event.button.y, b);
 				}
 
 				break;
 
 			case SDL_EVENT_KEY_DOWN:
 			case SDL_EVENT_KEY_UP:
-				const int c = r_get_event_key_modifier(e.key);
+				const int c = r_get_event_key_modifier(event.key);
 
-				if (c && e.type == SDL_EVENT_KEY_DOWN)
+				if (c && event.type == SDL_EVENT_KEY_DOWN)
 				{
 					mu_input_keydown(ctx, c);
 				}
 
-				if (c && e.type == SDL_EVENT_KEY_UP)
+				if (c && event.type == SDL_EVENT_KEY_UP)
 				{
 					mu_input_keyup(ctx, c);
 				}
 
+				break;
+
+			case SDL_EVENT_WINDOW_RESIZED:
+				width = event.window.data1;
+				height = event.window.data2;
 				break;
 		}
 	}
