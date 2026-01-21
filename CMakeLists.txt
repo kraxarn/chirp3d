@@ -22,17 +22,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 	ENGINE_IDENTIFIER="com.kraxarn.${PROJECT_NAME}"
 )
 
-if ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "^x86_64|AMD64$")
-	message(STATUS "Building for x86_64")
-	target_compile_definitions(${PROJECT_NAME} PRIVATE ARCH_X86_64)
-elseif ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "^aarch64|arm64|ARM64$"
-	OR "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
-	message(STATUS "Building for aarch64")
-	target_compile_definitions(${PROJECT_NAME} PRIVATE ARCH_AARCH64)
-else ()
-	message(FATAL_ERROR "Unknown architecture: ${CMAKE_SYSTEM_PROCESSOR}")
-endif ()
-
 include(deps/sdl3.cmake)
 include(deps/qoi.cmake)
 include(deps/stb.cmake)

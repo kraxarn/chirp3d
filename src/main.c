@@ -23,6 +23,7 @@
 #include "dcimgui.h"
 #include "backends/dcimgui_impl_sdl3.h"
 #include "backends/dcimgui_impl_sdlgpu3.h"
+#include "cpuinfo.h"
 
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -61,18 +62,18 @@ static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char
 [[nodiscard]]
 static bool cpu_supported()
 {
-#ifdef ARCH_X86_64
+#if CPUINFO_ARCH_X86_64
 	if (!SDL_HasAVX2() || !SDL_HasSSE42())
 	{
 		return SDL_SetError("CPU doesn't support required AVX2 and SSE4.2 features");
 	}
-#elifdef ARCH_AARCH64
+#elif CPUINFO_ARCH_ARM64
 	if (!SDL_HasNEON())
 	{
 		return SDL_SetError("CPU doesn't support required NEON features");
 	}
 #else
-	return SDL_SetError("Unknown CPU architecture");
+	#error Unknown CPU architecture
 #endif
 
 	return true;
