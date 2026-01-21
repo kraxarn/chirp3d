@@ -35,20 +35,20 @@ static SDL_Window *window;
 static mu_Context ctx;
 
 static constexpr char button_map[256] = {
-	[ SDL_BUTTON_LEFT & 0xff ]   = MU_MOUSE_LEFT,
-	[ SDL_BUTTON_RIGHT & 0xff ]  = MU_MOUSE_RIGHT,
-	[ SDL_BUTTON_MIDDLE & 0xff ] = MU_MOUSE_MIDDLE,
+	[SDL_BUTTON_LEFT]   = MU_MOUSE_LEFT,
+	[SDL_BUTTON_RIGHT]  = MU_MOUSE_RIGHT,
+	[SDL_BUTTON_MIDDLE] = MU_MOUSE_MIDDLE,
 };
 
-static const char key_map[256] = {
-	[ SDL_SCANCODE_LSHIFT ]    = MU_KEY_SHIFT,
-	[ SDL_SCANCODE_RSHIFT ]    = MU_KEY_SHIFT,
-	[ SDL_SCANCODE_LCTRL ]     = MU_KEY_CTRL,
-	[ SDL_SCANCODE_RCTRL ]     = MU_KEY_CTRL,
-	[ SDL_SCANCODE_LALT ]      = MU_KEY_ALT,
-	[ SDL_SCANCODE_RALT ]      = MU_KEY_ALT,
-	[ SDL_SCANCODE_RETURN ]    = MU_KEY_RETURN,
-	[ SDL_SCANCODE_BACKSPACE ] = MU_KEY_BACKSPACE,
+static constexpr char key_map[256] = {
+	[SDL_SCANCODE_LSHIFT]    = MU_KEY_SHIFT,
+	[SDL_SCANCODE_RSHIFT]    = MU_KEY_SHIFT,
+	[SDL_SCANCODE_LCTRL]     = MU_KEY_CTRL,
+	[SDL_SCANCODE_RCTRL]     = MU_KEY_CTRL,
+	[SDL_SCANCODE_LALT]      = MU_KEY_ALT,
+	[SDL_SCANCODE_RALT]      = MU_KEY_ALT,
+	[SDL_SCANCODE_RETURN]    = MU_KEY_RETURN,
+	[SDL_SCANCODE_BACKSPACE] = MU_KEY_BACKSPACE,
 };
 
 static int text_width([[maybe_unused]] mu_Font font, const char *text, int len)
