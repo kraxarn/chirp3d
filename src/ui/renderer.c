@@ -32,7 +32,7 @@ static int height = 600;
 static int buf_idx;
 
 static SDL_Window *window;
-static mu_Context *ctx;
+static mu_Context ctx;
 
 static constexpr char button_map[256] = {
 	[ SDL_BUTTON_LEFT & 0xff ]   = MU_MOUSE_LEFT,
@@ -71,10 +71,9 @@ mu_Context *r_init()
 	SDL_Init(SDL_INIT_VIDEO);
 
 	// init microui
-	ctx = SDL_malloc(sizeof(mu_Context));
-	mu_init(ctx);
-	ctx->text_width = text_width;
-	ctx->text_height = text_height;
+	mu_init(&ctx);
+	ctx.text_width = text_width;
+	ctx.text_height = text_height;
 
 	// init SDL window
 	window = SDL_CreateWindow(nullptr,
@@ -105,7 +104,7 @@ mu_Context *r_init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	SDL_assert(glGetError() == 0);
 
-	return ctx;
+	return &ctx;
 }
 
 static void flush(void)
@@ -276,7 +275,7 @@ void r_clear(const mu_Color color)
 void r_draw()
 {
 	mu_Command *cmd = nullptr;
-	while (mu_next_command(ctx, &cmd))
+	while (mu_next_command(&ctx, &cmd))
 	{
 		switch (cmd->type)
 		{
@@ -315,15 +314,15 @@ SDL_AppResult r_handle_event(const SDL_Event *event)
 			return SDL_APP_SUCCESS;
 
 		case SDL_EVENT_MOUSE_MOTION:
-			mu_input_mousemove(ctx, event->motion.x, event->motion.y);
+			mu_input_mousemove(&ctx, event->motion.x, event->motion.y);
 			break;
 
 		case SDL_EVENT_MOUSE_WHEEL:
-			mu_input_scroll(ctx, 0, event->wheel.y * -30);
+			mu_input_scroll(&ctx, 0, event->wheel.y * -30);
 			break;
 
 		case SDL_EVENT_TEXT_INPUT:
-			mu_input_text(ctx, event->text.text);
+			mu_input_text(&ctx, event->text.text);
 			break;
 
 		case SDL_EVENT_MOUSE_BUTTON_DOWN:
@@ -332,12 +331,12 @@ SDL_AppResult r_handle_event(const SDL_Event *event)
 
 			if (b && event->type == SDL_EVENT_MOUSE_BUTTON_DOWN)
 			{
-				mu_input_mousedown(ctx, event->button.x, event->button.y, b);
+				mu_input_mousedown(&ctx, event->button.x, event->button.y, b);
 			}
 
 			if (b && event->type == SDL_EVENT_MOUSE_BUTTON_UP)
 			{
-				mu_input_mouseup(ctx, event->button.x, event->button.y, b);
+				mu_input_mouseup(&ctx, event->button.x, event->button.y, b);
 			}
 
 			break;
@@ -348,12 +347,12 @@ SDL_AppResult r_handle_event(const SDL_Event *event)
 
 			if (c && event->type == SDL_EVENT_KEY_DOWN)
 			{
-				mu_input_keydown(ctx, c);
+				mu_input_keydown(&ctx, c);
 			}
 
 			if (c && event->type == SDL_EVENT_KEY_UP)
 			{
-				mu_input_keyup(ctx, c);
+				mu_input_keyup(&ctx, c);
 			}
 
 			break;
