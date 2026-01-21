@@ -1,4 +1,4 @@
-#include "renderer.h"
+#include "ui/renderer.h"
 #include "atlas.inl"
 
 #include "microui.h"
@@ -9,6 +9,11 @@
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_assert.h>
 #include <SDL2/SDL_stdinc.h>
+
+/*
+ * Based of:
+ * https://github.com/microui-community/microui/blob/master/demo/renderer.c
+ */
 
 static constexpr size_t buffer_size = 16'384;
 
