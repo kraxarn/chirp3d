@@ -55,7 +55,7 @@ static int text_width([[maybe_unused]] mu_Font font, const char *text, int len)
 {
 	if (len == -1)
 	{
-		len = SDL_strlen(text);
+		len = (int) SDL_strlen(text);
 	}
 
 	return r_get_text_width(text, len);
