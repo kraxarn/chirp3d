@@ -4,7 +4,6 @@
 
 #include <stddef.h>
 
-#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_stdinc.h>
 
 /*
@@ -23,6 +22,7 @@ static void write_log(const char *text)
 	{
 		SDL_strlcat(logbuf, "\n", logbuf_len);
 	}
+
 	SDL_strlcat(logbuf, text, logbuf_len);
 	logbuf_updated = 1;
 }
@@ -39,14 +39,14 @@ static void test_window(mu_Context *ctx)
 		// window info
 		if (mu_header(ctx, "Window Info"))
 		{
-			mu_Container *win = mu_get_current_container(ctx);
+			win = mu_get_current_container(ctx);
 			char buf[64];
 			mu_layout_row(ctx, 2, (int[]){54, -1}, 0);
 			mu_label(ctx, "Position:");
-			sprintf(buf, "%d, %d", win->rect.x, win->rect.y);
+			SDL_snprintf(buf, 64, "%d, %d", win->rect.x, win->rect.y);
 			mu_label(ctx, buf);
 			mu_label(ctx, "Size:");
-			sprintf(buf, "%d, %d", win->rect.w, win->rect.h);
+			SDL_snprintf(buf, 64, "%d, %d", win->rect.w, win->rect.h);
 			mu_label(ctx, buf);
 		}
 
@@ -116,6 +116,7 @@ static void test_window(mu_Context *ctx)
 
 				mu_end_treenode(ctx);
 			}
+
 			if (mu_begin_treenode(ctx, "Test 2"))
 			{
 				mu_layout_row(ctx, 2, (int[]){54, 54}, 0);
@@ -142,6 +143,7 @@ static void test_window(mu_Context *ctx)
 
 				mu_end_treenode(ctx);
 			}
+
 			if (mu_begin_treenode(ctx, "Test 3"))
 			{
 				static int checks[3] = {1, 0, 1};
@@ -150,13 +152,16 @@ static void test_window(mu_Context *ctx)
 				mu_checkbox(ctx, "Checkbox 3", &checks[2]);
 				mu_end_treenode(ctx);
 			}
+
 			mu_layout_end_column(ctx);
 
 			mu_layout_begin_column(ctx);
+
 			mu_layout_row(ctx, 1, (int[]){-1}, 0);
 			mu_text(ctx, "Lorem ipsum dolor sit amet, consectetur adipiscing "
 				"elit. Maecenas lacinia, sem eu lacinia molestie, mi risus faucibus "
 				"ipsum, eu varius magna felis a nulla.");
+
 			mu_layout_end_column(ctx);
 		}
 
@@ -164,6 +169,7 @@ static void test_window(mu_Context *ctx)
 		if (mu_header_ex(ctx, "Background Color", MU_OPT_EXPANDED))
 		{
 			mu_layout_row(ctx, 2, (int[]){-78, -1}, 74);
+
 			// sliders
 			static int idx = 0;
 			mu_layout_begin_column(ctx);
@@ -175,11 +181,12 @@ static void test_window(mu_Context *ctx)
 			mu_label(ctx, "Blue:");
 			mu_slider(ctx, &bg[2], &idx, 0, 255);
 			mu_layout_end_column(ctx);
+
 			// color preview
 			mu_Rect r = mu_layout_next(ctx);
 			mu_draw_rect(ctx, r, mu_color(bg[0], bg[1], bg[2], 255));
 			char buf[32];
-			sprintf(buf, "#%02X%02X%02X", (int) bg[0], (int) bg[1], (int) bg[2]);
+			SDL_snprintf(buf, 32, "#%02X%02X%02X", (int) bg[0], (int) bg[1], (int) bg[2]);
 			mu_draw_control_text(ctx, buf, r, MU_COLOR_TEXT, MU_OPT_ALIGNCENTER);
 		}
 
@@ -209,12 +216,18 @@ static void log_window(mu_Context *ctx)
 		static int idx = 0;
 		int submitted = 0;
 		mu_layout_row(ctx, 2, (int[]){-70, -1}, 0);
+
 		if (mu_textbox(ctx, buf, sizeof(buf), &idx) & MU_RES_SUBMIT)
 		{
 			mu_set_focus(ctx, ctx->last_id);
 			submitted = 1;
 		}
-		if (mu_button(ctx, "Submit")) { submitted = 1; }
+
+		if (mu_button(ctx, "Submit"))
+		{
+			submitted = 1;
+		}
+
 		if (submitted)
 		{
 			write_log(buf);
@@ -291,7 +304,7 @@ static void process_frame(mu_Context *ctx)
 	mu_end(ctx);
 }
 
-static int text_width(mu_Font font, const char *text, int len)
+static int text_width([[maybe_unused]] mu_Font font, const char *text, int len)
 {
 	if (len == -1)
 	{
@@ -301,7 +314,7 @@ static int text_width(mu_Font font, const char *text, int len)
 	return r_get_text_width(text, len);
 }
 
-static int text_height(mu_Font font)
+static int text_height([[maybe_unused]] mu_Font font)
 {
 	return r_get_text_height();
 }
@@ -321,61 +334,7 @@ int main()
 	auto running = true;
 	while (running)
 	{
-		// handle SDL events
-		SDL_Event e;
-		while (SDL_PollEvent(&e))
-		{
-			switch (e.type)
-			{
-				case SDL_EVENT_QUIT:
-					running = false;
-					break;
-
-				case SDL_EVENT_MOUSE_MOTION:
-					mu_input_mousemove(ctx, e.motion.x, e.motion.y);
-					break;
-
-				case SDL_EVENT_MOUSE_WHEEL:
-					mu_input_scroll(ctx, 0, e.wheel.y * -30);
-					break;
-
-				case SDL_EVENT_TEXT_INPUT:
-					mu_input_text(ctx, e.text.text);
-					break;
-
-				case SDL_EVENT_MOUSE_BUTTON_DOWN:
-				case SDL_EVENT_MOUSE_BUTTON_UP:
-					const int b = r_get_button_modifier(e.button);
-
-					if (b && e.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
-					{
-						mu_input_mousedown(ctx, e.button.x, e.button.y, b);
-					}
-
-					if (b && e.type == SDL_EVENT_MOUSE_BUTTON_UP)
-					{
-						mu_input_mouseup(ctx, e.button.x, e.button.y, b);
-					}
-
-					break;
-
-				case SDL_EVENT_KEY_DOWN:
-				case SDL_EVENT_KEY_UP:
-					const int c = r_get_event_key_modifier(e.key);
-
-					if (c && e.type == SDL_EVENT_KEY_DOWN)
-					{
-						mu_input_keydown(ctx, c);
-					}
-
-					if (c && e.type == SDL_EVENT_KEY_UP)
-					{
-						mu_input_keyup(ctx, c);
-					}
-
-					break;
-			}
-		}
+		r_handle_events(ctx, &running);
 
 		// process frame
 		process_frame(ctx);

@@ -254,3 +254,62 @@ void r_present()
 	flush();
 	SDL_GL_SwapWindow(window);
 }
+
+void r_handle_events(mu_Context *ctx, bool *running)
+{
+	// handle SDL events
+	SDL_Event e;
+	while (SDL_PollEvent(&e))
+	{
+		switch (e.type)
+		{
+			case SDL_EVENT_QUIT:
+				*running = false;
+				break;
+
+			case SDL_EVENT_MOUSE_MOTION:
+				mu_input_mousemove(ctx, e.motion.x, e.motion.y);
+				break;
+
+			case SDL_EVENT_MOUSE_WHEEL:
+				mu_input_scroll(ctx, 0, e.wheel.y * -30);
+				break;
+
+			case SDL_EVENT_TEXT_INPUT:
+				mu_input_text(ctx, e.text.text);
+				break;
+
+			case SDL_EVENT_MOUSE_BUTTON_DOWN:
+			case SDL_EVENT_MOUSE_BUTTON_UP:
+				const int b = r_get_button_modifier(e.button);
+
+				if (b && e.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+				{
+					mu_input_mousedown(ctx, e.button.x, e.button.y, b);
+				}
+
+				if (b && e.type == SDL_EVENT_MOUSE_BUTTON_UP)
+				{
+					mu_input_mouseup(ctx, e.button.x, e.button.y, b);
+				}
+
+				break;
+
+			case SDL_EVENT_KEY_DOWN:
+			case SDL_EVENT_KEY_UP:
+				const int c = r_get_event_key_modifier(e.key);
+
+				if (c && e.type == SDL_EVENT_KEY_DOWN)
+				{
+					mu_input_keydown(ctx, c);
+				}
+
+				if (c && e.type == SDL_EVENT_KEY_UP)
+				{
+					mu_input_keyup(ctx, c);
+				}
+
+				break;
+		}
+	}
+}
