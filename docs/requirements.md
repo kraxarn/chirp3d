@@ -2,6 +2,12 @@
 
 Most of these aren't tested, but "should work" according to their respective specifications.
 
+## CPU
+
+* [Intel Haswell (4000)](https://en.wikipedia.org/wiki/Haswell_(microarchitecture))
+* [AMD Excavator (Athlon X4)](https://en.wikipedia.org/wiki/Excavator_(microarchitecture))
+* [ARM Cortex-R](https://en.wikipedia.org/wiki/ARM_architecture_family#Advanced_SIMD_(Neon))
+
 ## Linux (Vulkan)
 
 * [Nvidia GeForce 600 series](https://en.wikipedia.org/wiki/GeForce_600_series)
@@ -26,6 +32,12 @@ Most of these aren't tested, but "should work" according to their respective spe
 # Recommended
 
 Minimum requirements that are verified to work.
+
+## CPU
+
+* AMD Zen4
+* Qualcomm Kryo
+* Apple M2
 
 ## Linux (Vulkan)
 
