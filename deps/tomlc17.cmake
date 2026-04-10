@@ -2,7 +2,7 @@ include(FetchContent)
 
 FetchContent_Declare(tomlc17
 	GIT_REPOSITORY https://github.com/cktan/tomlc17.git
-	GIT_TAG R260302
+	GIT_TAG R260323
 )
 
 message(STATUS "Downloading tomlc17")
