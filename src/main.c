@@ -339,10 +339,12 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 
 	SDL_IOStream *model_stream = assets_load(state->assets, "models/blaster");
-	if (!load_gltf(model_stream, true))
+	model_t *model = model_create(model_stream, true);
+	if (model == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load model");
 	}
+	model_destroy(model);
 
 	return build_scene(state);
 }

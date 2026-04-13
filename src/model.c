@@ -19,6 +19,11 @@
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
 
+typedef struct model_t
+{
+	cgltf_data *data;
+} model_t;
+
 static const char *cgltf_error_string(const cgltf_result result)
 {
 	switch (result)
@@ -92,28 +97,45 @@ static void log_debug_info(const cgltf_data *data)
 	SDL_LogDebug(LOG_CATEGORY_MODEL, "Loaded model (type: %s%s)", type_str, model_info);
 }
 
-bool load_gltf(SDL_IOStream *stream, const bool close_io)
+model_t *model_create(SDL_IOStream *stream, const bool close_io)
 {
 	cgltf_size file_size;
 	void *file_data = SDL_LoadFile_IO(stream, &file_size, close_io);
 	if (file_data == nullptr)
 	{
-		return false;
+		return nullptr;
+	}
+
+	model_t *model = SDL_malloc(sizeof(model_t));
+	if (model == nullptr)
+	{
+		return nullptr;
 	}
 
 	const cgltf_options options = {};
 
-	cgltf_data *data = nullptr;
-	const cgltf_result result = cgltf_parse(&options, file_data, file_size, &data);
+	const cgltf_result result = cgltf_parse(&options, file_data, file_size, &model->data);
 	SDL_free(file_data);
 
 	if (result != cgltf_result_success)
 	{
-		return SDL_SetError("%s", cgltf_error_string(result));
+		SDL_SetError("%s", cgltf_error_string(result));
+		SDL_free(model);
+		return nullptr;
 	}
 
-	log_debug_info(data);
+	log_debug_info(model->data);
 
-	cgltf_free(data);
-	return true;
+	return model;
+}
+
+void model_destroy(model_t *model)
+{
+	if (model == nullptr)
+	{
+		return;
+	}
+
+	cgltf_free(model->data);
+	SDL_free(model);
 }
