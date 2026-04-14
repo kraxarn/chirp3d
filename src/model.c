@@ -41,7 +41,7 @@ static const char *cgltf_error_string(const cgltf_result result)
 	}
 }
 
-static int append_debug_info(char *str, const size_t str_len,
+static size_t append_debug_info(char *str, const size_t str_len,
 	const char *key, const cgltf_size value)
 {
 	if (value <= 0)
@@ -49,7 +49,14 @@ static int append_debug_info(char *str, const size_t str_len,
 		return 0;
 	}
 
-	return SDL_snprintf(str, str_len, "%s, %s: %zu", str, key, value);
+	constexpr size_t temp_len = 32;
+	char temp[temp_len];
+	if (SDL_snprintf(temp, temp_len, ", %s: %zu", key, value) < 0)
+	{
+		return 0;
+	}
+
+	return SDL_strlcat(str, temp, str_len);
 }
 
 static void log_debug_info(const cgltf_data *data)
