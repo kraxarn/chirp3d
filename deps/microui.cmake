@@ -1,8 +1,8 @@
 include(FetchContent)
 
 FetchContent_Declare(microui
-	GIT_REPOSITORY https://github.com/microui-community/microui.git
-	GIT_TAG a8ac577f5ed2a1568fd4f2af0864816928700e89
+	GIT_REPOSITORY https://github.com/rxi/microui.git
+	GIT_TAG 0850aba860959c3e75fb3e97120ca92957f9d057
 )
 
 message(STATUS "Downloading microui")
