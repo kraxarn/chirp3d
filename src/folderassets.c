@@ -41,6 +41,23 @@ static bool set_metadata_property(const toml_datum_t table, const char *key)
 	return true;
 }
 
+[[nodiscard]]
+static bool supported_file(const char *filename)
+{
+	// I'm not sure if I like this, but it looks cool
+#define str_len(s) ((sizeof(s)/sizeof((s)[0]))-sizeof((s)[0]))
+#define has_ext(e) (len>=str_len(e)&&SDL_strcmp(filename+len-str_len(e),e)==0)
+
+	const size_t len = SDL_strlen(filename);
+
+	return has_ext(".qoi")
+		|| has_ext(".glb")
+		|| has_ext(".gltf");
+
+#undef has_ext
+#undef str_len
+}
+
 static SDL_IOStream *load(assets_t *assets, const char *path)
 {
 	const folder_assets_t *folder_assets = assets->data;
@@ -63,6 +80,7 @@ static SDL_IOStream *load(assets_t *assets, const char *path)
 	char *pattern = nullptr;
 	SDL_asprintf(&pattern, "%s.*", filename);
 
+	size_t index = 0;
 	auto count = 0;
 	char **results = SDL_GlobDirectory(dir_path, pattern, 0, &count);
 	SDL_free(pattern);
@@ -70,7 +88,7 @@ static SDL_IOStream *load(assets_t *assets, const char *path)
 	if (count == 0)
 	{
 		SDL_SetError("No asset found for '%s'", path);
-		SDL_free((void *) results);
+		SDL_free((void*) results);
 		SDL_free(dir_path);
 		SDL_free(parent);
 		return nullptr;
@@ -78,21 +96,36 @@ static SDL_IOStream *load(assets_t *assets, const char *path)
 
 	if (count > 1)
 	{
-		SDL_SetError("Multiple assets found for '%s'", path);
-		SDL_free((void *) results);
-		SDL_free(dir_path);
-		SDL_free(parent);
-		return nullptr;
+		index = -1;
+
+		for (auto i = 0; i < count; i++)
+		{
+			if (!supported_file(results[i]))
+			{
+				continue;
+			}
+
+			if (index != (size_t) -1)
+			{
+				SDL_SetError("Multiple assets found for '%s'", path);
+				SDL_free((void*) results);
+				SDL_free(dir_path);
+				SDL_free(parent);
+				return nullptr;
+			}
+
+			index = i;
+		}
 	}
 
 	SDL_LogDebug(LOG_CATEGORY_ASSETS, "Loaded asset '%s/%s' from '%s'",
-		parent, results[0], path);
+		parent, results[index], path);
 	SDL_free(parent);
 
 	char *full_path = nullptr;
 	SDL_asprintf(&full_path, "%s/%s", dir_path, results[0]);
 	SDL_free(dir_path);
-	SDL_free((void *) results);
+	SDL_free((void*) results);
 
 	SDL_IOStream *stream = SDL_IOFromFile(full_path, "rb");
 	SDL_free(full_path);
@@ -231,7 +264,7 @@ assets_t *assets_create_from_folder(const char *path)
 			void *padding;
 			toml_datum_t *values;
 		};
-		const auto tab = (struct toml_table_t *) &input.u.tab;
+		const auto tab = (struct toml_table_t*) &input.u.tab;
 
 		for (auto i = 0; i < tab->size; i++)
 		{
