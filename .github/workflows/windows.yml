@@ -38,7 +38,7 @@ jobs:
         shell: powershell
         run: |
           Install-Module -Name Microsoft.WinGet.Client -AcceptLicense -Force
-          winget install llvm --accept-package-agreements --accept-source-agreements
+          Install-WinGetPackage -Id LLVM.LLVM -AcceptLicense -Force
           $bin_dir = Join-Path (Join-Path $env:ProgramFiles LLVM) bin
           echo $bin_dir >> $env:GITHUB_PATH
 
