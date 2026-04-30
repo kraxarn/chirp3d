@@ -2,7 +2,7 @@ include(FetchContent)
 
 FetchContent_Declare(joltc
 	GIT_REPOSITORY https://github.com/amerkoleci/joltc.git
-	GIT_TAG cdab3860b22d56df7abe585b891c4fb88519c7a5
+	GIT_TAG 52d8c98df523f449eb3e01b1060a0fde052970d1
 )
 
 message(STATUS "Downloading joltc")
