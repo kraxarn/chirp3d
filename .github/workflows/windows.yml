@@ -37,7 +37,7 @@ jobs:
         if: ${{ matrix.arch == 'arm64' }}
         shell: powershell
         run: |
-          Install-Module -Name Microsoft.WinGet.Client
+          Install-Module -Name Microsoft.WinGet.Client -AcceptLicense
           winget install llvm --accept-package-agreements --accept-source-agreements
           $bin_dir = Join-Path (Join-Path $env:ProgramFiles LLVM) bin
           echo $bin_dir >> $env:GITHUB_PATH
