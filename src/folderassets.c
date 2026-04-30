@@ -123,7 +123,7 @@ static SDL_IOStream *load(assets_t *assets, const char *path)
 	SDL_free(parent);
 
 	char *full_path = nullptr;
-	SDL_asprintf(&full_path, "%s/%s", dir_path, results[0]);
+	SDL_asprintf(&full_path, "%s/%s", dir_path, results[index]);
 	SDL_free(dir_path);
 	SDL_free((void*) results);
 
