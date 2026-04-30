@@ -26,19 +26,19 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Set up scoop
-        shell: powershell
+        shell: pwsh
         run: |
-          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-          Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+          irm get.scoop.sh | iex
+          exit $LASTEXITCODE
 
       - name: Set up compiler (x86_64)
         if: ${{ matrix.arch == 'x86_64' }}
-        shell: powershell
+        shell: pwsh
         run: scoop install llvm
 
       - name: Set up compiler (arm64)
         if: ${{ matrix.arch == 'arm64' }}
-        shell: powershell
+        shell: pwsh
         run: scoop install llvm-arm64
 
       - name: Configure CMake
