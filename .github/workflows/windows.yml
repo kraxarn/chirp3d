@@ -19,30 +19,30 @@ jobs:
             compile-flags: '-march=x86-64-v3'
 
           - os: windows-11-arm
-            arch: 'aarch64'
+            arch: 'arm64'
             compiler-flags: '-mfloat-abi=hard -mfpu=neon'
 
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up compiler
-        if: ${{ matrix.arch == 'x86_64' }}
-        uses: egor-tensin/setup-clang@v2
-        with:
-          version: 'latest'
-          cc: '1'
-
-      # setup-clang uses choco which doesn't support aarch64
-      - name: Set up compiler
-        if: ${{ matrix.arch == 'aarch64' }}
+      - name: Set up scoop
         shell: powershell
         run: |
-          winget install llvm --accept-package-agreements --accept-source-agreements
-          $bin_dir = Join-Path (Join-Path $env:ProgramFiles LLVM) bin
-          echo $bin_dir >> $env:GITHUB_PATH
+          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+          Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+
+      - name: Set up compiler (x86_64)
+        if: ${{ matrix.arch == 'x86_64' }}
+        shell: powershell
+        run: scoop install llvm
+
+      - name: Set up compiler (arm64)
+        if: ${{ matrix.arch == 'arm64' }}
+        shell: powershell
+        run: scoop install llvm-arm64
 
       - name: Configure CMake
-        run: cmake -S . -B build -G "${{env.CMAKE_GENERATOR}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS="${{ matrix.compile-flags }}" -DCMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
+        run: cmake -S . -B build -G "${{env.CMAKE_GENERATOR}}" -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_C_FLAGS="${{matrix.compile-flags}}" -D CMAKE_CXX_FLAGS="${{matrix.compile-flags}}"
 
       - name: Build
         run: cmake --build build
