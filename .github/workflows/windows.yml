@@ -25,21 +25,22 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up scoop
-        shell: pwsh
-        run: |
-          irm get.scoop.sh | iex
-          exit $LASTEXITCODE
-
       - name: Set up compiler (x86_64)
         if: ${{ matrix.arch == 'x86_64' }}
-        shell: pwsh
-        run: scoop install llvm
+        uses: egor-tensin/setup-clang@v2
+        with:
+          version: 'latest'
+          cc: '1'
 
+      # setup-clang uses choco which doesn't support arm64
       - name: Set up compiler (arm64)
         if: ${{ matrix.arch == 'arm64' }}
-        shell: pwsh
-        run: scoop install llvm-arm64
+        shell: powershell
+        run: |
+          Install-Module -Name Microsoft.WinGet.Client
+          winget install llvm --accept-package-agreements --accept-source-agreements
+          $bin_dir = Join-Path (Join-Path $env:ProgramFiles LLVM) bin
+          echo $bin_dir >> $env:GITHUB_PATH
 
       - name: Configure CMake
         run: cmake -S . -B build -G "${{env.CMAKE_GENERATOR}}" -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_C_FLAGS="${{matrix.compile-flags}}" -D CMAKE_CXX_FLAGS="${{matrix.compile-flags}}"
