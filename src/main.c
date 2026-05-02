@@ -136,8 +136,8 @@ static SDL_AppResult build_scene(app_state_t *state)
 	};
 
 	state->num_meshes = SDL_arraysize(meshes);
-	state->meshes = (mesh_t **) SDL_malloc(sizeof(meshes));
-	SDL_memcpy((void *) state->meshes, (void *) meshes, sizeof(meshes));
+	state->meshes = (mesh_t**) SDL_malloc(sizeof(meshes));
+	SDL_memcpy((void*) state->meshes, (void*) meshes, sizeof(meshes));
 
 	SDL_Surface *light = assets_load_texture(state->assets, "light");
 	if (!mesh_set_texture(state->meshes[0], light))
@@ -333,12 +333,18 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(state->window, "Failed to initialise physics engine");
 	}
 
-	SDL_IOStream *model_stream = assets_load(state->assets, "models/blaster");
-	model_t *model = model_create(model_stream, true);
+	SDL_IOStream *model_stream = assets_load(state->assets, "models/cube");
+	if (model_stream == nullptr)
+	{
+		return fatal_error(state->window, "Failed to load model data");
+	}
+
+	model_t *model = model_create(state->device, model_stream, true);
 	if (model == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load model");
 	}
+
 	model_destroy(model);
 
 	return build_scene(state);
@@ -550,7 +556,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	{
 		mesh_destroy(state->meshes[i]);
 	}
-	SDL_free((void *) state->meshes);
+	SDL_free((void*) state->meshes);
 
 	assets_destroy(state->assets);
 	physics_destroy(state->physics_engine);
