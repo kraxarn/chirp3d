@@ -336,14 +336,18 @@ static bool load_model_data(model_t *model)
 		{
 			const cgltf_attribute *attribute = primitive->attributes + j;
 
-			if (attribute->type == cgltf_attribute_type_position
-				&& !load_positions(model->primitives + i, attribute->data))
+			if (attribute->type == cgltf_attribute_type_position)
 			{
-				return false;
+				if (!load_positions(model->primitives + i, attribute->data))
+				{
+					return false;
+				}
 			}
-
-			SDL_LogWarn(LOG_CATEGORY_MODEL, "Unsupported attribute: %s",
-				cgltf_attribute_type_string(attribute->type));
+			else
+			{
+				SDL_LogWarn(LOG_CATEGORY_MODEL, "Unsupported attribute: %s",
+					cgltf_attribute_type_string(attribute->type));
+			}
 		}
 	}
 
