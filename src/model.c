@@ -26,10 +26,17 @@
 
 typedef Uint16 mesh_index_t;
 
+typedef struct vertex_t
+{
+	vector3f_t position;
+	vector3f_t normal;
+	vector2f_t tex_coord;
+} vertex_t;
+
 typedef struct mesh_primitive_t
 {
-	vector3f_t *positions;
-	size_t position_count;
+	vertex_t *vertices;
+	size_t vertex_count;
 
 	Uint16 *indices;
 	size_t index_count;
@@ -286,9 +293,33 @@ static bool load_positions(mesh_primitive_t *primitive, const cgltf_accessor *po
 		SDL_LogWarn(LOG_CATEGORY_MODEL, "Position stride not supported, expect corrupted model");
 	}
 
-	primitive->position_count = positions->count;
-	primitive->positions = (vector3f_t*) buffer_view->buffer->data
+	if (primitive->vertex_count > 0
+		&& primitive->vertices != nullptr
+		&& primitive->vertex_count != positions->count)
+	{
+		return SDL_SetError("Unexpected position count, found %zu but expected %zu",
+			positions->count, primitive->vertex_count);
+	}
+
+	if (primitive->vertex_count == 0
+		&& primitive->vertices == nullptr)
+	{
+		primitive->vertex_count = positions->count;
+		primitive->vertices = SDL_calloc(primitive->vertex_count, sizeof(vertex_t));
+	}
+
+	const vector3f_t *data = buffer_view->buffer->data
 		+ (buffer_view->offset / sizeof(float));
+
+	if (data == nullptr || primitive->vertices == nullptr)
+	{
+		return SDL_SetError("Invalid data");
+	}
+
+	for (size_t i = 0; i < primitive->vertex_count; i++)
+	{
+		primitive->vertices[i].position = data[i];
+	}
 
 	return true;
 }
@@ -310,7 +341,7 @@ static bool load_model_data(model_t *model)
 	}
 
 	model->primitive_count = mesh->primitives_count;
-	model->primitives = SDL_malloc(sizeof(mesh_primitive_t) * model->primitive_count);
+	model->primitives = SDL_calloc(model->primitive_count, sizeof(mesh_primitive_t));
 
 	for (size_t i = 0; i < mesh->primitives_count; i++)
 	{
@@ -426,6 +457,12 @@ void model_destroy(model_t *model)
 	cgltf_free(model->data);
 
 	SDL_free(model->materials);
+
+	for (size_t i = 0; i < model->primitive_count; i++)
+	{
+		const mesh_primitive_t *primitive = model->primitives + i;
+		SDL_free(primitive->vertices);
+	}
 	SDL_free(model->primitives);
 
 	SDL_free(model);
