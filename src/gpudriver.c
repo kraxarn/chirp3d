@@ -6,13 +6,10 @@
 char *gpu_driver_names()
 {
 	// "vulkan, metal, direct3d12"
-	constexpr size_t gpu_drivers_len = 25;
+	constexpr size_t gpu_drivers_len = 26;
 
-	char *gpu_drivers = SDL_malloc(sizeof(char) * (gpu_drivers_len + 1));
-	if (gpu_drivers == nullptr)
-	{
-		return nullptr;
-	}
+	static char gpu_drivers[gpu_drivers_len];
+
 	gpu_drivers[0] = '\0';
 
 	for (auto i = 0; i < SDL_GetNumGPUDrivers(); i++)

@@ -241,11 +241,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	if (SDL_GetLogPriority(LOG_CATEGORY_CORE) >= SDL_LOG_PRIORITY_VERBOSE)
 	{
 		char *gpu_drivers = gpu_driver_names();
-		if (gpu_drivers != nullptr)
-		{
-			SDL_LogDebug(LOG_CATEGORY_CORE, "Available GPU drivers: %s", gpu_drivers);
-			SDL_free(gpu_drivers);
-		}
+		SDL_LogDebug(LOG_CATEGORY_CORE, "Available GPU drivers: %s", gpu_drivers);
 
 		char *shader_formats = shader_format_names(state->device);
 		if (shader_formats != nullptr)
