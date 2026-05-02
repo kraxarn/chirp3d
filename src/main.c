@@ -252,7 +252,6 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		{
 			SDL_LogDebug(LOG_CATEGORY_CORE, "Available shader formats for %s: %s",
 				SDL_GetGPUDeviceDriver(state->device), shader_formats);
-			SDL_free(shader_formats);
 		}
 	}
 

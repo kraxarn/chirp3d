@@ -6,13 +6,10 @@
 char *shader_format_names(SDL_GPUDevice *device)
 {
 	// "invalid, private, spir-v, dxbc, dxil, msl, metallib"
-	constexpr size_t shader_format_names_len = 51;
+	constexpr size_t shader_format_names_len = 52;
 
-	char *shader_format_names = SDL_malloc(sizeof(char) * (shader_format_names_len + 1));
-	if (shader_format_names == nullptr)
-	{
-		return nullptr;
-	}
+	static char shader_format_names[shader_format_names_len];
+
 	shader_format_names[0] = '\0';
 
 	const SDL_GPUShaderFormat shader_format = SDL_GetGPUShaderFormats(device);
