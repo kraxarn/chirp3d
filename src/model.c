@@ -80,6 +80,23 @@ static const char *cgltf_error_string(const cgltf_result result)
 }
 
 [[nodiscard]]
+static const char *cgltf_type_string(const cgltf_type type)
+{
+	switch (type)
+	{
+		case cgltf_type_invalid: return "invalid";
+		case cgltf_type_scalar: return "scalar";
+		case cgltf_type_vec2: return "vector2";
+		case cgltf_type_vec3: return "vector3";
+		case cgltf_type_vec4: return "vector4";
+		case cgltf_type_mat2: return "matrix2x2";
+		case cgltf_type_mat3: return "matrix3x3";
+		case cgltf_type_mat4: return "matrix4x4";
+		default: return "unknown";
+	}
+}
+
+[[nodiscard]]
 static const char *cgltf_primitive_type_string(const cgltf_primitive_type type)
 {
 	switch (type)
@@ -92,6 +109,22 @@ static const char *cgltf_primitive_type_string(const cgltf_primitive_type type)
 		case cgltf_primitive_type_triangles: return "triangles";
 		case cgltf_primitive_type_triangle_strip: return "triangle strip";
 		case cgltf_primitive_type_triangle_fan: return "triangle fan";
+		default: return "unknown";
+	}
+}
+
+[[nodiscard]]
+static const char *cgltf_component_type_string(const cgltf_component_type type)
+{
+	switch (type)
+	{
+		case cgltf_component_type_invalid: return "invalid";
+		case cgltf_component_type_r_8: return "byte";
+		case cgltf_component_type_r_8u: return "unsigned byte";
+		case cgltf_component_type_r_16: return "short";
+		case cgltf_component_type_r_16u: return "unsigned short";
+		case cgltf_component_type_r_32u: return "unsigned int";
+		case cgltf_component_type_r_32f: return "float";
 		default: return "unknown";
 	}
 }
@@ -273,56 +306,56 @@ static bool load_indices(mesh_primitive_t *primitive, const cgltf_accessor *indi
 	return true;
 }
 
-static bool load_positions(mesh_primitive_t *primitive, const cgltf_accessor *positions)
+static bool vertices_valid(mesh_primitive_t *primitive, const cgltf_accessor *data,
+	const cgltf_type type, const cgltf_component_type component_type)
 {
-	if (positions->type != cgltf_type_vec3
-		|| positions->component_type != cgltf_component_type_r_32f)
+	if (data->type != type || data->component_type != component_type)
 	{
-		return SDL_SetError("Only vector3f positions are supported");
+		return SDL_SetError("Only %s %s values are supported",
+			cgltf_type_string(type), cgltf_component_type_string(component_type));
 	}
 
-	if (positions->offset != 0) // TODO
+	if (data->offset != 0) // TODO
 	{
-		SDL_LogWarn(LOG_CATEGORY_MODEL, "Position offset not supported, expect corrupted model");
+		return SDL_SetError("Buffer offset is currently not supported");
 	}
 
-	const cgltf_buffer_view *buffer_view = positions->buffer_view;
+	const cgltf_buffer_view *buffer_view = data->buffer_view;
 
 	if (buffer_view->stride != 0) // TODO
 	{
-		SDL_LogWarn(LOG_CATEGORY_MODEL, "Position stride not supported, expect corrupted model");
+		return SDL_SetError("Buffer stride is currently not supported");
 	}
 
 	if (primitive->vertex_count > 0
 		&& primitive->vertices != nullptr
-		&& primitive->vertex_count != positions->count)
+		&& primitive->vertex_count != data->count)
 	{
-		return SDL_SetError("Unexpected position count, found %zu but expected %zu",
-			positions->count, primitive->vertex_count);
+		return SDL_SetError("Unexpected vertex count, found %zu but expected %zu",
+			data->count, primitive->vertex_count);
 	}
 
 	if (primitive->vertex_count == 0
 		&& primitive->vertices == nullptr)
 	{
-		primitive->vertex_count = positions->count;
+		primitive->vertex_count = data->count;
 		primitive->vertices = SDL_calloc(primitive->vertex_count, sizeof(vertex_t));
-	}
-
-	const vector3f_t *data = buffer_view->buffer->data
-		+ (buffer_view->offset / sizeof(float));
-
-	if (data == nullptr || primitive->vertices == nullptr)
-	{
-		return SDL_SetError("Invalid data");
-	}
-
-	for (size_t i = 0; i < primitive->vertex_count; i++)
-	{
-		primitive->vertices[i].position = data[i];
 	}
 
 	return true;
 }
+
+#define load_buffer_data(t,gt,gc,f,p,a)											\
+	if (!vertices_valid((p), (a), cgltf_type_##gt, cgltf_component_type_##gc)	\
+		|| (p)->vertices == nullptr)											\
+	{																			\
+		return false;															\
+	}																			\
+	for (size_t vi = 0; vi < (p)->vertex_count; vi++)							\
+	{																			\
+		(p)->vertices[vi].f = ((t*) ((a)->buffer_view->buffer->data				\
+			+ ((a)->buffer_view->offset / sizeof(float))))[vi];					\
+	}
 
 static bool load_model_data(model_t *model)
 {
@@ -369,14 +402,19 @@ static bool load_model_data(model_t *model)
 
 			if (attribute->type == cgltf_attribute_type_position)
 			{
-				if (!load_positions(model->primitives + i, attribute->data))
-				{
-					return false;
-				}
+				load_buffer_data(vector3f_t, vec3, r_32f, position, model->primitives + i, attribute->data);
+			}
+			else if (attribute->type == cgltf_attribute_type_normal)
+			{
+				load_buffer_data(vector3f_t, vec3, r_32f, normal, model->primitives + i, attribute->data);
+			}
+			else if (attribute->type == cgltf_attribute_type_texcoord)
+			{
+				load_buffer_data(vector2f_t, vec2, r_32f, tex_coord, model->primitives + i, attribute->data);
 			}
 			else
 			{
-				SDL_LogWarn(LOG_CATEGORY_MODEL, "Unsupported attribute: %s",
+				return SDL_SetError("Unsupported attribute: %s",
 					cgltf_attribute_type_string(attribute->type));
 			}
 		}
