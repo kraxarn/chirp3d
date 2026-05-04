@@ -399,18 +399,19 @@ static bool load_model_data(model_t *model)
 		for (cgltf_size j = 0; j < primitive->attributes_count; j++)
 		{
 			const cgltf_attribute *attribute = primitive->attributes + j;
+			mesh_primitive_t *model_primitive = model->primitives + i;
 
 			if (attribute->type == cgltf_attribute_type_position)
 			{
-				load_buffer_data(attribute->data, model->primitives + i, position, vector3f_t, vec3, r_32f);
+				load_buffer_data(attribute->data, model_primitive, position, vector3f_t, vec3, r_32f);
 			}
 			else if (attribute->type == cgltf_attribute_type_normal)
 			{
-				load_buffer_data(attribute->data, model->primitives + i, normal, vector3f_t, vec3, r_32f);
+				load_buffer_data(attribute->data, model_primitive, normal, vector3f_t, vec3, r_32f);
 			}
 			else if (attribute->type == cgltf_attribute_type_texcoord)
 			{
-				load_buffer_data(attribute->data, model->primitives + i, tex_coord, vector2f_t, vec2, r_32f);
+				load_buffer_data(attribute->data, model_primitive, tex_coord, vector2f_t, vec2, r_32f);
 			}
 			else
 			{
