@@ -306,15 +306,8 @@ static bool load_indices(mesh_primitive_t *primitive, const cgltf_accessor *indi
 	return true;
 }
 
-static bool vertices_valid(mesh_primitive_t *primitive, const cgltf_accessor *data,
-	const cgltf_type type, const cgltf_component_type component_type)
+static bool vertices_valid(mesh_primitive_t *primitive, const cgltf_accessor *data)
 {
-	if (data->type != type || data->component_type != component_type)
-	{
-		return SDL_SetError("Only %s %s values are supported",
-			cgltf_type_string(type), cgltf_component_type_string(component_type));
-	}
-
 	if (data->offset != 0) // TODO
 	{
 		return SDL_SetError("Buffer offset is currently not supported");
@@ -345,16 +338,23 @@ static bool vertices_valid(mesh_primitive_t *primitive, const cgltf_accessor *da
 	return true;
 }
 
-#define load_buffer_data(a,p,f,t,gt,gc)											\
-	if (!vertices_valid((p), (a), cgltf_type_##gt, cgltf_component_type_##gc)	\
-		|| (p)->vertices == nullptr)											\
-	{																			\
-		return false;															\
-	}																			\
-	for (size_t vi = 0; vi < (p)->vertex_count; vi++)							\
-	{																			\
-		(p)->vertices[vi].f = ((t*) ((a)->buffer_view->buffer->data				\
-			+ ((a)->buffer_view->offset / sizeof(float))))[vi];					\
+#define load_buffer_data(a,p,f,t,gt,gc)								\
+	if (a->type != cgltf_type_##gt									\
+		|| a->component_type != cgltf_component_type_##gc)			\
+	{																\
+		return SDL_SetError("Only %s %s values are supported",		\
+			cgltf_type_string(cgltf_type_##gt),						\
+			cgltf_component_type_string(cgltf_component_type_##gc)	\
+		);															\
+	}																\
+	if (!vertices_valid((p), (a)) || (p)->vertices == nullptr)		\
+	{																\
+		return false;												\
+	}																\
+	for (size_t vi = 0; vi < (p)->vertex_count; vi++)				\
+	{																\
+		(p)->vertices[vi].f = ((t*) ((a)->buffer_view->buffer->data	\
+			+ ((a)->buffer_view->offset / sizeof(float))))[vi];		\
 	}
 
 static bool load_model_data(model_t *model)
