@@ -415,8 +415,11 @@ static bool load_model_data(model_t *model)
 			}
 			else
 			{
-				return SDL_SetError("Unsupported attribute: %s",
-					cgltf_attribute_type_string(attribute->type));
+				return SDL_SetError("Unsupported attribute: %s (%s %s)",
+					cgltf_attribute_type_string(attribute->type),
+					cgltf_type_string(attribute->data->type),
+					cgltf_component_type_string(attribute->data->component_type)
+				);
 			}
 		}
 	}
