@@ -345,7 +345,7 @@ static bool vertices_valid(mesh_primitive_t *primitive, const cgltf_accessor *da
 	return true;
 }
 
-#define load_buffer_data(t,gt,gc,f,p,a)											\
+#define load_buffer_data(a,p,f,t,gt,gc)											\
 	if (!vertices_valid((p), (a), cgltf_type_##gt, cgltf_component_type_##gc)	\
 		|| (p)->vertices == nullptr)											\
 	{																			\
@@ -402,15 +402,15 @@ static bool load_model_data(model_t *model)
 
 			if (attribute->type == cgltf_attribute_type_position)
 			{
-				load_buffer_data(vector3f_t, vec3, r_32f, position, model->primitives + i, attribute->data);
+				load_buffer_data(attribute->data, model->primitives + i, position, vector3f_t, vec3, r_32f);
 			}
 			else if (attribute->type == cgltf_attribute_type_normal)
 			{
-				load_buffer_data(vector3f_t, vec3, r_32f, normal, model->primitives + i, attribute->data);
+				load_buffer_data(attribute->data, model->primitives + i, normal, vector3f_t, vec3, r_32f);
 			}
 			else if (attribute->type == cgltf_attribute_type_texcoord)
 			{
-				load_buffer_data(vector2f_t, vec2, r_32f, tex_coord, model->primitives + i, attribute->data);
+				load_buffer_data(attribute->data, model->primitives + i, tex_coord, vector2f_t, vec2, r_32f);
 			}
 			else
 			{
