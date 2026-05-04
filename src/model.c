@@ -353,9 +353,13 @@ static bool vertices_valid(mesh_primitive_t *primitive, const cgltf_accessor *da
 	}																\
 	for (size_t vi = 0; vi < (p)->vertex_count; vi++)				\
 	{																\
-		(p)->vertices[vi].f = ((t*) ((a)->buffer_view->buffer->data	\
+		f(p,vi) = ((t*) ((a)->buffer_view->buffer->data				\
 			+ ((a)->buffer_view->offset / sizeof(float))))[vi];		\
 	}
+
+#define vertex_position(p,i)  (p)->vertices[i].position
+#define vertex_normal(p,i)    (p)->vertices[i].normal
+#define vertex_tex_coord(p,i) (p)->vertices[i].tex_coord
 
 static bool load_model_data(model_t *model)
 {
@@ -399,19 +403,19 @@ static bool load_model_data(model_t *model)
 		for (cgltf_size j = 0; j < primitive->attributes_count; j++)
 		{
 			const cgltf_attribute *attribute = primitive->attributes + j;
-			mesh_primitive_t *model_primitive = model->primitives + i;
+			const mesh_primitive_t *model_primitive = model->primitives + i;
 
 			if (attribute->type == cgltf_attribute_type_position)
 			{
-				load_buffer_data(attribute->data, model_primitive, position, vector3f_t, vec3, r_32f)
+				load_buffer_data(attribute->data, model_primitive, vertex_position, vector3f_t, vec3, r_32f)
 			}
 			else if (attribute->type == cgltf_attribute_type_normal)
 			{
-				load_buffer_data(attribute->data, model_primitive, normal, vector3f_t, vec3, r_32f)
+				load_buffer_data(attribute->data, model_primitive, vertex_normal, vector3f_t, vec3, r_32f)
 			}
 			else if (attribute->type == cgltf_attribute_type_texcoord)
 			{
-				load_buffer_data(attribute->data, model_primitive, tex_coord, vector2f_t, vec2, r_32f)
+				load_buffer_data(attribute->data, model_primitive, vertex_tex_coord, vector2f_t, vec2, r_32f)
 			}
 			else
 			{
