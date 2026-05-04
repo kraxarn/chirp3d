@@ -403,15 +403,15 @@ static bool load_model_data(model_t *model)
 
 			if (attribute->type == cgltf_attribute_type_position)
 			{
-				load_buffer_data(attribute->data, model_primitive, position, vector3f_t, vec3, r_32f);
+				load_buffer_data(attribute->data, model_primitive, position, vector3f_t, vec3, r_32f)
 			}
 			else if (attribute->type == cgltf_attribute_type_normal)
 			{
-				load_buffer_data(attribute->data, model_primitive, normal, vector3f_t, vec3, r_32f);
+				load_buffer_data(attribute->data, model_primitive, normal, vector3f_t, vec3, r_32f)
 			}
 			else if (attribute->type == cgltf_attribute_type_texcoord)
 			{
-				load_buffer_data(attribute->data, model_primitive, tex_coord, vector2f_t, vec2, r_32f);
+				load_buffer_data(attribute->data, model_primitive, tex_coord, vector2f_t, vec2, r_32f)
 			}
 			else
 			{
