@@ -349,7 +349,7 @@ static bool vertices_valid(mesh_primitive_t *primitive, const cgltf_accessor *da
 	}																\
 	if ((p)->vertices == nullptr)									\
 	{																\
-		return SDL_SetError("Vertex memory error");					\
+		return SDL_SetError("Invalid vertex memory");				\
 	}																\
 	for (size_t vi = 0; vi < (p)->vertex_count; vi++)				\
 	{																\
