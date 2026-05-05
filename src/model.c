@@ -306,9 +306,7 @@ static bool load_buffer_data(const cgltf_accessor *accessor, mesh_primitive_t *p
 			break;
 
 		default:
-			expected_type = cgltf_type_invalid;
-			expected_component_type = cgltf_component_type_invalid;
-			break;
+			return SDL_SetError("Invalid property: %d", property);
 	}
 
 	if (accessor->type != expected_type
