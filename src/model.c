@@ -359,8 +359,7 @@ static bool load_buffer_data(const cgltf_accessor *accessor, mesh_primitive_t *p
 				break;
 
 			default:
-				return SDL_SetError("Invalid property: %s",
-					cgltf_attribute_type_string(property));
+				break;
 		}
 	}
 
