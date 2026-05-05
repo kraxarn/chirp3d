@@ -275,91 +275,108 @@ static bool load_materials(model_t *model)
 	return true;
 }
 
-static bool load_indices(mesh_primitive_t *primitive, const cgltf_accessor *indices)
+#define model_property_t      cgltf_attribute_type
+#define prop_vertex_position  cgltf_attribute_type_position
+#define prop_vertex_normal    cgltf_attribute_type_normal
+#define prop_vertex_tex_coord cgltf_attribute_type_texcoord
+#define prop_index            cgltf_attribute_type_custom
+
+static bool load_buffer_data(const cgltf_accessor *accessor, mesh_primitive_t *primitive,
+	const model_property_t property)
 {
-	if (indices == nullptr || indices->buffer_view == nullptr)
+	cgltf_type expected_type;
+	cgltf_component_type expected_component_type;
+
+	switch (property)
 	{
-		return SDL_SetError("Primitive has no indices");
+		case prop_index:
+			expected_type = cgltf_type_scalar;
+			expected_component_type = cgltf_component_type_r_16u;
+			break;
+
+		case prop_vertex_position:
+		case prop_vertex_normal:
+			expected_type = cgltf_type_vec3;
+			expected_component_type = cgltf_component_type_r_32f;
+			break;
+
+		case prop_vertex_tex_coord:
+			expected_type = cgltf_type_vec2;
+			expected_component_type = cgltf_component_type_r_32f;
+			break;
+
+		default:
+			expected_type = cgltf_type_invalid;
+			expected_component_type = cgltf_component_type_invalid;
+			break;
 	}
 
-	if (indices->component_type != cgltf_component_type_r_16u)
+	if (accessor->type != expected_type
+		|| accessor->component_type != expected_component_type)
 	{
-		return SDL_SetError("Only unsigned short (u16) indices are supported");
+		return SDL_SetError("Invalid accessor type: %s %s, expected %s %s",
+			cgltf_type_string(accessor->type),
+			cgltf_component_type_string(accessor->component_type),
+			cgltf_type_string(expected_type),
+			cgltf_component_type_string(expected_component_type)
+		);
 	}
 
-	if (indices->offset != 0) // TODO
+	if (property == prop_index
+		&& primitive->indices == nullptr)
 	{
-		SDL_LogWarn(LOG_CATEGORY_MODEL, "Index offset not supported, expect corrupted model");
+		primitive->index_count = accessor->count;
+		primitive->indices = SDL_calloc(primitive->index_count, sizeof(mesh_index_t));
 	}
 
-	const cgltf_buffer_view *buffer_view = indices->buffer_view;
-
-	if (buffer_view->stride != 0) // TODO
-	{
-		SDL_LogWarn(LOG_CATEGORY_MODEL, "Index stride not supported, expect corrupted model");
-	}
-
-	primitive->index_count = indices->count;
-	primitive->indices = (mesh_index_t*) buffer_view->buffer->data
-		+ (buffer_view->offset / sizeof(Uint16));
-
-	return true;
-}
-
-static bool vertices_valid(mesh_primitive_t *primitive, const cgltf_accessor *data)
-{
-	if (data->offset != 0) // TODO
-	{
-		return SDL_SetError("Buffer offset is currently not supported");
-	}
-
-	const cgltf_buffer_view *buffer_view = data->buffer_view;
-
-	if (buffer_view->stride != 0) // TODO
-	{
-		return SDL_SetError("Buffer stride is currently not supported");
-	}
-
-	if (primitive->vertex_count > 0
-		&& primitive->vertices != nullptr
-		&& primitive->vertex_count != data->count)
-	{
-		return SDL_SetError("Unexpected vertex count, found %zu but expected %zu",
-			data->count, primitive->vertex_count);
-	}
-
-	if (primitive->vertex_count == 0
+	if (property != prop_index
 		&& primitive->vertices == nullptr)
 	{
-		primitive->vertex_count = data->count;
+		primitive->vertex_count = accessor->count;
 		primitive->vertices = SDL_calloc(primitive->vertex_count, sizeof(vertex_t));
 	}
 
+	void *buffer = accessor->buffer_view->buffer->data
+		+ accessor->buffer_view->offset
+		+ accessor->offset;
+
+	for (size_t i = 0; i < accessor->count; i++)
+	{
+		switch (property)
+		{
+			case prop_index:
+				primitive->indices[i] = ((mesh_index_t*) buffer)[i];
+				break;
+
+			case prop_vertex_position:
+				primitive->vertices[i].position = ((vector3f_t*) buffer)[i];
+				break;
+
+			case prop_vertex_normal:
+				primitive->vertices[i].normal = ((vector3f_t*) buffer)[i];
+				break;
+
+			case prop_vertex_tex_coord:
+				primitive->vertices[i].tex_coord = ((vector2f_t*) buffer)[i];
+				break;
+
+			default:
+				return SDL_SetError("Invalid property: %s",
+					cgltf_attribute_type_string(property));
+		}
+	}
+
 	return true;
 }
 
-#define load_buffer_data(a,p,f,t,gt,gc)								\
-	if (a->type != cgltf_type_##gt									\
-		|| a->component_type != cgltf_component_type_##gc)			\
-	{																\
-		return SDL_SetError("Only %s %s values are supported",		\
-			cgltf_type_string(cgltf_type_##gt),						\
-			cgltf_component_type_string(cgltf_component_type_##gc)	\
-		);															\
-	}																\
-	if ((p)->vertices == nullptr)									\
-	{																\
-		return SDL_SetError("Invalid vertex memory");				\
-	}																\
-	for (size_t vi = 0; vi < (p)->vertex_count; vi++)				\
-	{																\
-		f(p,vi) = ((t*) ((a)->buffer_view->buffer->data				\
-			+ ((a)->buffer_view->offset / sizeof(float))))[vi];		\
-	}
-
-#define vertex_position(p,i)  (p)->vertices[i].position
-#define vertex_normal(p,i)    (p)->vertices[i].normal
-#define vertex_tex_coord(p,i) (p)->vertices[i].tex_coord
+[[nodiscard]]
+static bool supported_attribute(const cgltf_attribute_type type)
+{
+	return (bool) (type == prop_vertex_position
+		|| type == prop_vertex_normal
+		|| type == prop_vertex_tex_coord
+		|| type == prop_index);
+}
 
 static bool load_model_data(model_t *model)
 {
@@ -395,7 +412,10 @@ static bool load_model_data(model_t *model)
 			return SDL_SetError("Draco compression is not supported");
 		}
 
-		if (!load_indices(model->primitives + i, primitive->indices))
+		mesh_primitive_t *model_primitive = model->primitives + i;
+
+		if (primitive->indices != nullptr
+			&& !load_buffer_data(primitive->indices, model_primitive, prop_index))
 		{
 			return false;
 		}
@@ -403,21 +423,9 @@ static bool load_model_data(model_t *model)
 		for (cgltf_size j = 0; j < primitive->attributes_count; j++)
 		{
 			const cgltf_attribute *attribute = primitive->attributes + j;
-			const mesh_primitive_t *model_primitive = model->primitives + i;
 
-			if (attribute->type == cgltf_attribute_type_position)
-			{
-				load_buffer_data(attribute->data, model_primitive, vertex_position, vector3f_t, vec3, r_32f)
-			}
-			else if (attribute->type == cgltf_attribute_type_normal)
-			{
-				load_buffer_data(attribute->data, model_primitive, vertex_normal, vector3f_t, vec3, r_32f)
-			}
-			else if (attribute->type == cgltf_attribute_type_texcoord)
-			{
-				load_buffer_data(attribute->data, model_primitive, vertex_tex_coord, vector2f_t, vec2, r_32f)
-			}
-			else
+			if (!supported_attribute(attribute->type)
+				|| !load_buffer_data(attribute->data, model_primitive, attribute->type))
 			{
 				return SDL_SetError("Unsupported attribute: %s (%s %s)",
 					cgltf_attribute_type_string(attribute->type),
