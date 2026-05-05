@@ -38,7 +38,7 @@ typedef struct mesh_primitive_t
 	vertex_t *vertices;
 	size_t vertex_count;
 
-	Uint16 *indices;
+	mesh_index_t *indices;
 	size_t index_count;
 } mesh_primitive_t;
 
