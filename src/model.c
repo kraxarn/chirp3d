@@ -40,6 +40,9 @@ typedef struct mesh_primitive_t
 
 	mesh_index_t *indices;
 	size_t index_count;
+
+	SDL_GPUBuffer *vertex_buffer;
+	SDL_GPUBuffer *index_buffer;
 } mesh_primitive_t;
 
 typedef struct material_t
@@ -436,6 +439,128 @@ static bool load_model_data(model_t *model)
 	return true;
 }
 
+static bool upload_mesh(SDL_GPUDevice *device, mesh_primitive_t *primitive)
+{
+	// TODO: Duplicated from gpu_upload_mesh_info
+
+	const size_t vertex_size = sizeof(vertex_t) * primitive->vertex_count;
+	const size_t index_size = sizeof(mesh_index_t) * primitive->index_count;
+
+	const SDL_GPUBufferCreateInfo vertex_buffer_info = {
+		.usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+		.size = vertex_size,
+	};
+	primitive->vertex_buffer = SDL_CreateGPUBuffer(device, &vertex_buffer_info);
+	if (primitive->vertex_buffer == nullptr)
+	{
+		return false;
+	}
+
+	const SDL_GPUBufferCreateInfo index_buffer_info = {
+		.usage = SDL_GPU_BUFFERUSAGE_INDEX,
+		.size = index_size,
+	};
+	primitive->index_buffer = SDL_CreateGPUBuffer(device, &index_buffer_info);
+	if (primitive->index_buffer == nullptr)
+	{
+		SDL_ReleaseGPUBuffer(device, primitive->vertex_buffer);
+		primitive->vertex_buffer = nullptr;
+		return false;
+	}
+
+	const SDL_GPUTransferBufferCreateInfo transfer_info = {
+		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+		.size = vertex_size + index_size,
+	};
+	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(device, &transfer_info);
+	if (transfer_buffer == nullptr)
+	{
+		SDL_ReleaseGPUBuffer(device, primitive->vertex_buffer);
+		SDL_ReleaseGPUBuffer(device, primitive->index_buffer);
+		primitive->vertex_buffer = nullptr;
+		primitive->index_buffer = nullptr;
+		return false;
+	}
+
+	void *transfer_data = SDL_MapGPUTransferBuffer(device, transfer_buffer, false);
+	if (transfer_data == nullptr)
+	{
+		SDL_ReleaseGPUBuffer(device, primitive->vertex_buffer);
+		SDL_ReleaseGPUBuffer(device, primitive->index_buffer);
+		SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+		primitive->vertex_buffer = nullptr;
+		primitive->index_buffer = nullptr;
+		return false;
+	}
+
+	SDL_memcpy(transfer_data, primitive->vertices, vertex_size);
+	SDL_memcpy(transfer_data + vertex_size, primitive->indices, index_size);
+
+	SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+
+	SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(device);
+	if (command_buffer == nullptr)
+	{
+		SDL_ReleaseGPUBuffer(device, primitive->vertex_buffer);
+		SDL_ReleaseGPUBuffer(device, primitive->index_buffer);
+		SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+		primitive->vertex_buffer = nullptr;
+		primitive->index_buffer = nullptr;
+		return false;
+	}
+
+	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
+
+	const SDL_GPUTransferBufferLocation vertex_source = {
+		.transfer_buffer = transfer_buffer,
+		.offset = 0,
+	};
+	const SDL_GPUBufferRegion vertex_destination = {
+		.buffer = primitive->vertex_buffer,
+		.offset = 0,
+		.size = vertex_size,
+	};
+	SDL_UploadToGPUBuffer(copy_pass, &vertex_source, &vertex_destination, false);
+
+	const SDL_GPUTransferBufferLocation index_source = {
+		.transfer_buffer = transfer_buffer,
+		.offset = vertex_size,
+	};
+	const SDL_GPUBufferRegion index_destination = {
+		.buffer = primitive->index_buffer,
+		.offset = 0,
+		.size = index_size,
+	};
+	SDL_UploadToGPUBuffer(copy_pass, &index_source, &index_destination, false);
+
+	SDL_EndGPUCopyPass(copy_pass);
+	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+
+	if (!SDL_SubmitGPUCommandBuffer(command_buffer))
+	{
+		SDL_ReleaseGPUBuffer(device, primitive->vertex_buffer);
+		SDL_ReleaseGPUBuffer(device, primitive->index_buffer);
+		primitive->vertex_buffer = nullptr;
+		primitive->index_buffer = nullptr;
+		return false;
+	}
+
+	return true;
+}
+
+static bool upload_model(const model_t *model)
+{
+	for (size_t i = 0; i < model->primitive_count; i++)
+	{
+		if (!upload_mesh(model->device, model->primitives + i))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool close_io)
 {
 	size_t file_size;
@@ -489,7 +614,9 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 
 	log_debug_info(model->data);
 
-	if (!load_materials(model) || !load_model_data(model))
+	if (!load_materials(model)
+		|| !load_model_data(model)
+		|| !upload_model(model))
 	{
 		model_destroy(model);
 		return nullptr;
@@ -512,6 +639,9 @@ void model_destroy(model_t *model)
 	for (size_t i = 0; i < model->primitive_count; i++)
 	{
 		const mesh_primitive_t *primitive = model->primitives + i;
+
+		SDL_ReleaseGPUBuffer(model->device, primitive->vertex_buffer);
+		SDL_ReleaseGPUBuffer(model->device, primitive->index_buffer);
 		SDL_free(primitive->vertices);
 	}
 	SDL_free(model->primitives);
