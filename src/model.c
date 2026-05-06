@@ -63,6 +63,10 @@ typedef struct model_t
 
 	mesh_primitive_t *primitives;
 	size_t primitive_count;
+
+	// TODO: We probably don't want a single sampler/texture for the entire model
+	SDL_GPUSampler *sampler;
+	SDL_GPUTexture *texture;
 } model_t;
 
 [[nodiscard]]
@@ -220,6 +224,10 @@ static SDL_Surface *default_texture()
 	constexpr int size = 2;
 
 	SDL_Surface *surface = SDL_CreateSurface(size, size, SDL_PIXELFORMAT_ABGR8888);
+	if (surface == nullptr)
+	{
+		return nullptr;
+	}
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -440,6 +448,126 @@ static bool load_model_data(model_t *model)
 	return true;
 }
 
+static bool upload_texture(model_t *model)
+{
+	// TODO: Temporary
+	// TODO: Duplicated from gpu_upload_texture
+
+	SDL_Surface *surface = default_texture();
+	if (surface == nullptr)
+	{
+		return false;
+	}
+
+	const SDL_GPUSamplerCreateInfo sampler_info = {
+		.min_filter = SDL_GPU_FILTER_NEAREST,
+		.mag_filter = SDL_GPU_FILTER_NEAREST,
+		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
+		.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+	};
+	model->sampler = SDL_CreateGPUSampler(model->device, &sampler_info);
+	if (model->sampler == nullptr)
+	{
+		SDL_DestroySurface(surface);
+		return false;
+	}
+
+	const SDL_GPUTextureCreateInfo texture_info = {
+		.type = SDL_GPU_TEXTURETYPE_2D,
+		.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+		.width = surface->w,
+		.height = surface->h,
+		.layer_count_or_depth = 1,
+		.num_levels = 1,
+		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+	};
+	model->texture = SDL_CreateGPUTexture(model->device, &texture_info);
+	if (model->texture == nullptr)
+	{
+		SDL_DestroySurface(surface);
+		SDL_ReleaseGPUSampler(model->device, model->sampler);
+		model->sampler = nullptr;
+		return false;
+	}
+
+	// RGBA for each pixel
+	const Uint32 surface_size = surface->w * surface->h * 4;
+
+	const SDL_GPUTransferBufferCreateInfo buffer_info = {
+		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+		.size = surface_size,
+	};
+	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(model->device, &buffer_info);
+	if (transfer_buffer == nullptr)
+	{
+		SDL_DestroySurface(surface);
+		SDL_ReleaseGPUSampler(model->device, model->sampler);
+		SDL_ReleaseGPUTexture(model->device, model->texture);
+		model->sampler = nullptr;
+		model->texture = nullptr;
+		return false;
+	}
+
+	void *transfer_data = SDL_MapGPUTransferBuffer(model->device, transfer_buffer, false);
+	if (transfer_data == nullptr)
+	{
+		SDL_DestroySurface(surface);
+		SDL_ReleaseGPUTransferBuffer(model->device, transfer_buffer);
+		SDL_ReleaseGPUSampler(model->device, model->sampler);
+		SDL_ReleaseGPUTexture(model->device, model->texture);
+		model->sampler = nullptr;
+		model->texture = nullptr;
+		return false;
+	}
+
+	SDL_memcpy(transfer_data, surface->pixels, surface_size);
+	SDL_UnmapGPUTransferBuffer(model->device, transfer_buffer);
+
+	SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(model->device);
+	if (command_buffer == nullptr)
+	{
+		SDL_DestroySurface(surface);
+		SDL_ReleaseGPUTransferBuffer(model->device, transfer_buffer);
+		SDL_ReleaseGPUSampler(model->device, model->sampler);
+		SDL_ReleaseGPUTexture(model->device, model->texture);
+		model->sampler = nullptr;
+		model->texture = nullptr;
+		return false;
+	}
+
+	const SDL_GPUTextureTransferInfo source = {
+		.transfer_buffer = transfer_buffer,
+		.offset = 0,
+	};
+	const SDL_GPUTextureRegion destination = {
+		.texture = model->texture,
+		.w = surface->w,
+		.h = surface->h,
+		.d = 1,
+	};
+	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
+	SDL_UploadToGPUTexture(copy_pass, &source, &destination, false);
+	SDL_EndGPUCopyPass(copy_pass);
+
+	SDL_DestroySurface(surface);
+
+	if (!SDL_SubmitGPUCommandBuffer(command_buffer))
+	{
+		SDL_ReleaseGPUTransferBuffer(model->device, transfer_buffer);
+		SDL_ReleaseGPUSampler(model->device, model->sampler);
+		SDL_ReleaseGPUTexture(model->device, model->texture);
+		model->sampler = nullptr;
+		model->texture = nullptr;
+		return false;
+	}
+
+	SDL_ReleaseGPUTransferBuffer(model->device, transfer_buffer);
+
+	return true;
+}
+
 static bool upload_mesh(SDL_GPUDevice *device, mesh_primitive_t *primitive)
 {
 	// TODO: Duplicated from gpu_upload_mesh_info
@@ -617,7 +745,8 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 
 	if (!load_materials(model)
 		|| !load_model_data(model)
-		|| !upload_model(model))
+		|| !upload_model(model)
+		|| !upload_texture(model))
 	{
 		model_destroy(model);
 		return nullptr;
@@ -650,10 +779,13 @@ void model_destroy(model_t *model)
 	}
 	SDL_free(model->primitives);
 
+	SDL_ReleaseGPUTexture(model->device, model->texture);
+	SDL_ReleaseGPUSampler(model->device, model->sampler);
+
 	SDL_free(model);
 }
 
-static void mesh_draw(const mesh_primitive_t *primitive, SDL_GPURenderPass *render_pass,
+static void mesh_draw(const model_t *model, const mesh_primitive_t *primitive, SDL_GPURenderPass *render_pass,
 	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
 {
 	// TODO: Duplicated from mesh
@@ -670,6 +802,12 @@ static void mesh_draw(const mesh_primitive_t *primitive, SDL_GPURenderPass *rend
 	};
 	SDL_BindGPUIndexBuffer(render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT);
 
+	const SDL_GPUTextureSamplerBinding binding = {
+			.texture = model->texture,
+			.sampler = model->sampler,
+		};
+		SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
+
 	const vertex_uniform_data_t vertex_data = {
 		.mvp = projection,
 	};
@@ -684,6 +822,6 @@ void model_draw(const model_t *model, SDL_GPURenderPass *render_pass,
 {
 	for (size_t i = 0; i < model->primitive_count; i++)
 	{
-		mesh_draw(model->primitives + i, render_pass, command_buffer, projection);
+		mesh_draw(model, model->primitives + i, render_pass, command_buffer, projection);
 	}
 }
