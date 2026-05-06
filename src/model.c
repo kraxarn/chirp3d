@@ -622,6 +622,9 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 		return nullptr;
 	}
 
+	const Uint64 model_end = SDL_GetTicks();
+	SDL_LogDebug(LOG_CATEGORY_MODEL, "Loaded model data in %lu ms", model_end - buffer_end);
+
 	return model;
 }
 
