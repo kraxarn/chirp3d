@@ -803,10 +803,10 @@ static void mesh_draw(const model_t *model, const mesh_primitive_t *primitive, S
 	SDL_BindGPUIndexBuffer(render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT);
 
 	const SDL_GPUTextureSamplerBinding binding = {
-			.texture = model->texture,
-			.sampler = model->sampler,
-		};
-		SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
+		.texture = model->texture,
+		.sampler = model->sampler,
+	};
+	SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 
 	const vertex_uniform_data_t vertex_data = {
 		.mvp = projection,
