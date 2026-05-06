@@ -1,5 +1,6 @@
 #include "model.h"
 #include "logcategory.h"
+#include "uniformdata.h"
 #include "vector.h"
 
 #include <SDL3/SDL_error.h>
@@ -650,4 +651,39 @@ void model_destroy(model_t *model)
 	SDL_free(model->primitives);
 
 	SDL_free(model);
+}
+
+static void mesh_draw(const mesh_primitive_t *primitive, SDL_GPURenderPass *render_pass,
+	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
+{
+	// TODO: Duplicated from mesh
+
+	const SDL_GPUBufferBinding vertex_binding = {
+		.buffer = primitive->vertex_buffer,
+		.offset = 0,
+	};
+	SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_binding, 1);
+
+	const SDL_GPUBufferBinding index_binding = {
+		.buffer = primitive->index_buffer,
+		.offset = 0,
+	};
+	SDL_BindGPUIndexBuffer(render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+
+	const vertex_uniform_data_t vertex_data = {
+		.mvp = projection,
+	};
+	SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
+
+	SDL_DrawGPUIndexedPrimitives(render_pass, primitive->index_count,
+		1, 0, 0, 0);
+}
+
+void model_draw(const model_t *model, SDL_GPURenderPass *render_pass,
+	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
+{
+	for (size_t i = 0; i < model->primitive_count; i++)
+	{
+		mesh_draw(model->primitives + i, render_pass, command_buffer, projection);
+	}
 }
