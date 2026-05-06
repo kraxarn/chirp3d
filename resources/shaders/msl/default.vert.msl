@@ -18,7 +18,7 @@ struct main0_out
 struct main0_in
 {
     float3 in_position [[attribute(0)]];
-    float2 in_tex_coord [[attribute(1)]];
+    float2 in_tex_coord [[attribute(2)]];
 };
 
 vertex main0_out main0(main0_in in [[stage_in]], constant UniformData& _22 [[buffer(0)]], uint gl_VertexIndex [[vertex_id]])

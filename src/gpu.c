@@ -83,7 +83,7 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 					.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
 				},
 			},
-			.num_vertex_attributes = 2,
+			.num_vertex_attributes = 3,
 			.vertex_attributes = (SDL_GPUVertexAttribute[]){
 				// Position
 				(SDL_GPUVertexAttribute){
@@ -91,11 +91,17 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
 					.offset = 0,
 				},
-				// Texture coordinate
+				// Normal
 				(SDL_GPUVertexAttribute){
 					.location = 1,
-					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
 					.offset = sizeof(vector3f_t),
+				},
+				// Texture coordinate
+				(SDL_GPUVertexAttribute){
+					.location = 2,
+					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+					.offset = sizeof(vector3f_t) * 2,
 				},
 			},
 		},
