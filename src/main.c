@@ -333,19 +333,20 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(state->window, "Failed to initialise physics engine");
 	}
 
+	state->model_count = 1;
+	state->models = (model_t**) SDL_malloc(sizeof(model_t*));
+
 	SDL_IOStream *model_stream = assets_load(state->assets, "models/cube");
 	if (model_stream == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load model data");
 	}
 
-	model_t *model = model_create(state->device, model_stream, true);
-	if (model == nullptr)
+	state->models[0] = model_create(state->device, model_stream, true);
+	if (state->models[0] == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load model");
 	}
-
-	model_destroy(model);
 
 	return build_scene(state);
 }
@@ -557,6 +558,12 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 		mesh_destroy(state->meshes[i]);
 	}
 	SDL_free((void*) state->meshes);
+
+	for (size_t i = 0; i < state->model_count; i++)
+	{
+		model_destroy(state->models[i]);
+	}
+	SDL_free((void*) state->models);
 
 	assets_destroy(state->assets);
 	physics_destroy(state->physics_engine);

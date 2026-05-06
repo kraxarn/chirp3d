@@ -3,6 +3,7 @@
 #include "assets.h"
 #include "camera.h"
 #include "mesh.h"
+#include "model.h"
 #include "physics.h"
 #include "physicsconfig.h"
 
@@ -35,5 +36,9 @@ typedef struct app_state_t
 
 	mesh_t **meshes;
 	size_t num_meshes;
+
+	model_t **models;
+	size_t model_count;
+
 	physics_body_id_t player_body_id;
 } app_state_t;
