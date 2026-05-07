@@ -31,6 +31,11 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
+// For use with RenderDoc
+#ifdef FORCE_X11
+#include <SDL3/SDL_hints.h>
+#endif
+
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_filesystem.h>
@@ -242,6 +247,13 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	{
 		return fatal_error(nullptr, "Failed to load assets");
 	}
+
+#ifdef FORCE_X11
+	if (!SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11"))
+	{
+		return fatal_error(nullptr, "Failed to set X11 hint");
+	}
+#endif
 
 	constexpr SDL_InitFlags init_flags = SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD;
 	if (!SDL_Init(init_flags))
