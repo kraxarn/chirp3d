@@ -2,11 +2,10 @@
 
 #include "cpuinfo.h"
 
-#include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_gpu.h>
-#include <SDL3/SDL_version.h>
-#include <SDL3/SDL_platform.h>
 #include <SDL3/SDL_cpuinfo.h>
+#include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_platform.h>
+#include <SDL3/SDL_stdinc.h>
 
 static constexpr size_t name_length = 64;
 
@@ -61,7 +60,6 @@ const char *system_info_gpu_name(SDL_GPUDevice *device)
 		return gpu_name;
 	}
 
-#if SDL_VERSION_ATLEAST(3, 4, 0)
 	const SDL_PropertiesID props = SDL_GetGPUDeviceProperties(device);
 
 	const char *name = SDL_GetStringProperty(props,
@@ -74,9 +72,6 @@ const char *system_info_gpu_name(SDL_GPUDevice *device)
 
 	SDL_strlcpy(gpu_name, name, name_length);
 	return gpu_name;
-#else
-	return nullptr;
-#endif
 }
 
 const char *system_info_gpu_driver(SDL_GPUDevice *device)
@@ -87,7 +82,6 @@ const char *system_info_gpu_driver(SDL_GPUDevice *device)
 		return gpu_driver_name;
 	}
 
-#if SDL_VERSION_ATLEAST(3, 4, 0)
 	const SDL_PropertiesID props = SDL_GetGPUDeviceProperties(device);
 
 	const char *name = SDL_GetStringProperty(props,
@@ -112,8 +106,4 @@ const char *system_info_gpu_driver(SDL_GPUDevice *device)
 	SDL_strlcat(gpu_driver_name, " ", name_length);
 	SDL_strlcat(gpu_driver_name, version, name_length);
 	return gpu_driver_name;
-
-#else
-	return nullptr;
-#endif
 }

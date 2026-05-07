@@ -44,6 +44,7 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
+#include <SDL3/SDL_version.h>
 #include <SDL3/SDL_video.h>
 
 static constexpr auto mouse_sensitivity = 0.0015F;
@@ -184,6 +185,32 @@ static SDL_AppResult build_scene(app_state_t *state)
 	return SDL_APP_CONTINUE;
 }
 
+[[nodiscard]]
+static bool sdl_supported()
+{
+	const int linked = SDL_GetVersion();
+
+	if (linked < SDL_VERSIONNUM(3, 4, 0))
+	{
+		return SDL_SetError("SDL 3.4 or newer is required");
+	}
+
+	constexpr int compiled = SDL_VERSION;
+
+	// Micro is bugfixes only, so just ignore it
+	if (SDL_VERSIONNUM_MAJOR(linked) != SDL_VERSIONNUM_MAJOR(compiled)
+		|| SDL_VERSIONNUM_MINOR(linked) != SDL_VERSIONNUM_MINOR(compiled))
+	{
+		SDL_LogWarn(LOG_CATEGORY_CORE,
+			"Binary is linked against SDL %d.%d, but running against SDL %d.%d",
+			SDL_VERSIONNUM_MAJOR(linked), SDL_VERSIONNUM_MINOR(linked),
+			SDL_VERSIONNUM_MAJOR(compiled), SDL_VERSIONNUM_MINOR(compiled)
+		);
+	}
+
+	return true;
+}
+
 SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 {
 	if (!system_info_cpu_supported())
@@ -196,6 +223,11 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 #else
 	SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
 #endif
+
+	if (!sdl_supported())
+	{
+		return fatal_error(nullptr, "Unsupported SDL version");
+	}
 
 	app_state_t *state = SDL_calloc(1, sizeof(app_state_t));
 	if (state == nullptr)
