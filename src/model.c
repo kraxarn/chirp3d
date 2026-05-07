@@ -1,5 +1,6 @@
 #include "model.h"
 #include "logcategory.h"
+#include "math.h"
 #include "uniformdata.h"
 #include "vector.h"
 
@@ -63,6 +64,14 @@ typedef struct model_t
 
 	mesh_primitive_t *primitives;
 	size_t primitive_count;
+
+	// TODO: This should probably be per primitive for animations
+	vector3f_t rotation;
+	vector3f_t position;
+	vector3f_t scale;
+
+	matrix4x4_t projection;
+	bool rebuild_projection;
 
 	// TODO: We probably don't want a single sampler/texture for the entire model
 	SDL_GPUSampler *sampler;
@@ -713,6 +722,10 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	model->primitives = nullptr;
 	model->primitive_count = 0;
 
+	model->rotation = vector3f_zero();
+	model->position = vector3f_zero();
+	model->scale = vector3f_one();
+
 	const cgltf_options options = {};
 
 	const Uint64 begin = SDL_GetTicks();
@@ -785,6 +798,25 @@ void model_destroy(model_t *model)
 	SDL_free(model);
 }
 
+static void rebuild_projection(model_t *model)
+{
+	const matrix4x4_t transforms[] = {
+		matrix4x4_create_scale(model->scale),
+		matrix4x4_create_rotation_x(deg2rad(model->rotation.x)),
+		matrix4x4_create_rotation_y(deg2rad(model->rotation.y)),
+		matrix4x4_create_rotation_z(deg2rad(model->rotation.z)),
+		matrix4x4_create_translation(model->position),
+	};
+
+	model->projection = transforms[0];
+	for (auto i = 1; i < SDL_arraysize(transforms); i++)
+	{
+		model->projection = matrix4x4_multiply(model->projection, transforms[i]);
+	}
+
+	model->rebuild_projection = false;
+}
+
 static void mesh_draw(const model_t *model, const mesh_primitive_t *primitive, SDL_GPURenderPass *render_pass,
 	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
 {
@@ -808,10 +840,8 @@ static void mesh_draw(const model_t *model, const mesh_primitive_t *primitive, S
 	};
 	SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 
-	const vector3f_t position = {.x = 0, .y = 10, .z = 10};
-
 	const vertex_uniform_data_t vertex_data = {
-		.mvp = matrix4x4_multiply(matrix4x4_create_translation(position), projection),
+		.mvp = matrix4x4_multiply(model->projection, projection),
 	};
 	SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
 
@@ -819,11 +849,49 @@ static void mesh_draw(const model_t *model, const mesh_primitive_t *primitive, S
 		1, 0, 0, 0);
 }
 
-void model_draw(const model_t *model, SDL_GPURenderPass *render_pass,
+void model_draw(model_t *model, SDL_GPURenderPass *render_pass,
 	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
 {
+	if (model->rebuild_projection)
+	{
+		rebuild_projection(model);
+	}
+
 	for (size_t i = 0; i < model->primitive_count; i++)
 	{
 		mesh_draw(model, model->primitives + i, render_pass, command_buffer, projection);
 	}
+}
+
+vector3f_t model_rotation(const model_t *model)
+{
+	return model->rotation;
+}
+
+void model_set_rotation(model_t *model, const vector3f_t rotation)
+{
+	model->rotation = rotation;
+	model->rebuild_projection = true;
+}
+
+vector3f_t model_position(const model_t *model)
+{
+	return model->position;
+}
+
+void model_set_position(model_t *model, const vector3f_t position)
+{
+	model->position = position;
+	model->rebuild_projection = true;
+}
+
+vector3f_t model_scale(const model_t *model)
+{
+	return model->scale;
+}
+
+void model_set_scale(model_t *model, const vector3f_t scale)
+{
+	model->scale = scale;
+	model->rebuild_projection = true;
 }
