@@ -808,8 +808,10 @@ static void mesh_draw(const model_t *model, const mesh_primitive_t *primitive, S
 	};
 	SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 
+	const vector3f_t position = {.x = 0, .y = 10, .z = 10};
+
 	const vertex_uniform_data_t vertex_data = {
-		.mvp = projection,
+		.mvp = matrix4x4_multiply(matrix4x4_create_translation(position), projection),
 	};
 	SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
 
