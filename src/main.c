@@ -380,7 +380,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	state->model_count = 1;
 	state->models = (model_t**) SDL_malloc(sizeof(model_t*));
 
-	SDL_IOStream *model_stream = assets_load(state->assets, "models/cube");
+	SDL_IOStream *model_stream = assets_load(state->assets, "models/blaster");
 	if (model_stream == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load model data");
