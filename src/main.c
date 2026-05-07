@@ -559,6 +559,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			mesh_draw(state->meshes[i], render_pass, command_buffer, view_proj);
 		}
 
+		for (size_t i = 0; i < state->model_count; i++)
+		{
+			model_draw(state->models[i], render_pass, command_buffer, view_proj);
+		}
+
 		cImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
 	}
 	if (!draw_end())
