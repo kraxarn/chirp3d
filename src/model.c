@@ -230,27 +230,12 @@ static void log_debug_info(const cgltf_data *data)
 
 static SDL_Surface *default_texture()
 {
-	constexpr int size = 2;
+	SDL_Surface *surface = SDL_CreateSurface(1, 1, SDL_PIXELFORMAT_ABGR8888);
 
-	SDL_Surface *surface = SDL_CreateSurface(size, size, SDL_PIXELFORMAT_ABGR8888);
-	if (surface == nullptr)
+	if (!SDL_ClearSurface(surface, 1.F, 1.F, 1.F, 1.F))
 	{
+		SDL_DestroySurface(surface);
 		return nullptr;
-	}
-
-	for (int i = 0; i < 4; i++)
-	{
-		constexpr Uint32 black = 0xff'00'00'00;
-		constexpr Uint32 pink = 0xff'ff'00'ff;
-
-		const SDL_Rect rect = {
-			.x = (i == 0 || i == 3) ? 0 : (size / 2),
-			.y = (i < 2) ? 0 : (size / 2),
-			.w = size / 2,
-			.h = size / 2,
-		};
-
-		SDL_FillSurfaceRect(surface, &rect, (i % 2 == 0) ? black : pink);
 	}
 
 	return surface;
@@ -479,9 +464,6 @@ static bool load_model_data(model_t *model)
 
 static bool upload_sampler(model_t *model)
 {
-	// TODO: Temporary
-	// TODO: Duplicated from gpu_upload_texture
-
 	SDL_Surface *surface = default_texture();
 	if (surface == nullptr)
 	{
