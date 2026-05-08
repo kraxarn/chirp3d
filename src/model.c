@@ -62,7 +62,6 @@ typedef struct model_t
 	SDL_GPUSampler *sampler;
 	SDL_GPUTexture *texture;
 
-	// TODO: This should probably be per primitive for animations
 	vector3f_t rotation;
 	vector3f_t position;
 	vector3f_t scale;
