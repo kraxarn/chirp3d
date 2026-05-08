@@ -43,8 +43,6 @@ typedef struct mesh_primitive_t
 	mesh_index_t *indices;
 	size_t index_count;
 
-	material_t *material;
-
 	SDL_GPUBuffer *vertex_buffer;
 	SDL_GPUBuffer *index_buffer;
 } mesh_primitive_t;
@@ -398,6 +396,16 @@ static bool supported_attribute(const cgltf_attribute_type type)
 		|| type == prop_index);
 }
 
+static void set_primitive_material(const mesh_primitive_t *primitive,
+	const material_t *material)
+{
+	for (size_t j = 0; j < primitive->vertex_count; j++)
+	{
+		vertex_t *vertex = primitive->vertices + j;
+		vertex->color = *((vector4f_t*) material->color);
+	}
+}
+
 static bool load_model_data(model_t *model)
 {
 	if (model->data->nodes_count != 1)
@@ -457,29 +465,12 @@ static bool load_model_data(model_t *model)
 
 		for (size_t j = 0; j < model->material_count; j++)
 		{
-			material_t *material = model->materials + j;
+			const material_t *material = model->materials + j;
 			if (SDL_strcmp(primitive->material->name, material->name) == 0)
 			{
-				model_primitive->material = material;
+				set_primitive_material(model_primitive, material);
 				break;
 			}
-		}
-
-		if (model_primitive->material == nullptr)
-		{
-			return SDL_SetError("Failed to find material '%s'",
-				primitive->material->name);
-		}
-	}
-
-	// TODO: Don't do this here maybe
-	for (size_t i = 0; i < model->primitive_count; i++)
-	{
-		const mesh_primitive_t *primitive = model->primitives + i;
-		for (size_t j = 0; j < primitive->vertex_count; j++)
-		{
-			vertex_t *vertex = primitive->vertices + j;
-			vertex->color = *((vector4f_t*) primitive->material->color);
 		}
 	}
 
