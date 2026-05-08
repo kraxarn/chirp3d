@@ -46,7 +46,6 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_pixels.h>
-#include <SDL3/SDL_platform_defines.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
@@ -224,9 +223,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(nullptr, "Unsupported CPU");
 	}
 
-#ifdef SDL_PLATFORM_ANDROID
-	SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
-#elifdef NDEBUG
+#ifdef NDEBUG
 	SDL_SetLogPriorities(SDL_LOG_PRIORITY_INFO);
 #else
 	SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
