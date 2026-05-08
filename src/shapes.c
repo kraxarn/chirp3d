@@ -132,6 +132,11 @@ mesh_t *create_cube(SDL_GPUDevice *device, const vector3f_t size)
 		},
 	};
 
+	for (size_t i = 0; i < SDL_arraysize(vertices); i++)
+	{
+		vertices[i].color = vector4f_one();
+	}
+
 	const mesh_index_t indices[] = {
 		0, 1, 2, 0, 2, 3,       // Front
 		4, 5, 6, 4, 6, 7,       // Back

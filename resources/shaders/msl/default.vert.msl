@@ -12,6 +12,7 @@ struct UniformData
 struct main0_out
 {
     float2 out_tex_coord [[user(locn0)]];
+    float4 out_color [[user(locn1)]];
     float4 gl_Position [[position]];
 };
 
@@ -19,30 +20,15 @@ struct main0_in
 {
     float3 in_position [[attribute(0)]];
     float2 in_tex_coord [[attribute(2)]];
+    float4 in_color [[attribute(3)]];
 };
 
-vertex main0_out main0(main0_in in [[stage_in]], constant UniformData& _22 [[buffer(0)]], uint gl_VertexIndex [[vertex_id]])
+vertex main0_out main0(main0_in in [[stage_in]], constant UniformData& _22 [[buffer(0)]])
 {
     main0_out out = {};
     out.gl_Position = _22.mvp * float4(in.in_position, 1.0);
-    bool _45 = _22.tex_uv[1].x > 0.0;
-    bool _51;
-    if (_45)
-    {
-        _51 = _22.tex_uv[1].y > 0.0;
-    }
-    else
-    {
-        _51 = _45;
-    }
-    if (_51)
-    {
-        out.out_tex_coord = _22.tex_uv[int(gl_VertexIndex)].xy;
-    }
-    else
-    {
-        out.out_tex_coord = in.in_tex_coord;
-    }
+    out.out_color = in.in_color;
+    out.out_tex_coord = in.in_tex_coord;
     return out;
 }
 

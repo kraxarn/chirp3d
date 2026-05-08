@@ -80,3 +80,6 @@ vector3f_t vector3f_invert(vector3f_t vec);
 
 [[nodiscard]]
 vector3f_t vector3f_clamp(vector3f_t vec, vector3f_t min, vector3f_t max);
+
+[[nodiscard]]
+vector4f_t vector4f_one();

@@ -113,3 +113,13 @@ vector3f_t vector3f_clamp(const vector3f_t vec,
 		.z = SDL_clamp(vec.z, min.z, max.z)
 	};
 }
+
+vector4f_t vector4f_one()
+{
+	return (vector4f_t){
+		.x = 1.F,
+		.y = 1.F,
+		.z = 1.F,
+		.w = 1.F,
+	};
+}

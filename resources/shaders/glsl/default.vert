@@ -1,23 +1,28 @@
 #version 450
 
-layout(location = 0) in vec3 in_position;
-layout(location = 1) in vec3 in_normal;
-layout(location = 2) in vec2 in_tex_coord;
+layout (location = 0) in vec3 in_position;
+layout (location = 1) in vec3 in_normal;
+layout (location = 2) in vec2 in_tex_coord;
+layout (location = 3) in vec4 in_color;
 
-layout(location = 0) out vec2 out_tex_coord;
+layout (location = 0) out vec2 out_tex_coord;
+layout (location = 1) out vec4 out_color;
 
-layout(set = 1, binding = 0) uniform UniformData {
-	mat4 mvp;
-	vec2 tex_uv[4];
+layout (set = 1, binding = 0) uniform UniformData {
+    mat4 mvp;
+    vec2 tex_uv[4];
 };
 
 void main() {
-	gl_Position = mvp * vec4(in_position, 1.0);
+    gl_Position = mvp * vec4(in_position, 1.0);
+    out_color = in_color;
+    out_tex_coord = in_tex_coord;
 
-	// TODO: This is probably not a good check
-	if (tex_uv[1].x > 0 && tex_uv[1].y > 0) {
-		out_tex_coord = tex_uv[gl_VertexIndex];
-	} else {
-		out_tex_coord = in_tex_coord;
-	}
+    // TODO: Breaks a lot of stuff!
+//    // TODO: This is probably not a good check
+//    if (tex_uv[1].x > 0 && tex_uv[1].y > 0) {
+//        out_tex_coord = tex_uv[gl_VertexIndex];
+//    } else {
+//        out_tex_coord = in_tex_coord;
+//    }
 }

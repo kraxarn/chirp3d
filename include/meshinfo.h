@@ -11,6 +11,7 @@ typedef struct vertex_t
 	vector3f_t position;
 	vector3f_t normal;
 	vector2f_t tex_coord;
+	vector4f_t color;
 } vertex_t;
 
 typedef struct mesh_info_t

@@ -11,12 +11,13 @@ struct main0_out
 struct main0_in
 {
     float2 in_tex_coord [[user(locn0)]];
+    float4 in_color [[user(locn1)]];
 };
 
 fragment main0_out main0(main0_in in [[stage_in]], texture2d<float> tex_sampler [[texture(0)]], sampler tex_samplerSmplr [[sampler(0)]])
 {
     main0_out out = {};
-    out.out_color = tex_sampler.sample(tex_samplerSmplr, in.in_tex_coord);
+    out.out_color = tex_sampler.sample(tex_samplerSmplr, in.in_tex_coord) * in.in_color;
     return out;
 }
 

@@ -472,6 +472,17 @@ static bool load_model_data(model_t *model)
 		}
 	}
 
+	// TODO: Don't do this here maybe
+	for (size_t i = 0; i < model->primitive_count; i++)
+	{
+		const mesh_primitive_t *primitive = model->primitives + i;
+		for (size_t j = 0; j < primitive->vertex_count; j++)
+		{
+			vertex_t *vertex = primitive->vertices + j;
+			vertex->color = *((vector4f_t*) primitive->material->color);
+		}
+	}
+
 	return true;
 }
 

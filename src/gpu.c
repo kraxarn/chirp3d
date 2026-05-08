@@ -83,25 +83,31 @@ SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *wind
 					.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
 				},
 			},
-			.num_vertex_attributes = 3,
+			.num_vertex_attributes = 4,
 			.vertex_attributes = (SDL_GPUVertexAttribute[]){
 				// Position
 				(SDL_GPUVertexAttribute){
 					.location = 0,
 					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-					.offset = 0,
+					.offset = offsetof(vertex_t, position),
 				},
 				// Normal
 				(SDL_GPUVertexAttribute){
 					.location = 1,
 					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-					.offset = sizeof(vector3f_t),
+					.offset = offsetof(vertex_t, normal),
 				},
 				// Texture coordinate
 				(SDL_GPUVertexAttribute){
 					.location = 2,
 					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-					.offset = sizeof(vector3f_t) * 2,
+					.offset = offsetof(vertex_t, tex_coord),
+				},
+				// Colour
+				(SDL_GPUVertexAttribute){
+					.location = 3,
+					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
+					.offset = offsetof(vertex_t, color),
 				},
 			},
 		},
