@@ -206,7 +206,14 @@ static void log_debug_info(const cgltf_data *data)
 	char model_info[model_info_len];
 	SDL_zeroa(model_info);
 
+	cgltf_size mesh_primitive_count = 0;
+	for (size_t i = 0; i < data->meshes_count; i++)
+	{
+		mesh_primitive_count += data->meshes[i].primitives_count;
+	}
+
 	append_debug_info(model_info, model_info_len, "meshes", data->meshes_count);
+	append_debug_info(model_info, model_info_len, "primitives", mesh_primitive_count);
 	append_debug_info(model_info, model_info_len, "materials", data->materials_count);
 	append_debug_info(model_info, model_info_len, "accessors", data->accessors_count);
 	append_debug_info(model_info, model_info_len, "buffer views", data->buffer_views_count);
