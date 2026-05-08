@@ -724,6 +724,9 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	model->primitives = nullptr;
 	model->primitive_count = 0;
 
+	model->sampler = nullptr;
+	model->texture = nullptr;
+
 	model->rotation = vector3f_zero();
 	model->position = vector3f_zero();
 	model->scale = vector3f_one();
