@@ -33,9 +33,6 @@ typedef struct material_t
 {
 	const char *name;
 	SDL_FColor *color;
-
-	SDL_GPUSampler *sampler;
-	SDL_GPUTexture *texture;
 } material_t;
 
 typedef struct mesh_primitive_t
@@ -63,6 +60,9 @@ typedef struct model_t
 
 	mesh_primitive_t *primitives;
 	size_t primitive_count;
+
+	SDL_GPUSampler *sampler;
+	SDL_GPUTexture *texture;
 
 	// TODO: This should probably be per primitive for animations
 	vector3f_t rotation;
@@ -486,7 +486,7 @@ static bool load_model_data(model_t *model)
 	return true;
 }
 
-static bool upload_material(SDL_GPUDevice *device, material_t *material)
+static bool upload_sampler(model_t *model)
 {
 	// TODO: Temporary
 	// TODO: Duplicated from gpu_upload_texture
@@ -505,8 +505,8 @@ static bool upload_material(SDL_GPUDevice *device, material_t *material)
 		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
 		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
 	};
-	material->sampler = SDL_CreateGPUSampler(device, &sampler_info);
-	if (material->sampler == nullptr)
+	model->sampler = SDL_CreateGPUSampler(model->device, &sampler_info);
+	if (model->sampler == nullptr)
 	{
 		SDL_DestroySurface(surface);
 		return false;
@@ -521,12 +521,12 @@ static bool upload_material(SDL_GPUDevice *device, material_t *material)
 		.num_levels = 1,
 		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
 	};
-	material->texture = SDL_CreateGPUTexture(device, &texture_info);
-	if (material->texture == nullptr)
+	model->texture = SDL_CreateGPUTexture(model->device, &texture_info);
+	if (model->texture == nullptr)
 	{
 		SDL_DestroySurface(surface);
-		SDL_ReleaseGPUSampler(device, material->sampler);
-		material->sampler = nullptr;
+		SDL_ReleaseGPUSampler(model->device, model->sampler);
+		model->sampler = nullptr;
 		return false;
 	}
 
@@ -537,41 +537,41 @@ static bool upload_material(SDL_GPUDevice *device, material_t *material)
 		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
 		.size = surface_size,
 	};
-	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(device, &buffer_info);
+	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(model->device, &buffer_info);
 	if (transfer_buffer == nullptr)
 	{
 		SDL_DestroySurface(surface);
-		SDL_ReleaseGPUSampler(device, material->sampler);
-		SDL_ReleaseGPUTexture(device, material->texture);
-		material->sampler = nullptr;
-		material->texture = nullptr;
+		SDL_ReleaseGPUSampler(model->device, model->sampler);
+		SDL_ReleaseGPUTexture(model->device, model->texture);
+		model->sampler = nullptr;
+		model->texture = nullptr;
 		return false;
 	}
 
-	void *transfer_data = SDL_MapGPUTransferBuffer(device, transfer_buffer, false);
+	void *transfer_data = SDL_MapGPUTransferBuffer(model->device, transfer_buffer, false);
 	if (transfer_data == nullptr)
 	{
 		SDL_DestroySurface(surface);
-		SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
-		SDL_ReleaseGPUSampler(device, material->sampler);
-		SDL_ReleaseGPUTexture(device, material->texture);
-		material->sampler = nullptr;
-		material->texture = nullptr;
+		SDL_ReleaseGPUTransferBuffer(model->device, transfer_buffer);
+		SDL_ReleaseGPUSampler(model->device, model->sampler);
+		SDL_ReleaseGPUTexture(model->device, model->texture);
+		model->sampler = nullptr;
+		model->texture = nullptr;
 		return false;
 	}
 
 	SDL_memcpy(transfer_data, surface->pixels, surface_size);
-	SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+	SDL_UnmapGPUTransferBuffer(model->device, transfer_buffer);
 
-	SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(device);
+	SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(model->device);
 	if (command_buffer == nullptr)
 	{
 		SDL_DestroySurface(surface);
-		SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
-		SDL_ReleaseGPUSampler(device, material->sampler);
-		SDL_ReleaseGPUTexture(device, material->texture);
-		material->sampler = nullptr;
-		material->texture = nullptr;
+		SDL_ReleaseGPUTransferBuffer(model->device, transfer_buffer);
+		SDL_ReleaseGPUSampler(model->device, model->sampler);
+		SDL_ReleaseGPUTexture(model->device, model->texture);
+		model->sampler = nullptr;
+		model->texture = nullptr;
 		return false;
 	}
 
@@ -580,7 +580,7 @@ static bool upload_material(SDL_GPUDevice *device, material_t *material)
 		.offset = 0,
 	};
 	const SDL_GPUTextureRegion destination = {
-		.texture = material->texture,
+		.texture = model->texture,
 		.w = surface->w,
 		.h = surface->h,
 		.d = 1,
@@ -593,15 +593,15 @@ static bool upload_material(SDL_GPUDevice *device, material_t *material)
 
 	if (!SDL_SubmitGPUCommandBuffer(command_buffer))
 	{
-		SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
-		SDL_ReleaseGPUSampler(device, material->sampler);
-		SDL_ReleaseGPUTexture(device, material->texture);
-		material->sampler = nullptr;
-		material->texture = nullptr;
+		SDL_ReleaseGPUTransferBuffer(model->device, transfer_buffer);
+		SDL_ReleaseGPUSampler(model->device, model->sampler);
+		SDL_ReleaseGPUTexture(model->device, model->texture);
+		model->sampler = nullptr;
+		model->texture = nullptr;
 		return false;
 	}
 
-	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+	SDL_ReleaseGPUTransferBuffer(model->device, transfer_buffer);
 
 	return true;
 }
@@ -717,14 +717,6 @@ static bool upload_mesh(SDL_GPUDevice *device, mesh_primitive_t *primitive)
 
 static bool upload_model(const model_t *model)
 {
-	for (size_t i = 0; i < model->material_count; i++)
-	{
-		if (!upload_material(model->device, model->materials + i))
-		{
-			return false;
-		}
-	}
-
 	for (size_t i = 0; i < model->primitive_count; i++)
 	{
 		if (!upload_mesh(model->device, model->primitives + i))
@@ -795,6 +787,7 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 
 	if (!load_materials(model)
 		|| !load_model_data(model)
+		|| !upload_sampler(model)
 		|| !upload_model(model))
 	{
 		model_destroy(model);
@@ -816,13 +809,8 @@ void model_destroy(model_t *model)
 
 	cgltf_free(model->data);
 
-	for (size_t i = 0; i < model->material_count; i++)
-	{
-		const material_t *material = model->materials + i;
-
-		SDL_ReleaseGPUTexture(model->device, material->texture);
-		SDL_ReleaseGPUSampler(model->device, material->sampler);
-	}
+	SDL_ReleaseGPUTexture(model->device, model->texture);
+	SDL_ReleaseGPUSampler(model->device, model->sampler);
 	SDL_free(model->materials);
 
 	for (size_t i = 0; i < model->primitive_count; i++)
@@ -875,8 +863,8 @@ static void mesh_draw(const model_t *model, const mesh_primitive_t *primitive, S
 	SDL_BindGPUIndexBuffer(render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT);
 
 	const SDL_GPUTextureSamplerBinding binding = {
-		.texture = primitive->material->texture,
-		.sampler = primitive->material->sampler,
+		.texture = model->texture,
+		.sampler = model->sampler,
 	};
 	SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 
