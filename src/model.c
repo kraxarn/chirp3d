@@ -35,18 +35,6 @@ typedef struct vertex_t
 	vector2f_t tex_coord;
 } vertex_t;
 
-typedef struct mesh_primitive_t
-{
-	vertex_t *vertices;
-	size_t vertex_count;
-
-	mesh_index_t *indices;
-	size_t index_count;
-
-	SDL_GPUBuffer *vertex_buffer;
-	SDL_GPUBuffer *index_buffer;
-} mesh_primitive_t;
-
 typedef struct material_t
 {
 	const char *name;
@@ -55,6 +43,20 @@ typedef struct material_t
 	SDL_GPUSampler *sampler;
 	SDL_GPUTexture *texture;
 } material_t;
+
+typedef struct mesh_primitive_t
+{
+	vertex_t *vertices;
+	size_t vertex_count;
+
+	mesh_index_t *indices;
+	size_t index_count;
+
+	material_t *material;
+
+	SDL_GPUBuffer *vertex_buffer;
+	SDL_GPUBuffer *index_buffer;
+} mesh_primitive_t;
 
 typedef struct model_t
 {
@@ -458,6 +460,22 @@ static bool load_model_data(model_t *model)
 				);
 			}
 		}
+
+		for (size_t j = 0; j < model->material_count; j++)
+		{
+			material_t *material = model->materials + j;
+			if (SDL_strcmp(primitive->material->name, material->name) == 0)
+			{
+				model_primitive->material = material;
+				break;
+			}
+		}
+
+		if (model_primitive->material == nullptr)
+		{
+			return SDL_SetError("Failed to find material '%s'",
+				primitive->material->name);
+		}
 	}
 
 	return true;
@@ -852,8 +870,8 @@ static void mesh_draw(const model_t *model, const mesh_primitive_t *primitive, S
 	SDL_BindGPUIndexBuffer(render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT);
 
 	const SDL_GPUTextureSamplerBinding binding = {
-		.texture = model->materials[0].texture, // TODO
-		.sampler = model->materials[0].sampler, // TODO
+		.texture = primitive->material->texture,
+		.sampler = primitive->material->sampler,
 	};
 	SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 
