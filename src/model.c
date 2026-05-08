@@ -1,6 +1,7 @@
 #include "model.h"
 #include "logcategory.h"
 #include "math.h"
+#include "meshinfo.h"
 #include "uniformdata.h"
 #include "vector.h"
 
@@ -27,13 +28,6 @@
 // TODO: Duplicated from mesh/mesh_info
 
 typedef Uint16 mesh_index_t;
-
-typedef struct vertex_t
-{
-	vector3f_t position;
-	vector3f_t normal;
-	vector2f_t tex_coord;
-} vertex_t;
 
 typedef struct material_t
 {
