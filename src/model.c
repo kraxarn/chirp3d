@@ -417,6 +417,7 @@ static bool load_model_data(model_t *model)
 		node_t *node = model->nodes + nn;
 		node->name = gltf_node->name;
 		node->scale = vector3f_one();
+		node->rebuild_projection = true;
 
 		node->primitive_count = gltf_mesh->primitives_count;
 		node->primitives = SDL_calloc(node->primitive_count, sizeof(mesh_primitive_t));
