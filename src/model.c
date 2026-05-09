@@ -47,6 +47,21 @@ typedef struct mesh_primitive_t
 	SDL_GPUBuffer *index_buffer;
 } mesh_primitive_t;
 
+typedef struct node_t
+{
+	const char *name;
+
+	mesh_primitive_t *primitives;
+	size_t primitive_count;
+
+	vector3f_t rotation;
+	vector3f_t position;
+	vector3f_t scale;
+
+	matrix4x4_t projection;
+	bool rebuild_projection;
+} node_t;
+
 typedef struct model_t
 {
 	cgltf_data *data;
@@ -56,18 +71,11 @@ typedef struct model_t
 	material_t *materials;
 	size_t material_count;
 
-	mesh_primitive_t *primitives;
-	size_t primitive_count;
+	node_t *nodes;
+	size_t node_count;
 
 	SDL_GPUSampler *sampler;
 	SDL_GPUTexture *texture;
-
-	vector3f_t rotation;
-	vector3f_t position;
-	vector3f_t scale;
-
-	matrix4x4_t projection;
-	bool rebuild_projection;
 } model_t;
 
 [[nodiscard]]
@@ -392,64 +400,70 @@ static void set_primitive_material(const mesh_primitive_t *primitive,
 
 static bool load_model_data(model_t *model)
 {
+	model->node_count = model->data->nodes_count;
+	model->nodes = SDL_calloc(sizeof(node_t), model->node_count);
+
 	for (size_t nn = 0; nn < model->data->nodes_count; nn++)
 	{
-		const cgltf_node *node = model->data->nodes + nn;
-		SDL_LogDebug(LOG_CATEGORY_MODEL, "Node: %s", node->name);
+		const cgltf_node *gltf_node = model->data->nodes + nn;
+		SDL_LogDebug(LOG_CATEGORY_MODEL, "Found node: %s", gltf_node->name);
 
-		const cgltf_mesh *mesh = node->mesh;
-		if (mesh == nullptr)
+		const cgltf_mesh *gltf_mesh = gltf_node->mesh;
+		if (gltf_mesh == nullptr)
 		{
-			return SDL_SetError("No or invalid mesh");
+			continue;
 		}
 
-		const size_t offset = model->primitive_count;
-		model->primitive_count += mesh->primitives_count;
-		model->primitives = SDL_realloc(model->primitives, sizeof(mesh_primitive_t) * model->primitive_count);
+		node_t *node = model->nodes + nn;
+		node->name = gltf_node->name;
+		node->scale = vector3f_one();
 
-		for (size_t pp = 0; pp < mesh->primitives_count; pp++)
+		node->primitive_count = gltf_mesh->primitives_count;
+		node->primitives = SDL_calloc(node->primitive_count, sizeof(mesh_primitive_t));
+
+		for (size_t pp = 0; pp < gltf_mesh->primitives_count; pp++)
 		{
-			const cgltf_primitive *primitive = mesh->primitives + pp;
+			const cgltf_primitive *gltf_primitive = gltf_mesh->primitives + pp;
 
-			if (primitive->type != cgltf_primitive_type_triangles)
+			if (gltf_primitive->type != cgltf_primitive_type_triangles)
 			{
 				return SDL_SetError("Invalid primitive: %s",
-					cgltf_primitive_type_string(primitive->type));
+					cgltf_primitive_type_string(gltf_primitive->type));
 			}
 
-			if (primitive->has_draco_mesh_compression)
+			if (gltf_primitive->has_draco_mesh_compression)
 			{
 				return SDL_SetError("Draco compression is not supported");
 			}
 
-			mesh_primitive_t *model_primitive = model->primitives + offset + pp;
+			mesh_primitive_t *primitive = node->primitives + pp;
 
-			model_primitive->vertices = nullptr;
-			model_primitive->vertex_count = 0;
+			primitive->vertices = nullptr;
+			primitive->vertex_count = 0;
 
-			model_primitive->indices = nullptr;
-			model_primitive->index_count = 0;
+			primitive->indices = nullptr;
+			primitive->index_count = 0;
 
-			model_primitive->vertex_buffer = nullptr;
-			model_primitive->index_buffer = nullptr;
+			primitive->vertex_buffer = nullptr;
+			primitive->index_buffer = nullptr;
 
-			if (primitive->indices != nullptr
-				&& !load_buffer_data(primitive->indices, model_primitive, prop_index))
+			if (gltf_primitive->indices != nullptr
+				&& !load_buffer_data(gltf_primitive->indices, primitive, prop_index))
 			{
 				return false;
 			}
 
-			for (cgltf_size aa = 0; aa < primitive->attributes_count; aa++)
+			for (cgltf_size aa = 0; aa < gltf_primitive->attributes_count; aa++)
 			{
-				const cgltf_attribute *attribute = primitive->attributes + aa;
+				const cgltf_attribute *gltf_attribute = gltf_primitive->attributes + aa;
 
-				if (!supported_attribute(attribute->type)
-					|| !load_buffer_data(attribute->data, model_primitive, attribute->type))
+				if (!supported_attribute(gltf_attribute->type)
+					|| !load_buffer_data(gltf_attribute->data, primitive, gltf_attribute->type))
 				{
 					return SDL_SetError("Unsupported attribute: %s (%s %s)",
-						cgltf_attribute_type_string(attribute->type),
-						cgltf_type_string(attribute->data->type),
-						cgltf_component_type_string(attribute->data->component_type)
+						cgltf_attribute_type_string(gltf_attribute->type),
+						cgltf_type_string(gltf_attribute->data->type),
+						cgltf_component_type_string(gltf_attribute->data->component_type)
 					);
 				}
 			}
@@ -457,9 +471,9 @@ static bool load_model_data(model_t *model)
 			for (size_t mm = 0; mm < model->material_count; mm++)
 			{
 				const material_t *material = model->materials + mm;
-				if (SDL_strcmp(primitive->material->name, material->name) == 0)
+				if (SDL_strcmp(gltf_primitive->material->name, material->name) == 0)
 				{
-					set_primitive_material(model_primitive, material);
+					set_primitive_material(primitive, material);
 					break;
 				}
 			}
@@ -697,11 +711,16 @@ static bool upload_mesh(SDL_GPUDevice *device, mesh_primitive_t *primitive)
 
 static bool upload_model(const model_t *model)
 {
-	for (size_t i = 0; i < model->primitive_count; i++)
+	for (size_t nn = 0; nn < model->node_count; nn++)
 	{
-		if (!upload_mesh(model->device, model->primitives + i))
+		const node_t *node = model->nodes + nn;
+
+		for (size_t pp = 0; pp < node->primitive_count; pp++)
 		{
-			return false;
+			if (!upload_mesh(model->device, node->primitives + pp))
+			{
+				return false;
+			}
 		}
 	}
 
@@ -724,20 +743,12 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	}
 
 	model->device = device;
-	model->rebuild_projection = false;
 
 	model->materials = nullptr;
 	model->material_count = 0;
 
-	model->primitives = nullptr;
-	model->primitive_count = 0;
-
 	model->sampler = nullptr;
 	model->texture = nullptr;
-
-	model->rotation = vector3f_zero();
-	model->position = vector3f_zero();
-	model->scale = vector3f_one();
 
 	const cgltf_options options = {};
 
@@ -797,43 +808,45 @@ void model_destroy(model_t *model)
 	SDL_ReleaseGPUSampler(model->device, model->sampler);
 	SDL_free(model->materials);
 
-	for (size_t i = 0; i < model->primitive_count; i++)
+	for (size_t nn = 0; nn < model->node_count; nn++)
 	{
-		const mesh_primitive_t *primitive = model->primitives + i;
-
-		SDL_ReleaseGPUBuffer(model->device, primitive->vertex_buffer);
-		SDL_ReleaseGPUBuffer(model->device, primitive->index_buffer);
-		SDL_free(primitive->vertices);
+		const node_t *node = model->nodes + nn;
+		for (size_t pp = 0; pp < node->primitive_count; pp++)
+		{
+			const mesh_primitive_t *primitive = node->primitives + pp;
+			SDL_ReleaseGPUBuffer(model->device, primitive->vertex_buffer);
+			SDL_ReleaseGPUBuffer(model->device, primitive->index_buffer);
+			SDL_free(primitive->vertices);
+		}
+		SDL_free(node->primitives);
 	}
-	SDL_free(model->primitives);
+	SDL_free(model->nodes);
 
 	SDL_free(model);
 }
 
-static void rebuild_projection(model_t *model)
+static void rebuild_projection(node_t *node)
 {
 	const matrix4x4_t transforms[] = {
-		matrix4x4_create_scale(model->scale),
-		matrix4x4_create_rotation_x(deg2rad(model->rotation.x)),
-		matrix4x4_create_rotation_y(deg2rad(model->rotation.y)),
-		matrix4x4_create_rotation_z(deg2rad(model->rotation.z)),
-		matrix4x4_create_translation(model->position),
+		matrix4x4_create_scale(node->scale),
+		matrix4x4_create_rotation_x(deg2rad(node->rotation.x)),
+		matrix4x4_create_rotation_y(deg2rad(node->rotation.y)),
+		matrix4x4_create_rotation_z(deg2rad(node->rotation.z)),
+		matrix4x4_create_translation(node->position),
 	};
 
-	model->projection = transforms[0];
+	node->projection = transforms[0];
 	for (auto i = 1; i < SDL_arraysize(transforms); i++)
 	{
-		model->projection = matrix4x4_multiply(model->projection, transforms[i]);
+		node->projection = matrix4x4_multiply(node->projection, transforms[i]);
 	}
 
-	model->rebuild_projection = false;
+	node->rebuild_projection = false;
 }
 
-static void mesh_draw(const model_t *model, const mesh_primitive_t *primitive, SDL_GPURenderPass *render_pass,
-	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
+static void mesh_draw(const model_t *model, const node_t *node, const mesh_primitive_t *primitive,
+	SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
 {
-	// TODO: Duplicated from mesh
-
 	const SDL_GPUBufferBinding vertex_binding = {
 		.buffer = primitive->vertex_buffer,
 		.offset = 0,
@@ -853,7 +866,7 @@ static void mesh_draw(const model_t *model, const mesh_primitive_t *primitive, S
 	SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 
 	const vertex_uniform_data_t vertex_data = {
-		.mvp = matrix4x4_multiply(model->projection, projection),
+		.mvp = matrix4x4_multiply(node->projection, projection),
 	};
 	SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
 
@@ -861,49 +874,58 @@ static void mesh_draw(const model_t *model, const mesh_primitive_t *primitive, S
 		1, 0, 0, 0);
 }
 
+static void node_draw(model_t *model, node_t *node, SDL_GPURenderPass *render_pass,
+	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
+{
+	if (node->rebuild_projection)
+	{
+		rebuild_projection(node);
+	}
+
+	for (size_t i = 0; i < node->primitive_count; i++)
+	{
+		mesh_draw(model, node, node->primitives + i, render_pass, command_buffer, projection);
+	}
+}
+
 void model_draw(model_t *model, SDL_GPURenderPass *render_pass,
 	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
 {
-	if (model->rebuild_projection)
+	for (size_t i = 0; i < model->node_count; i++)
 	{
-		rebuild_projection(model);
-	}
-
-	for (size_t i = 0; i < model->primitive_count; i++)
-	{
-		mesh_draw(model, model->primitives + i, render_pass, command_buffer, projection);
+		node_draw(model, model->nodes + i, render_pass, command_buffer, projection);
 	}
 }
 
-vector3f_t model_rotation(const model_t *model)
+vector3f_t model_rotation(const model_t *model, const size_t node)
 {
-	return model->rotation;
+	return model->nodes[node].rotation;
 }
 
-void model_set_rotation(model_t *model, const vector3f_t rotation)
+void model_set_rotation(const model_t *model, const size_t node, const vector3f_t rotation)
 {
-	model->rotation = rotation;
-	model->rebuild_projection = true;
+	model->nodes[node].rotation = rotation;
+	model->nodes[node].rebuild_projection = true;
 }
 
-vector3f_t model_position(const model_t *model)
+vector3f_t model_position(const model_t *model, const size_t node)
 {
-	return model->position;
+	return model->nodes[node].position;
 }
 
-void model_set_position(model_t *model, const vector3f_t position)
+void model_set_position(const model_t *model, const size_t node, const vector3f_t position)
 {
-	model->position = position;
-	model->rebuild_projection = true;
+	model->nodes[node].position = position;
+	model->nodes[node].rebuild_projection = true;
 }
 
-vector3f_t model_scale(const model_t *model)
+vector3f_t model_scale(const model_t *model, const size_t node)
 {
-	return model->scale;
+	return model->nodes[node].scale;
 }
 
-void model_set_scale(model_t *model, const vector3f_t scale)
+void model_set_scale(const model_t *model, const size_t node, const vector3f_t scale)
 {
-	model->scale = scale;
-	model->rebuild_projection = true;
+	model->nodes[node].scale = scale;
+	model->nodes[node].rebuild_projection = true;
 }
