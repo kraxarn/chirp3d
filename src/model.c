@@ -392,68 +392,76 @@ static void set_primitive_material(const mesh_primitive_t *primitive,
 
 static bool load_model_data(model_t *model)
 {
-	if (model->data->nodes_count != 1)
+	for (size_t nn = 0; nn < model->data->nodes_count; nn++)
 	{
-		return SDL_SetError("Only one node is supported, found %zu",
-			model->data->nodes_count);
-	}
+		const cgltf_node *node = model->data->nodes + nn;
+		SDL_LogDebug(LOG_CATEGORY_MODEL, "Node: %s", node->name);
 
-	const cgltf_node *node = model->data->nodes;
-	const cgltf_mesh *mesh = node->mesh;
-
-	if (mesh == nullptr)
-	{
-		return SDL_SetError("No or invalid mesh");
-	}
-
-	model->primitive_count = mesh->primitives_count;
-	model->primitives = SDL_calloc(model->primitive_count, sizeof(mesh_primitive_t));
-
-	for (size_t i = 0; i < mesh->primitives_count; i++)
-	{
-		const cgltf_primitive *primitive = mesh->primitives + i;
-
-		if (primitive->type != cgltf_primitive_type_triangles)
+		const cgltf_mesh *mesh = node->mesh;
+		if (mesh == nullptr)
 		{
-			return SDL_SetError("Invalid primitive: %s",
-				cgltf_primitive_type_string(primitive->type));
+			return SDL_SetError("No or invalid mesh");
 		}
 
-		if (primitive->has_draco_mesh_compression)
+		const size_t offset = model->primitive_count;
+		model->primitive_count += mesh->primitives_count;
+		model->primitives = SDL_realloc(model->primitives, sizeof(mesh_primitive_t) * model->primitive_count);
+
+		for (size_t pp = 0; pp < mesh->primitives_count; pp++)
 		{
-			return SDL_SetError("Draco compression is not supported");
-		}
+			const cgltf_primitive *primitive = mesh->primitives + pp;
 
-		mesh_primitive_t *model_primitive = model->primitives + i;
-
-		if (primitive->indices != nullptr
-			&& !load_buffer_data(primitive->indices, model_primitive, prop_index))
-		{
-			return false;
-		}
-
-		for (cgltf_size j = 0; j < primitive->attributes_count; j++)
-		{
-			const cgltf_attribute *attribute = primitive->attributes + j;
-
-			if (!supported_attribute(attribute->type)
-				|| !load_buffer_data(attribute->data, model_primitive, attribute->type))
+			if (primitive->type != cgltf_primitive_type_triangles)
 			{
-				return SDL_SetError("Unsupported attribute: %s (%s %s)",
-					cgltf_attribute_type_string(attribute->type),
-					cgltf_type_string(attribute->data->type),
-					cgltf_component_type_string(attribute->data->component_type)
-				);
+				return SDL_SetError("Invalid primitive: %s",
+					cgltf_primitive_type_string(primitive->type));
 			}
-		}
 
-		for (size_t j = 0; j < model->material_count; j++)
-		{
-			const material_t *material = model->materials + j;
-			if (SDL_strcmp(primitive->material->name, material->name) == 0)
+			if (primitive->has_draco_mesh_compression)
 			{
-				set_primitive_material(model_primitive, material);
-				break;
+				return SDL_SetError("Draco compression is not supported");
+			}
+
+			mesh_primitive_t *model_primitive = model->primitives + offset + pp;
+
+			model_primitive->vertices = nullptr;
+			model_primitive->vertex_count = 0;
+
+			model_primitive->indices = nullptr;
+			model_primitive->index_count = 0;
+
+			model_primitive->vertex_buffer = nullptr;
+			model_primitive->index_buffer = nullptr;
+
+			if (primitive->indices != nullptr
+				&& !load_buffer_data(primitive->indices, model_primitive, prop_index))
+			{
+				return false;
+			}
+
+			for (cgltf_size aa = 0; aa < primitive->attributes_count; aa++)
+			{
+				const cgltf_attribute *attribute = primitive->attributes + aa;
+
+				if (!supported_attribute(attribute->type)
+					|| !load_buffer_data(attribute->data, model_primitive, attribute->type))
+				{
+					return SDL_SetError("Unsupported attribute: %s (%s %s)",
+						cgltf_attribute_type_string(attribute->type),
+						cgltf_type_string(attribute->data->type),
+						cgltf_component_type_string(attribute->data->component_type)
+					);
+				}
+			}
+
+			for (size_t mm = 0; mm < model->material_count; mm++)
+			{
+				const material_t *material = model->materials + mm;
+				if (SDL_strcmp(primitive->material->name, material->name) == 0)
+				{
+					set_primitive_material(model_primitive, material);
+					break;
+				}
 			}
 		}
 	}
