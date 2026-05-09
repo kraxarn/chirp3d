@@ -724,6 +724,7 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	}
 
 	model->device = device;
+	model->rebuild_projection = false;
 
 	model->materials = nullptr;
 	model->material_count = 0;
