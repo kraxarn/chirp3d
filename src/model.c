@@ -818,6 +818,7 @@ void model_destroy(model_t *model)
 			SDL_ReleaseGPUBuffer(model->device, primitive->vertex_buffer);
 			SDL_ReleaseGPUBuffer(model->device, primitive->index_buffer);
 			SDL_free(primitive->vertices);
+			SDL_free(primitive->indices);
 		}
 		SDL_free(node->primitives);
 	}
