@@ -347,35 +347,62 @@ static bool load_buffer_data(const cgltf_accessor *accessor, mesh_primitive_t *p
 		primitive->vertices = SDL_calloc(primitive->vertex_count, sizeof(vertex_t));
 	}
 
-	void *buffer = accessor->buffer_view->buffer->data
-		+ accessor->buffer_view->offset
-		+ accessor->offset;
+	if (property == prop_index)
+	{
+		const cgltf_size count = cgltf_accessor_unpack_indices(accessor, primitive->indices,
+			sizeof(mesh_index_t), accessor->count);
+
+		if (count != primitive->index_count)
+		{
+			return SDL_SetError("Invalid index count, found %zu but expected %zu",
+				count, primitive->index_count);
+		}
+
+		return true;
+	}
+
+	const cgltf_size num_components = cgltf_num_components(accessor->type);
+	const cgltf_size float_count = accessor->count * num_components;
+
+	cgltf_float *out = SDL_calloc(float_count, sizeof(cgltf_float));
+	if (out == nullptr)
+	{
+		return SDL_SetError("Failed to allocate memory");
+	}
+
+	const cgltf_size count = cgltf_accessor_unpack_floats(accessor, out, float_count);
+	if (count != primitive->vertex_count * num_components)
+	{
+		SDL_free(out);
+
+		return SDL_SetError("Invalid %s count, found %zu but expected %zu",
+			cgltf_attribute_type_string(property),
+			count / num_components, primitive->vertex_count
+		);
+	}
 
 	for (size_t i = 0; i < accessor->count; i++)
 	{
-		switch (property)
+		vertex_t *vertex = primitive->vertices + i;
+		const cgltf_float *data = out + (i * num_components);
+
+		if (property == prop_vertex_tex_coord)
 		{
-			case prop_index:
-				primitive->indices[i] = ((mesh_index_t*) buffer)[i];
-				break;
-
-			case prop_vertex_position:
-				primitive->vertices[i].position = ((vector3f_t*) buffer)[i];
-				break;
-
-			case prop_vertex_normal:
-				primitive->vertices[i].normal = ((vector3f_t*) buffer)[i];
-				break;
-
-			case prop_vertex_tex_coord:
-				primitive->vertices[i].tex_coord = ((vector2f_t*) buffer)[i];
-				break;
-
-			default:
-				break;
+			vertex->tex_coord.x = data[0];
+			vertex->tex_coord.y = data[1];
+			continue;
 		}
+
+		vector3f_t *target = property == prop_vertex_position
+			? &vertex->position
+			: &vertex->normal;
+
+		target->x = data[0];
+		target->y = data[1];
+		target->z = data[2];
 	}
 
+	SDL_free(out);
 	return true;
 }
 
@@ -461,6 +488,11 @@ static bool load_model_data(model_t *model)
 				if (!supported_attribute(gltf_attribute->type)
 					|| !load_buffer_data(gltf_attribute->data, primitive, gltf_attribute->type))
 				{
+					if (SDL_strlen(SDL_GetError()) > 0)
+					{
+						return false;
+					}
+
 					return SDL_SetError("Unsupported attribute: %s (%s %s)",
 						cgltf_attribute_type_string(gltf_attribute->type),
 						cgltf_type_string(gltf_attribute->data->type),
