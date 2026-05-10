@@ -256,7 +256,7 @@ static void materials_print(const material_t *materials, const size_t count)
 
 		const SDL_FColor *color = material->color;
 
-		SDL_LogDebug(LOG_CATEGORY_MODEL, "Material: %s\t%02x%02x%02x%02x", material->name,
+		SDL_LogDebug(LOG_CATEGORY_MODEL, "Material: %s, #%02x%02x%02x%02x", material->name,
 			(Uint8) (color->r * SDL_ALPHA_OPAQUE),
 			(Uint8) (color->g * SDL_ALPHA_OPAQUE),
 			(Uint8) (color->b * SDL_ALPHA_OPAQUE),
