@@ -177,21 +177,13 @@ assets_t *assets_create_from_folder(const char *path)
 	char *toml_path = nullptr;
 	SDL_asprintf(&toml_path, "%s/project.toml", path);
 
-	// TODO: Is this really necessary?
-	SDL_PathInfo toml_path_info;
-	if (!SDL_GetPathInfo(toml_path, &toml_path_info) || toml_path_info.type != SDL_PATHTYPE_FILE)
-	{
-		SDL_free(toml_path);
-		SDL_SetError("'project.toml' file missing or invalid");
-		return nullptr;
-	}
-
 	size_t toml_size = 0;
 	void *toml_data = SDL_LoadFile(toml_path, &toml_size);
 	SDL_free(toml_path);
 
 	if (toml_data == nullptr)
 	{
+		SDL_SetError("'project.toml' file missing or invalid");
 		return nullptr;
 	}
 
