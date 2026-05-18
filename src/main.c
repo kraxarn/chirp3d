@@ -393,7 +393,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 
 	model_set_rotation(state->models[0], 0, (vector3f_t){
-		.x = 90.F,
+		.x = 0.F,
 		.y = 90.F,
 		.z = 0.F,
 	});
