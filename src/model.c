@@ -871,6 +871,7 @@ static void rebuild_projection(node_t *node)
 {
 	const matrix4x4_t transforms[] = {
 		node->world_transform,
+		// TODO: Most of these don't need to be per-node
 		matrix4x4_create_scale(node->scale),
 		matrix4x4_create_rotation_x(deg2rad(node->rotation.x)),
 		matrix4x4_create_rotation_y(deg2rad(node->rotation.y)),
@@ -940,35 +941,19 @@ void model_draw(model_t *model, SDL_GPURenderPass *render_pass,
 	}
 }
 
-vector3f_t model_rotation(const model_t *model, const size_t node)
+#define foreach_node(n,f) for(size_t i=0;i<model->node_count;i++){node_t*n=model->nodes+i;f;n->rebuild_projection=true;}
+
+void model_set_rotation(const model_t *model, const vector3f_t rotation)
 {
-	return model->nodes[node].rotation;
+	foreach_node(node, node->rotation = rotation);
 }
 
-void model_set_rotation(const model_t *model, const size_t node, const vector3f_t rotation)
+void model_set_position(const model_t *model, const vector3f_t position)
 {
-	model->nodes[node].rotation = rotation;
-	model->nodes[node].rebuild_projection = true;
+	foreach_node(node, node->position = position);
 }
 
-vector3f_t model_position(const model_t *model, const size_t node)
+void model_set_scale(const model_t *model, const vector3f_t scale)
 {
-	return model->nodes[node].position;
-}
-
-void model_set_position(const model_t *model, const size_t node, const vector3f_t position)
-{
-	model->nodes[node].position = position;
-	model->nodes[node].rebuild_projection = true;
-}
-
-vector3f_t model_scale(const model_t *model, const size_t node)
-{
-	return model->nodes[node].scale;
-}
-
-void model_set_scale(const model_t *model, const size_t node, const vector3f_t scale)
-{
-	model->nodes[node].scale = scale;
-	model->nodes[node].rebuild_projection = true;
+	foreach_node(node, node->scale = scale);
 }
