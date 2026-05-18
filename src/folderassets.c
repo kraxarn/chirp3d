@@ -51,8 +51,7 @@ static bool supported_file(const char *filename)
 	const size_t len = SDL_strlen(filename);
 
 	return has_ext(".qoi")
-		|| has_ext(".glb")
-		|| has_ext(".gltf");
+		|| has_ext(".glb");
 
 #undef has_ext
 #undef str_len
