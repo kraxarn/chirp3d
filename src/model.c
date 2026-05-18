@@ -788,11 +788,11 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	const Uint64 begin = SDL_GetTicks();
 
 	cgltf_result result = cgltf_parse(&options, file_data, file_size, &model->data);
-	SDL_free(file_data);
 
 	if (result != cgltf_result_success)
 	{
 		SDL_SetError("%s", cgltf_error_string(result));
+		SDL_free(file_data);
 		SDL_free(model);
 		return nullptr;
 	}
@@ -804,6 +804,7 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	if (result != cgltf_result_success)
 	{
 		SDL_SetError("%s", cgltf_error_string(result));
+		SDL_free(file_data);
 		SDL_free(model);
 		return nullptr;
 	}
@@ -818,9 +819,12 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 		|| !upload_sampler(model)
 		|| !upload_model(model))
 	{
+		SDL_free(file_data);
 		model_destroy(model);
 		return nullptr;
 	}
+
+	SDL_free(file_data);
 
 	const Uint64 model_end = SDL_GetTicks();
 	SDL_LogDebug(LOG_CATEGORY_MODEL, "Loaded model data in %lu ms", model_end - buffer_end);
