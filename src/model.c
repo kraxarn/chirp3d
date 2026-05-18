@@ -58,6 +58,7 @@ typedef struct node_t
 	vector3f_t position;
 	vector3f_t scale;
 
+	matrix4x4_t world_transform;
 	matrix4x4_t projection;
 	bool rebuild_projection;
 } node_t;
@@ -443,6 +444,8 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 		node->name = gltf_node->name;
 		node->scale = vector3f_one();
 		node->rebuild_projection = true;
+
+		cgltf_node_transform_world(gltf_node, (cgltf_float*) &node->world_transform.m);
 
 		node->primitive_count = gltf_mesh->primitives_count;
 		node->primitives = SDL_calloc(node->primitive_count, sizeof(mesh_primitive_t));
@@ -867,6 +870,7 @@ void model_destroy(model_t *model)
 static void rebuild_projection(node_t *node)
 {
 	const matrix4x4_t transforms[] = {
+		node->world_transform,
 		matrix4x4_create_scale(node->scale),
 		matrix4x4_create_rotation_x(deg2rad(node->rotation.x)),
 		matrix4x4_create_rotation_y(deg2rad(node->rotation.y)),
