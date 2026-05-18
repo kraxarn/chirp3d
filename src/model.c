@@ -64,8 +64,6 @@ typedef struct node_t
 
 typedef struct model_t
 {
-	cgltf_data *data;
-
 	SDL_GPUDevice *device;
 
 	material_t *materials;
@@ -265,9 +263,9 @@ static void materials_print(const material_t *materials, const size_t count)
 	}
 }
 
-static bool load_materials(model_t *model)
+static bool load_materials(model_t *model, const cgltf_data *gltf_data)
 {
-	model->material_count = model->data->materials_count;
+	model->material_count = gltf_data->materials_count;
 	model->materials = SDL_malloc(sizeof(material_t) * model->material_count);
 
 	if (model->materials == nullptr)
@@ -275,9 +273,9 @@ static bool load_materials(model_t *model)
 		return false;
 	}
 
-	for (cgltf_size i = 0; i < model->data->materials_count; i++)
+	for (cgltf_size i = 0; i < gltf_data->materials_count; i++)
 	{
-		const cgltf_material *material = model->data->materials + i;
+		const cgltf_material *material = gltf_data->materials + i;
 
 		model->materials[i].name = material->name;
 		model->materials[i].color = (SDL_FColor*) material->pbr_metallic_roughness.base_color_factor;
@@ -425,14 +423,14 @@ static void set_primitive_material(const mesh_primitive_t *primitive,
 	}
 }
 
-static bool load_model_data(model_t *model)
+static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 {
-	model->node_count = model->data->nodes_count;
+	model->node_count = gltf_data->nodes_count;
 	model->nodes = SDL_calloc(sizeof(node_t), model->node_count);
 
-	for (size_t nn = 0; nn < model->data->nodes_count; nn++)
+	for (size_t nn = 0; nn < gltf_data->nodes_count; nn++)
 	{
-		const cgltf_node *gltf_node = model->data->nodes + nn;
+		const cgltf_node *gltf_node = gltf_data->nodes + nn;
 		SDL_LogDebug(LOG_CATEGORY_MODEL, "Found node: %s", gltf_node->name);
 
 		const cgltf_mesh *gltf_mesh = gltf_node->mesh;
@@ -784,14 +782,16 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	model->texture = nullptr;
 
 	const cgltf_options options = {};
+	cgltf_data *gltf_data = nullptr;
 
 	const Uint64 begin = SDL_GetTicks();
 
-	cgltf_result result = cgltf_parse(&options, file_data, file_size, &model->data);
+	cgltf_result result = cgltf_parse(&options, file_data, file_size, &gltf_data);
 
 	if (result != cgltf_result_success)
 	{
 		SDL_SetError("%s", cgltf_error_string(result));
+		cgltf_free(gltf_data);
 		SDL_free(file_data);
 		SDL_free(model);
 		return nullptr;
@@ -800,10 +800,11 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	const Uint64 parse_end = SDL_GetTicks();
 	SDL_LogDebug(LOG_CATEGORY_MODEL, "Parsed model in %lu ms", parse_end - begin);
 
-	result = cgltf_load_buffers(&options, model->data, nullptr);
+	result = cgltf_load_buffers(&options, gltf_data, nullptr);
 	if (result != cgltf_result_success)
 	{
 		SDL_SetError("%s", cgltf_error_string(result));
+		cgltf_free(gltf_data);
 		SDL_free(file_data);
 		SDL_free(model);
 		return nullptr;
@@ -812,19 +813,21 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	const Uint64 buffer_end = SDL_GetTicks();
 	SDL_LogDebug(LOG_CATEGORY_MODEL, "Loaded buffers in %lu ms", buffer_end - parse_end);
 
-	log_debug_info(model->data);
+	log_debug_info(gltf_data);
 
-	if (!load_materials(model)
-		|| !load_model_data(model)
+	if (!load_materials(model, gltf_data)
+		|| !load_model_data(model, gltf_data)
 		|| !upload_sampler(model)
 		|| !upload_model(model))
 	{
+		cgltf_free(gltf_data);
 		SDL_free(file_data);
 		model_destroy(model);
 		return nullptr;
 	}
 
 	SDL_free(file_data);
+	cgltf_free(gltf_data);
 
 	const Uint64 model_end = SDL_GetTicks();
 	SDL_LogDebug(LOG_CATEGORY_MODEL, "Loaded model data in %lu ms", model_end - buffer_end);
@@ -838,8 +841,6 @@ void model_destroy(model_t *model)
 	{
 		return;
 	}
-
-	cgltf_free(model->data);
 
 	SDL_ReleaseGPUTexture(model->device, model->texture);
 	SDL_ReleaseGPUSampler(model->device, model->sampler);
