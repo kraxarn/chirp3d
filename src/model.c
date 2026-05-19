@@ -9,6 +9,7 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_log.h>
+#include <SDL3/SDL_properties.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_timer.h>
 
@@ -77,6 +78,8 @@ typedef struct model_t
 
 	node_t *nodes;
 	size_t node_count;
+
+	SDL_PropertiesID node_indices;
 
 	camera_t *cameras;
 	size_t camera_count;
@@ -444,6 +447,12 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 
 		node_t *node = model->nodes + nn;
 		node->name = SDL_strdup(gltf_node->name);
+
+		if (node->name != nullptr
+			&& !SDL_SetNumberProperty(model->node_indices, node->name, (Sint64) nn))
+		{
+			return false;
+		}
 
 		const cgltf_mesh *gltf_mesh = gltf_node->mesh;
 		if (gltf_mesh == nullptr)
@@ -822,6 +831,13 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	model->sampler = nullptr;
 	model->texture = nullptr;
 
+	model->node_indices = SDL_CreateProperties();
+	if (model->node_indices == 0)
+	{
+		SDL_free(model);
+		return nullptr;
+	}
+
 	const cgltf_options options = {
 		.type = cgltf_file_type_glb,
 	};
@@ -997,6 +1013,18 @@ void model_draw(model_t *model, SDL_GPURenderPass *render_pass,
 void model_set_rotation(const model_t *model, const vector3f_t rotation)
 {
 	foreach_node(node, node->rotation = rotation);
+}
+
+vector3f_t model_node_position(const model_t *model, const char *node)
+{
+	const Sint64 index = SDL_GetNumberProperty(model->node_indices, node, -1);
+	if (index < 0)
+	{
+		SDL_LogWarn(LOG_CATEGORY_MODEL, "Invalid node: %s", node);
+		return vector3f_zero();
+	}
+
+	return model->nodes[(size_t) index].position;
 }
 
 void model_set_position(const model_t *model, const vector3f_t position)
