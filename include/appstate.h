@@ -34,9 +34,6 @@ typedef struct app_state_t
 	time_info_t time;
 	float dt;
 
-	mesh_t **meshes;
-	size_t num_meshes;
-
 	model_t **models;
 	size_t model_count;
 

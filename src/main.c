@@ -8,13 +8,11 @@
 #include "logcategory.h"
 #include "math.h"
 #include "matrix.h"
-#include "mesh.h"
 #include "model.h"
 #include "physics.h"
 #include "physicsconfig.h"
 #include "resources.h"
 #include "shader.h"
-#include "shapes.h"
 #include "systeminfo.h"
 #include "vector.h"
 #include "windowconfig.h"
@@ -47,7 +45,6 @@
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_version.h>
 #include <SDL3/SDL_video.h>
@@ -134,36 +131,12 @@ static bool init_imgui(const app_state_t *state)
 
 static SDL_AppResult build_scene(app_state_t *state)
 {
-	const auto floor_size = (vector3f_t){.x = 100.F, .y = 2.5F, .z = 100.F};
-
-	const mesh_t *meshes[] = {
-		create_cube(state->device, floor_size),
-		create_cube(state->device, (vector3f_t){.x = 10.F, .y = 20.F, .z = 10.F}),
-	};
-
-	state->num_meshes = SDL_arraysize(meshes);
-	state->meshes = (mesh_t**) SDL_malloc(sizeof(meshes));
-	SDL_memcpy((void*) state->meshes, (void*) meshes, sizeof(meshes));
-
-	SDL_Surface *light = assets_load_texture(state->assets, "light");
-	if (!mesh_set_texture(state->meshes[0], light))
-	{
-		return fatal_error(state->window, "Failed to load texture");
-	}
-	SDL_DestroySurface(light);
-
-	SDL_Surface *purple = assets_load_texture(state->assets, "purple");
-	if (!mesh_set_texture(state->meshes[1], purple))
-	{
-		return fatal_error(state->window, "Failed to load texture");
-	}
-	mesh_set_position(state->meshes[1], (vector3f_t){.x = -20.F, .y = 11.2F, .z = 20.F});
-	SDL_DestroySurface(purple);
+	const auto floor_size = (vector3f_t){.x = 100.F, .y = 0.F, .z = 100.F};
 
 	const box_config_t floor_config = {
 		.motion_type = MOTION_TYPE_STATIC,
 		.layer = OBJ_LAYER_STATIC,
-		.position = mesh_position(state->meshes[0]),
+		.position = vector3f_zero(),
 		.half_extents = floor_size,
 		.activate = false,
 		.friction = 5.F,
@@ -171,8 +144,8 @@ static SDL_AppResult build_scene(app_state_t *state)
 	physics_add_box(state->physics_engine, &floor_config);
 
 	const capsule_config_t player_config = {
-		.half_height = 10.F,
-		.radius = 5.F,
+		.half_height = 0.5F,
+		.radius = 1.F,
 		.position = vector3f_zero(),
 		.motion_type = MOTION_TYPE_DYNAMIC,
 		.layer = OBJ_LAYER_PLAYER,
@@ -377,36 +350,47 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(state->window, "Failed to initialise physics engine");
 	}
 
-	state->model_count = 1;
-	state->models = (model_t**) SDL_malloc(sizeof(model_t*));
+	state->model_count = 2;
+	state->models = (model_t**) SDL_malloc(sizeof(model_t*) * state->model_count);
 
-	SDL_IOStream *model_stream = assets_load(state->assets, "models/blaster");
-	if (model_stream == nullptr)
 	{
-		return fatal_error(state->window, "Failed to load model data");
+		SDL_IOStream *model_stream = assets_load(state->assets, "models/blaster");
+		if (model_stream == nullptr)
+		{
+			return fatal_error(state->window, "Failed to load model data");
+		}
+
+		state->models[0] = model_create(state->device, model_stream, true);
+		if (state->models[0] == nullptr)
+		{
+			return fatal_error(state->window, "Failed to load model");
+		}
+
+		model_set_rotation(state->models[0], (vector3f_t){
+			.x = 0.F,
+			.y = 90.F,
+			.z = 0.F,
+		});
+		model_set_position(state->models[0], (vector3f_t){
+			.x = 5.F,
+			.y = 1.F,
+			.z = -5.F,
+		});
+	}
+	{
+		SDL_IOStream *model_stream = assets_load(state->assets, "models/scene");
+		if (model_stream == nullptr)
+		{
+			return fatal_error(state->window, "Failed to load model data");
+		}
+
+		state->models[1] = model_create(state->device, model_stream, true);
+		if (state->models[1] == nullptr)
+		{
+			return fatal_error(state->window, "Failed to load model");
+		}
 	}
 
-	state->models[0] = model_create(state->device, model_stream, true);
-	if (state->models[0] == nullptr)
-	{
-		return fatal_error(state->window, "Failed to load model");
-	}
-
-	model_set_rotation(state->models[0], (vector3f_t){
-		.x = 0.F,
-		.y = 90.F,
-		.z = 0.F,
-	});
-	model_set_position(state->models[0], (vector3f_t){
-		.x = 0.F,
-		.y = 15.F,
-		.z = -10.F,
-	});
-	model_set_scale(state->models[0], (vector3f_t){
-		.x = 10.F,
-		.y = 10.F,
-		.z = 10.F,
-	});
 
 	return build_scene(state);
 }
@@ -554,11 +538,6 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 		SDL_BindGPUGraphicsPipeline(render_pass, state->pipeline);
 
-		for (size_t i = 0; i < state->num_meshes; i++)
-		{
-			mesh_draw(state->meshes[i], render_pass, command_buffer, view_proj);
-		}
-
 		for (size_t i = 0; i < state->model_count; i++)
 		{
 			model_draw(state->models[i], render_pass, command_buffer, view_proj);
@@ -617,12 +596,6 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 {
 	const app_state_t *state = appstate;
-
-	for (size_t i = 0; i < state->num_meshes; i++)
-	{
-		mesh_destroy(state->meshes[i]);
-	}
-	SDL_free((void*) state->meshes);
 
 	for (size_t i = 0; i < state->model_count; i++)
 	{
