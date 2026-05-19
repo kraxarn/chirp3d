@@ -194,7 +194,7 @@ bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, const SDL_FColor clea
 	};
 	const SDL_GPUDepthStencilTargetInfo depth_stencil_target_info = {
 		.texture = depth_texture,
-		.cycle = true,
+		.cycle = false,
 		.clear_depth = 1,
 		.clear_stencil = 0,
 		.load_op = SDL_GPU_LOADOP_CLEAR,
