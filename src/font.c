@@ -2,7 +2,7 @@
 #include "gpu.h"
 #include "logcategory.h"
 #include "matrix.h"
-#include "meshinfo.h"
+#include "model.h"
 #include "uniformdata.h"
 #include "vector.h"
 
@@ -118,14 +118,18 @@ static bool upload_mesh_data(font_t *font)
 		0, 2, 3,
 	};
 
-	const mesh_info_t info = {
-		.num_vertices = SDL_arraysize(vertices),
-		.vertices = vertices,
-		.num_indices = SDL_arraysize(indices),
-		.indices = indices,
-	};
+	// TODO: Fix this
+	return SDL_Unsupported();
 
-	return gpu_upload_mesh_info(font->device, info, &font->vertex_buffer, &font->index_buffer);
+	//
+	// const mesh_info_t info = {
+	// 	.num_vertices = SDL_arraysize(vertices),
+	// 	.vertices = vertices,
+	// 	.num_indices = SDL_arraysize(indices),
+	// 	.indices = indices,
+	// };
+	//
+	// return gpu_upload_mesh_info(font->device, info, &font->vertex_buffer, &font->index_buffer);
 }
 
 static bool upload_atlas(font_t *font, const SDL_Surface *atlas)
@@ -139,8 +143,11 @@ static bool upload_atlas(font_t *font, const SDL_Surface *atlas)
 		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
 	};
 
-	return gpu_upload_texture(font->device, atlas, &sampler_info,
-		&font->sampler, &font->texture);
+	// TODO: Fix this
+	return SDL_Unsupported();
+
+	// return gpu_upload_texture(font->device, atlas, &sampler_info,
+	// 	&font->sampler, &font->texture);
 }
 
 static void build_atlas_data(const float font_size, vector2f_aligned_t *coordinates)
@@ -276,7 +283,7 @@ static bool font_bake(font_t *font, const Uint8 *data)
 			{
 				const size_t dst_idx = ((dst.y + src.y) * atlas->w) + (dst.x + src.x);
 				const size_t src_idx = (src.y * surface->w) + src.x;
-				((Uint8 *) atlas->pixels)[dst_idx] = ((Uint8 *) surface->pixels)[src_idx];
+				((Uint8*) atlas->pixels)[dst_idx] = ((Uint8*) surface->pixels)[src_idx];
 			}
 		}
 

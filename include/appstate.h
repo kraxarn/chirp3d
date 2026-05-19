@@ -2,7 +2,6 @@
 
 #include "assets.h"
 #include "camera.h"
-#include "mesh.h"
 #include "model.h"
 #include "physics.h"
 #include "physicsconfig.h"

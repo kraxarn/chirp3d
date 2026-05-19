@@ -1,7 +1,6 @@
 #include "model.h"
 #include "logcategory.h"
 #include "math.h"
-#include "meshinfo.h"
 #include "uniformdata.h"
 #include "vector.h"
 
@@ -25,10 +24,6 @@
 
 #define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
-
-// TODO: Duplicated from mesh/mesh_info
-
-typedef Uint16 mesh_index_t;
 
 typedef struct material_t
 {
@@ -683,8 +678,6 @@ static bool upload_sampler(model_t *model)
 
 static bool upload_mesh(SDL_GPUDevice *device, mesh_primitive_t *primitive)
 {
-	// TODO: Duplicated from gpu_upload_mesh_info
-
 	const size_t vertex_size = sizeof(vertex_t) * primitive->vertex_count;
 	const size_t index_size = sizeof(mesh_index_t) * primitive->index_count;
 

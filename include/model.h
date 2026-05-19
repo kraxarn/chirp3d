@@ -1,9 +1,21 @@
 #pragma once
 
 #include "matrix.h"
+#include "vector.h"
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_iostream.h>
+#include <SDL3/SDL_stdinc.h>
+
+typedef Uint16 mesh_index_t;
+
+typedef struct vertex_t
+{
+	vector3f_t position;
+	vector3f_t normal;
+	vector2f_t tex_coord;
+	vector4f_t color;
+} vertex_t;
 
 typedef struct model_t model_t;
 
