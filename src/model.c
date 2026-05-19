@@ -787,7 +787,9 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	model->sampler = nullptr;
 	model->texture = nullptr;
 
-	const cgltf_options options = {};
+	const cgltf_options options = {
+		.type = cgltf_file_type_glb,
+	};
 	cgltf_data *gltf_data = nullptr;
 
 	const Uint64 begin = SDL_GetTicks();
