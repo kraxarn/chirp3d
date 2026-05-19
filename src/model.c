@@ -63,6 +63,11 @@ typedef struct node_t
 	bool rebuild_projection;
 } node_t;
 
+typedef struct camera_t
+{
+	char *name;
+} camera_t;
+
 typedef struct model_t
 {
 	SDL_GPUDevice *device;
@@ -72,6 +77,9 @@ typedef struct model_t
 
 	node_t *nodes;
 	size_t node_count;
+
+	camera_t *cameras;
+	size_t camera_count;
 
 	SDL_GPUSampler *sampler;
 	SDL_GPUTexture *texture;
@@ -520,6 +528,33 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 	return true;
 }
 
+static bool load_cameras(model_t *model, const cgltf_data *gltf_data)
+{
+	model->camera_count = gltf_data->cameras_count;
+	if (model->camera_count == 0)
+	{
+		model->cameras = nullptr;
+		return true;
+	}
+
+	model->cameras = SDL_calloc(model->camera_count, sizeof(camera_t));
+	if (model->cameras == nullptr)
+	{
+		return false;
+	}
+
+	for (size_t cc = 0; cc < model->camera_count; cc++)
+	{
+		const cgltf_camera *gltf_camera = gltf_data->cameras + cc;
+		SDL_LogDebug(LOG_CATEGORY_MODEL, "Found camera: %s", gltf_camera->name);
+
+		camera_t *camera = model->cameras + cc;
+		camera->name = SDL_strdup(gltf_camera->name);
+	}
+
+	return true;
+}
+
 static bool upload_sampler(model_t *model)
 {
 	SDL_Surface *surface = default_texture();
@@ -825,6 +860,7 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 
 	if (!load_materials(model, gltf_data)
 		|| !load_model_data(model, gltf_data)
+		|| !load_cameras(model, gltf_data)
 		|| !upload_sampler(model)
 		|| !upload_model(model))
 	{
@@ -853,6 +889,13 @@ void model_destroy(model_t *model)
 	SDL_ReleaseGPUTexture(model->device, model->texture);
 	SDL_ReleaseGPUSampler(model->device, model->sampler);
 	SDL_free(model->materials);
+
+	for (size_t cc = 0; cc < model->camera_count; cc++)
+	{
+		const camera_t *camera = model->cameras + cc;
+		SDL_free(camera->name);
+	}
+	SDL_free(model->cameras);
 
 	for (size_t nn = 0; nn < model->node_count; nn++)
 	{
