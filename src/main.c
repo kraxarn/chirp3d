@@ -505,8 +505,21 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	state->camera.target = vector3f_add(state->camera.target, vector3f_sub(player_position, state->camera.position));
 	state->camera.position = player_position;
 
-	const vector3f_t offset = {.x = -0.2F, .y = -0.2F, .z = -0.2F};
-	model_set_position(state->models[0], vector3f_add(player_position, offset));
+	const vector3f_t forward_n = vector3f_normalize(vector3f_sub(state->camera.target, state->camera.position));
+	const vector3f_t right_n = vector3f_normalize(vector3f_cross(forward_n, state->camera.up));
+	const vector3f_t up_n = vector3f_normalize(state->camera.up);
+
+	vector3f_t weapon_position = state->camera.position;
+	weapon_position = vector3f_add(weapon_position, vector3f_scale(forward_n, 0.2F));
+	weapon_position = vector3f_add(weapon_position, vector3f_scale(right_n, 0.25F));
+	weapon_position = vector3f_add(weapon_position, vector3f_scale(up_n, -0.2F));
+	model_set_position(state->models[0], weapon_position);
+
+	model_set_rotation(state->models[0], (vector3f_t){
+		.x = SDL_asinf(forward_n.y),
+		.y = SDL_atan2f(-forward_n.z, forward_n.x) - (SDL_PI_F * 0.5F),
+		.z = 0.0F,
+	});
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 
