@@ -139,7 +139,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 		.position = vector3f_zero(),
 		.half_extents = floor_size,
 		.activate = false,
-		.friction = 5.F,
+		.friction = 15.F,
 	};
 	physics_add_box(state->physics_engine, &floor_config);
 
