@@ -49,7 +49,7 @@ typedef struct mesh_primitive_t
 
 typedef struct node_t
 {
-	const char *name;
+	char *name;
 
 	mesh_primitive_t *primitives;
 	size_t primitive_count;
@@ -443,7 +443,7 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 		SDL_LogDebug(LOG_CATEGORY_MODEL, "Found node: %s", gltf_node->name);
 
 		node_t *node = model->nodes + nn;
-		node->name = gltf_node->name;
+		node->name = SDL_strdup(gltf_node->name);
 
 		const cgltf_mesh *gltf_mesh = gltf_node->mesh;
 		if (gltf_mesh == nullptr)
@@ -900,6 +900,9 @@ void model_destroy(model_t *model)
 	for (size_t nn = 0; nn < model->node_count; nn++)
 	{
 		const node_t *node = model->nodes + nn;
+
+		SDL_free(node->name);
+
 		for (size_t pp = 0; pp < node->primitive_count; pp++)
 		{
 			const mesh_primitive_t *primitive = node->primitives + pp;
