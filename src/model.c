@@ -933,9 +933,9 @@ static void rebuild_projection(node_t *node)
 		node->world_transform,
 		// TODO: Most of these don't need to be per-node
 		matrix4x4_create_scale(node->scale),
-		matrix4x4_create_rotation_x(deg2rad(node->rotation.x)),
-		matrix4x4_create_rotation_y(deg2rad(node->rotation.y)),
-		matrix4x4_create_rotation_z(deg2rad(node->rotation.z)),
+		matrix4x4_create_rotation_x(node->rotation.x),
+		matrix4x4_create_rotation_y(node->rotation.y),
+		matrix4x4_create_rotation_z(node->rotation.z),
 		matrix4x4_create_translation(node->position),
 	};
 
