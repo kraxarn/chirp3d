@@ -434,14 +434,17 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 		const cgltf_node *gltf_node = gltf_data->nodes + nn;
 		SDL_LogDebug(LOG_CATEGORY_MODEL, "Found node: %s", gltf_node->name);
 
+		node_t *node = model->nodes + nn;
+		node->name = gltf_node->name;
+
 		const cgltf_mesh *gltf_mesh = gltf_node->mesh;
 		if (gltf_mesh == nullptr)
 		{
+			node->rebuild_projection = false;
+			SDL_LogWarn(LOG_CATEGORY_MODEL, "No mesh found in node '%s'!", node->name);
 			continue;
 		}
 
-		node_t *node = model->nodes + nn;
-		node->name = gltf_node->name;
 		node->scale = vector3f_one();
 		node->rebuild_projection = true;
 
