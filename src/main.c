@@ -353,6 +353,9 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	state->model_count = 2;
 	state->models = (model_t**) SDL_malloc(sizeof(model_t*) * state->model_count);
 
+	state->instance_count = 1;
+	state->instances = (node_instance_t**) SDL_malloc(sizeof(node_instance_t*) * state->instance_count);
+
 	{
 		SDL_IOStream *model_stream = assets_load(state->assets, "models/blaster");
 		if (model_stream == nullptr)
@@ -366,12 +369,18 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 			return fatal_error(state->window, "Failed to load model");
 		}
 
-		model_set_rotation(state->models[0], (vector3f_t){
+		state->instances[0] = model_create_instance(state->models[0], nullptr);
+		if (state->instances[0] == nullptr)
+		{
+			return fatal_error(state->window, "Failed to create instance");
+		}
+
+		model_set_rotation(state->instances[0], (vector3f_t){
 			.x = 0.F,
 			.y = 90.F,
 			.z = 0.F,
 		});
-		model_set_position(state->models[0], (vector3f_t){
+		model_set_position(state->instances[0], (vector3f_t){
 			.x = 5.F,
 			.y = 1.F,
 			.z = -5.F,
@@ -513,9 +522,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(forward_n, 0.2F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(right_n, 0.25F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(up_n, -0.2F));
-	model_set_position(state->models[0], weapon_position);
+	model_set_position(state->instances[0], weapon_position);
 
-	model_set_rotation(state->models[0], (vector3f_t){
+	model_set_rotation(state->instances[0], (vector3f_t){
 		.x = SDL_asinf(forward_n.y),
 		.y = SDL_atan2f(-forward_n.z, forward_n.x) - (SDL_PI_F * 0.5F),
 		.z = 0.0F,
@@ -554,9 +563,12 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 		SDL_BindGPUGraphicsPipeline(render_pass, state->pipeline);
 
-		for (size_t i = 0; i < state->model_count; i++)
+		// Only draw scene directly as model
+		model_draw(state->models[1], render_pass, command_buffer, view_proj);
+
+		for (size_t i = 0; i < state->instance_count; i++)
 		{
-			model_draw(state->models[i], render_pass, command_buffer, view_proj);
+			model_instance_draw(state->instances[i], render_pass, command_buffer, view_proj);
 		}
 
 		cImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
@@ -618,6 +630,12 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 		model_destroy(state->models[i]);
 	}
 	SDL_free((void*) state->models);
+
+	for (size_t i = 0; i < state->instance_count; i++)
+	{
+		model_destroy_instance(state->instances[i]);
+	}
+	SDL_free((void*) state->instances);
 
 	assets_destroy(state->assets);
 	physics_destroy(state->physics_engine);

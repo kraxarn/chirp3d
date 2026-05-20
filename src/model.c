@@ -49,13 +49,7 @@ typedef struct node_t
 	mesh_primitive_t *primitives;
 	size_t primitive_count;
 
-	vector3f_t rotation;
-	vector3f_t position;
-	vector3f_t scale;
-
 	matrix4x4_t world_transform;
-	matrix4x4_t projection;
-	bool rebuild_projection;
 } node_t;
 
 typedef struct camera_t
@@ -81,6 +75,19 @@ typedef struct model_t
 	SDL_GPUSampler *sampler;
 	SDL_GPUTexture *texture;
 } model_t;
+
+typedef struct node_instance_t
+{
+	const model_t *model;
+	const node_t *node;
+
+	vector3f_t rotation;
+	vector3f_t position;
+	vector3f_t scale;
+
+	matrix4x4_t projection;
+	bool rebuild_projection;
+} node_instance_t;
 
 [[nodiscard]]
 static const char *cgltf_error_string(const cgltf_result result)
@@ -451,13 +458,9 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 		const cgltf_mesh *gltf_mesh = gltf_node->mesh;
 		if (gltf_mesh == nullptr)
 		{
-			node->rebuild_projection = false;
 			SDL_LogWarn(LOG_CATEGORY_MODEL, "No mesh found in node '%s'!", node->name);
 			continue;
 		}
-
-		node->scale = vector3f_one();
-		node->rebuild_projection = true;
 
 		cgltf_node_transform_world(gltf_node, (cgltf_float*) &node->world_transform.m);
 
@@ -887,6 +890,42 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	return model;
 }
 
+[[nodiscard]]
+static node_instance_t *default_instance(const model_t *model, const node_t *node)
+{
+	node_instance_t *instance = SDL_malloc(sizeof(node_instance_t));
+
+	instance->model = model;
+	instance->node = node;
+	instance->scale = vector3f_one();
+	instance->rebuild_projection = true;
+
+	return instance;
+}
+
+node_instance_t *model_create_instance(const model_t *model, const char *name)
+{
+	if (name == nullptr)
+	{
+		if (model->node_count > 1)
+		{
+			SDL_SetError("No node specified");
+			return nullptr;
+		}
+
+		return default_instance(model, model->nodes);
+	}
+
+	const Sint64 index = map_get(model->node_indices, name, -1);
+	if (index < 0)
+	{
+		SDL_SetError("No such node: %s", name);
+		return nullptr;
+	}
+
+	return default_instance(model, model->nodes + (size_t) index);
+}
+
 void model_destroy(model_t *model)
 {
 	if (model == nullptr)
@@ -926,19 +965,23 @@ void model_destroy(model_t *model)
 	SDL_free(model);
 }
 
-static void rebuild_projection(node_t *node)
+void model_destroy_instance(node_instance_t *instance)
+{
+	SDL_free(instance);
+}
+
+static void rebuild_projection(node_instance_t *instance)
 {
 	const matrix4x4_t transforms[] = {
-		node->world_transform,
-		matrix4x4_create_scale(node->scale),
-		matrix4x4_create_rotation_x(node->rotation.x),
-		matrix4x4_create_rotation_y(node->rotation.y),
-		matrix4x4_create_rotation_z(node->rotation.z),
-		matrix4x4_create_translation(node->position),
+		matrix4x4_create_scale(instance->scale),
+		matrix4x4_create_rotation_x(instance->rotation.x),
+		matrix4x4_create_rotation_y(instance->rotation.y),
+		matrix4x4_create_rotation_z(instance->rotation.z),
+		matrix4x4_create_translation(instance->position),
 	};
 
-	node->projection = matrix4x4_multiply_n(transforms, SDL_arraysize(transforms));
-	node->rebuild_projection = false;
+	instance->projection = matrix4x4_multiply_n(transforms, SDL_arraysize(transforms));
+	instance->rebuild_projection = false;
 }
 
 static void mesh_draw(const model_t *model, const node_t *node, const mesh_primitive_t *primitive,
@@ -963,7 +1006,7 @@ static void mesh_draw(const model_t *model, const node_t *node, const mesh_primi
 	SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 
 	const vertex_uniform_data_t vertex_data = {
-		.mvp = matrix4x4_multiply(node->projection, projection),
+		.mvp = matrix4x4_multiply(node->world_transform, projection),
 	};
 	SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
 
@@ -971,14 +1014,9 @@ static void mesh_draw(const model_t *model, const node_t *node, const mesh_primi
 		1, 0, 0, 0);
 }
 
-static void node_draw(const model_t *model, node_t *node, SDL_GPURenderPass *render_pass,
+static void node_draw(const model_t *model, const node_t *node, SDL_GPURenderPass *render_pass,
 	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
 {
-	if (node->rebuild_projection)
-	{
-		rebuild_projection(node);
-	}
-
 	for (size_t i = 0; i < node->primitive_count; i++)
 	{
 		mesh_draw(model, node, node->primitives + i, render_pass, command_buffer, projection);
@@ -994,11 +1032,22 @@ void model_draw(const model_t *model, SDL_GPURenderPass *render_pass,
 	}
 }
 
-#define foreach_node(n,f) for(size_t i=0;i<model->node_count;i++){node_t*n=model->nodes+i;f;n->rebuild_projection=true;}
-
-void model_set_rotation(const model_t *model, const vector3f_t rotation)
+void model_instance_draw(node_instance_t *instance,
+	SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffer *command_buffer, matrix4x4_t projection)
 {
-	foreach_node(node, node->rotation = rotation);
+	if (instance->rebuild_projection)
+	{
+		rebuild_projection(instance);
+	}
+
+	node_draw(instance->model, instance->node, render_pass, command_buffer,
+		matrix4x4_multiply(instance->projection, projection));
+}
+
+void model_set_rotation(node_instance_t *instance, const vector3f_t rotation)
+{
+	instance->rotation = rotation;
+	instance->rebuild_projection = true;
 }
 
 vector3f_t model_node_position(const model_t *model, const char *node)
@@ -1010,15 +1059,18 @@ vector3f_t model_node_position(const model_t *model, const char *node)
 		return vector3f_zero();
 	}
 
-	return model->nodes[(size_t) index].position;
+	// return model->nodes[(size_t) index].position; // TODO: Maybe add base position?
+	return vector3f_zero();
 }
 
-void model_set_position(const model_t *model, const vector3f_t position)
+void model_set_position(node_instance_t *instance, const vector3f_t position)
 {
-	foreach_node(node, node->position = position);
+	instance->position = position;
+	instance->rebuild_projection = true;
 }
 
-void model_set_scale(const model_t *model, const vector3f_t scale)
+void model_set_scale(node_instance_t *instance, const vector3f_t scale)
 {
-	foreach_node(node, node->scale = scale);
+	instance->scale = scale;
+	instance->rebuild_projection = true;
 }
