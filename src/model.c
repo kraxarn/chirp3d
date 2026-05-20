@@ -1,6 +1,6 @@
 #include "model.h"
 #include "logcategory.h"
-#include "math.h"
+#include "map.h"
 #include "uniformdata.h"
 #include "vector.h"
 
@@ -8,7 +8,6 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_log.h>
-#include <SDL3/SDL_properties.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_timer.h>
 
@@ -74,7 +73,7 @@ typedef struct model_t
 	node_t *nodes;
 	size_t node_count;
 
-	SDL_PropertiesID node_indices;
+	map_t node_indices;
 
 	camera_t *cameras;
 	size_t camera_count;
@@ -444,7 +443,7 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 		node->name = SDL_strdup(gltf_node->name);
 
 		if (node->name != nullptr
-			&& !SDL_SetNumberProperty(model->node_indices, node->name, (Sint64) nn))
+			&& !map_set(model->node_indices, node->name, (Sint64) nn))
 		{
 			return false;
 		}
@@ -824,7 +823,7 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	model->sampler = nullptr;
 	model->texture = nullptr;
 
-	model->node_indices = SDL_CreateProperties();
+	model->node_indices = map_create();
 	if (model->node_indices == 0)
 	{
 		SDL_free(model);
@@ -1010,7 +1009,7 @@ void model_set_rotation(const model_t *model, const vector3f_t rotation)
 
 vector3f_t model_node_position(const model_t *model, const char *node)
 {
-	const Sint64 index = SDL_GetNumberProperty(model->node_indices, node, -1);
+	const Sint64 index = map_get(model->node_indices, node, -1);
 	if (index < 0)
 	{
 		SDL_LogWarn(LOG_CATEGORY_MODEL, "Invalid node: %s", node);
