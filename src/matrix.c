@@ -2,6 +2,11 @@
 
 #include <SDL3/SDL_stdinc.h>
 
+matrix4x4_t matrix4x4_zero()
+{
+	return (matrix4x4_t){};
+}
+
 matrix4x4_t matrix4x4_multiply(const matrix4x4_t mat1, const matrix4x4_t mat2)
 {
 	matrix4x4_t result;
@@ -17,6 +22,23 @@ matrix4x4_t matrix4x4_multiply(const matrix4x4_t mat1, const matrix4x4_t mat2)
 				result.m[(i * 4) + j] += mat1.m[(i * 4) + k] * mat2.m[(k * 4) + j];
 			}
 		}
+	}
+
+	return result;
+}
+
+matrix4x4_t matrix4x4_multiply_n(const matrix4x4_t *mat, const size_t len)
+{
+	if (mat == nullptr || len == 0)
+	{
+		return matrix4x4_zero();
+	}
+
+	matrix4x4_t result = mat[0];
+
+	for (auto i = 1; i < len; i++)
+	{
+		result = matrix4x4_multiply(result, mat[i]);
 	}
 
 	return result;

@@ -78,6 +78,13 @@ typedef struct model_t
 	camera_t *cameras;
 	size_t camera_count;
 
+	vector3f_t rotation;
+	vector3f_t position;
+	vector3f_t scale;
+
+	matrix4x4_t projection;
+	bool rebuild_projection;
+
 	SDL_GPUSampler *sampler;
 	SDL_GPUTexture *texture;
 } model_t;
@@ -823,6 +830,9 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	model->sampler = nullptr;
 	model->texture = nullptr;
 
+	model->scale = vector3f_one();
+	model->rebuild_projection = true;
+
 	model->node_indices = map_create();
 	if (model->node_indices == 0)
 	{
@@ -926,11 +936,25 @@ void model_destroy(model_t *model)
 	SDL_free(model);
 }
 
-static void rebuild_projection(node_t *node)
+static void rebuild_model_projection(model_t *model)
+{
+	const matrix4x4_t transforms[] = {
+		matrix4x4_create_scale(model->scale),
+		matrix4x4_create_rotation_x(model->rotation.x),
+		matrix4x4_create_rotation_y(model->rotation.y),
+		matrix4x4_create_rotation_z(model->rotation.z),
+		matrix4x4_create_translation(model->position),
+	};
+
+	model->projection = matrix4x4_multiply_n(transforms, SDL_arraysize(transforms));
+	model->rebuild_projection = false;
+}
+
+static void rebuild_node_projection(const model_t *model, node_t *node)
 {
 	const matrix4x4_t transforms[] = {
 		node->world_transform,
-		// TODO: Most of these don't need to be per-node
+		model->projection,
 		matrix4x4_create_scale(node->scale),
 		matrix4x4_create_rotation_x(node->rotation.x),
 		matrix4x4_create_rotation_y(node->rotation.y),
@@ -938,12 +962,7 @@ static void rebuild_projection(node_t *node)
 		matrix4x4_create_translation(node->position),
 	};
 
-	node->projection = transforms[0];
-	for (auto i = 1; i < SDL_arraysize(transforms); i++)
-	{
-		node->projection = matrix4x4_multiply(node->projection, transforms[i]);
-	}
-
+	node->projection = matrix4x4_multiply_n(transforms, SDL_arraysize(transforms));
 	node->rebuild_projection = false;
 }
 
@@ -977,12 +996,12 @@ static void mesh_draw(const model_t *model, const node_t *node, const mesh_primi
 		1, 0, 0, 0);
 }
 
-static void node_draw(model_t *model, node_t *node, SDL_GPURenderPass *render_pass,
+static void node_draw(const model_t *model, node_t *node, SDL_GPURenderPass *render_pass,
 	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
 {
 	if (node->rebuild_projection)
 	{
-		rebuild_projection(node);
+		rebuild_node_projection(model, node);
 	}
 
 	for (size_t i = 0; i < node->primitive_count; i++)
@@ -994,17 +1013,26 @@ static void node_draw(model_t *model, node_t *node, SDL_GPURenderPass *render_pa
 void model_draw(model_t *model, SDL_GPURenderPass *render_pass,
 	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
 {
+	const bool rebuild_projection = model->rebuild_projection;;
+	if (model->rebuild_projection)
+	{
+		rebuild_model_projection(model);
+	}
+
 	for (size_t i = 0; i < model->node_count; i++)
 	{
-		node_draw(model, model->nodes + i, render_pass, command_buffer, projection);
+		node_t *node = model->nodes + i;
+		node->rebuild_projection = rebuild_projection;
+		node_draw(model, node, render_pass, command_buffer, projection);
 	}
 }
 
 #define foreach_node(n,f) for(size_t i=0;i<model->node_count;i++){node_t*n=model->nodes+i;f;n->rebuild_projection=true;}
 
-void model_set_rotation(const model_t *model, const vector3f_t rotation)
+void model_set_rotation(model_t *model, const vector3f_t rotation)
 {
-	foreach_node(node, node->rotation = rotation);
+	model->rotation = rotation;
+	model->rebuild_projection = true;
 }
 
 vector3f_t model_node_position(const model_t *model, const char *node)
@@ -1019,12 +1047,14 @@ vector3f_t model_node_position(const model_t *model, const char *node)
 	return model->nodes[(size_t) index].position;
 }
 
-void model_set_position(const model_t *model, const vector3f_t position)
+void model_set_position(model_t *model, const vector3f_t position)
 {
-	foreach_node(node, node->position = position);
+	model->position = position;
+	model->rebuild_projection = true;
 }
 
-void model_set_scale(const model_t *model, const vector3f_t scale)
+void model_set_scale(model_t *model, const vector3f_t scale)
 {
-	foreach_node(node, node->scale = scale);
+	model->scale = scale;
+	model->rebuild_projection = true;
 }
