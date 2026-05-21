@@ -10,13 +10,13 @@ typedef struct array_header_t
 
 #define _array_default_capacity 32
 
-#define _array_create(arr, size)																\
-	if (arr == nullptr)	{																		\
-		constexpr size_t init_size = sizeof(array_header_t) + (size * _array_default_capacity);	\
-		array_header_t *header = SDL_malloc(init_size);											\
-		header->count = 0;																		\
-		header->capacity = _array_default_capacity;												\
-		arr = (void*) (header + 1);																\
+#define _array_create(arr, size, cap)											\
+	if (arr == nullptr)	{														\
+		constexpr size_t init_size = sizeof(array_header_t) + (size * cap);		\
+		array_header_t *header = SDL_malloc(init_size);							\
+		header->count = 0;														\
+		header->capacity = cap;													\
+		arr = (void*) (header + 1);												\
 	}
 
 #define _array_header(arr) (((array_header_t*) arr) - 1)
@@ -33,7 +33,7 @@ typedef struct array_header_t
 
 #define array_push(arr, item)																		\
 	do {																							\
-		_array_create(arr, sizeof(*arr));															\
+		_array_create(arr, sizeof(*arr), _array_default_capacity);															\
 		if (array_size(arr) == array_capacity(arr)) {												\
 			array_capacity(arr) *= 2;																\
 			const size_t new_size = sizeof(array_header_t) + (sizeof(*arr) * array_capacity(arr));	\
