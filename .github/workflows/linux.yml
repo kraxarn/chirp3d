@@ -66,10 +66,13 @@ jobs:
         run: sudo apt install -y python3-venv
 
       - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_FLAGS="${{ matrix.compile-flags }}" -DCMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
+        run: cmake -S . -B build -D ENABLE_TESTS=ON -D CMAKE_BUILD_TYPE=$BUILD_TYPE -D CMAKE_C_FLAGS="${{ matrix.compile-flags }}" -D CMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
 
       - name: Build
         run: cmake --build build
+
+      - name: Test
+        run: ctest --extra-verbose --test-dir chirp3d/build/tests
 
       - name: Upload Artifact
         if: ${{ matrix.compiler == 'clang' }}
