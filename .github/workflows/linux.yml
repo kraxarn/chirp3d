@@ -72,7 +72,7 @@ jobs:
         run: cmake --build build
 
       - name: Test
-        run: ctest --extra-verbose --test-dir chirp3d/build/tests
+        run: ctest --extra-verbose --test-dir build/tests
 
       - name: Upload Artifact
         if: ${{ matrix.compiler == 'clang' }}
