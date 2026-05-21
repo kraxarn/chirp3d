@@ -37,6 +37,11 @@ include(deps/dcimgui.cmake)
 
 include(resources.cmake)
 
+option(ENABLE_TESTS "Build unit tests" OFF)
+if (ENABLE_TESTS)
+	add_subdirectory(tests)
+endif ()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	# macOS / iOS
 	MACOSX_BUNDLE TRUE
