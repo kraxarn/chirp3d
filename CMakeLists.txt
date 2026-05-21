@@ -69,11 +69,4 @@ if (TARGET SDL3-shared)
 		COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:SDL3::SDL3-shared> $<TARGET_FILE_DIR:${PROJECT_NAME}>
 		VERBATIM
 	)
-	if (ENABLE_TESTS)
-		add_custom_command(
-			TARGET ${PROJECT_NAME}_tests POST_BUILD
-			COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:SDL3::SDL3-shared> $<TARGET_FILE_DIR:${PROJECT_NAME}_tests>
-			VERBATIM
-		)
-	endif ()
 endif ()

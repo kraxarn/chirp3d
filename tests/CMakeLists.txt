@@ -31,3 +31,11 @@ target_include_directories(${TESTS_TARGET} PRIVATE
 add_test(NAME test_array COMMAND ${TESTS_TARGET} 1)
 
 target_link_libraries(${TESTS_TARGET} PRIVATE SDL3::SDL3)
+
+if (TARGET SDL3-shared)
+	add_custom_command(
+		TARGET ${TESTS_TARGET} POST_BUILD
+		COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:SDL3::SDL3-shared> $<TARGET_FILE_DIR:${TESTS_TARGET}>
+		VERBATIM
+	)
+endif ()
