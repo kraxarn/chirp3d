@@ -43,7 +43,7 @@ jobs:
           echo $bin_dir >> $env:GITHUB_PATH
 
       - name: Configure CMake
-        run: cmake -S . -B build -G "${{env.CMAKE_GENERATOR}}" -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_C_FLAGS="${{matrix.compile-flags}}" -D CMAKE_CXX_FLAGS="${{matrix.compile-flags}}"
+        run: cmake -S . -B build -D ENABLE_TESTS=ON -G "${{env.CMAKE_GENERATOR}}" -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_C_FLAGS="${{matrix.compile-flags}}" -D CMAKE_CXX_FLAGS="${{matrix.compile-flags}}"
 
       - name: Build
         run: cmake --build build
