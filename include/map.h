@@ -4,7 +4,8 @@
 
 typedef SDL_PropertiesID map_t;
 
-#define map_create SDL_CreateProperties
+#define map_create   SDL_CreateProperties
+#define map_contains SDL_HasProperty
 
 // Custom callback to directly support common "destroy" functions
 typedef void (*map_cleanup_callback_t)(void *value);
@@ -15,6 +16,7 @@ typedef void (*map_cleanup_callback_t)(void *value);
 		char*:  SDL_GetStringProperty,	\
 		Sint64: SDL_GetNumberProperty,	\
 		int:    SDL_GetNumberProperty,	\
+		Uint32: SDL_GetNumberProperty,	\
 		float:  SDL_GetFloatProperty,	\
 		bool:   SDL_GetBooleanProperty	\
 	)(map,name,fallback)
@@ -25,6 +27,7 @@ typedef void (*map_cleanup_callback_t)(void *value);
 		char*:  SDL_SetStringProperty,	\
 		Sint64: SDL_SetNumberProperty,	\
 		int:    SDL_SetNumberProperty,	\
+		Uint32: SDL_SetNumberProperty,	\
 		float:  SDL_SetFloatProperty,	\
 		bool:   SDL_SetBooleanProperty	\
 	)(map,name,value)
