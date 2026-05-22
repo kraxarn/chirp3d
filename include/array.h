@@ -13,23 +13,17 @@ typedef struct array_header_t
 void *impl_array_create(void *arr, size_t size, size_t capacity);
 void impl_array_destroy(void *arr);
 void *impl_array_resize(void *arr, size_t elem_size, size_t size);
+void *impl_array_reserve(void *arr, size_t size);
 
 #define _array_header(arr)            (((array_header_t*) (arr)) - 1)
+
 #define _array_create(arr, size, cap) arr = impl_array_create(arr, size, cap)
 #define _array_resize(arr, size)      arr = impl_array_resize(arr, sizeof(*arr), size)
 
-#define array_destroy(arr)  impl_array_destroy(arr)
-#define array_size(arr)     _array_header(arr)->count
-#define array_capacity(arr) _array_header(arr)->capacity
-
-#define array_reserve(arr, size)							\
-	do {													\
-		if ((arr) == nullptr) {								\
-			_array_create((arr), sizeof(*(arr)), (size));	\
-		} else if (array_capacity(arr) < (size)) {			\
-			_array_resize((arr), (size));					\
-		}													\
-	} while (false)
+#define array_destroy(arr)       impl_array_destroy(arr)
+#define array_reserve(arr, size) arr = impl_array_reserve(arr, size)
+#define array_size(arr)          _array_header(arr)->count
+#define array_capacity(arr)      _array_header(arr)->capacity
 
 #define array_push(arr, item)											\
 	do {																\

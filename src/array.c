@@ -33,3 +33,18 @@ void *impl_array_resize(void *arr, const size_t elem_size, const size_t size)
 	array_header_t *header = SDL_realloc(_array_header(arr), new_size);
 	return header + 1;
 }
+
+void *impl_array_reserve(void *arr, const size_t size)
+{
+	if (arr == nullptr)
+	{
+		return _array_create((arr), sizeof(*(arr)), (size));
+	}
+
+	if (array_capacity(arr) < size)
+	{
+		return _array_resize(arr, size);
+	}
+
+	return arr;
+}
