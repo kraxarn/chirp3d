@@ -18,7 +18,8 @@ void *impl_array_push(void *arr, size_t item_size);
 #define array_reserve(arr, size) arr = (typeof(arr)) impl_array_reserve((void *) (arr), size, sizeof(*arr))
 #define array_size(arr)          _array_header(arr)->count
 #define array_capacity(arr)      _array_header(arr)->capacity
-#define array_at(arr, index)     (index >= 0 && index < array_size(arr) ? arr[index] : (typeof(*arr)) 0)
+#define array_at(arr, index)     ((index) >= 0 && (index) < array_size(arr) ? (arr)[index] : (typeof(*(arr))) 0)
+#define array_ptr(arr, index)    ((index) >= 0 && (index) < array_size(arr) ? (arr) + (index) : nullptr)
 
 #define array_push(arr, item)												\
 	do {																	\
