@@ -67,12 +67,17 @@ static bool init()
 		key_map = map_create();
 	}
 
+	if (button_map == 0)
+	{
+		button_map = map_create();
+	}
+
 	if (input_map == 0)
 	{
 		input_map = map_create();
 	}
 
-	if (key_map != 0 && input_map != 0)
+	if (key_map != 0 && button_map != 0 && input_map != 0)
 	{
 		return true;
 	}
