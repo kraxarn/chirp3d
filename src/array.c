@@ -38,6 +38,11 @@ static void *array_resize(void *arr, const size_t new_capacity, const size_t ite
 
 void *impl_array_reserve(void *arr, const size_t capacity, const size_t item_size)
 {
+	if (capacity == 0)
+	{
+		return nullptr;
+	}
+
 	if (arr == nullptr)
 	{
 		return array_create(arr, capacity, item_size);
