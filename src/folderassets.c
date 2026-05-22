@@ -2,6 +2,7 @@
 #include "input.h"
 #include "inputconfig.h"
 #include "logcategory.h"
+#include "mousebutton.h"
 
 #include "tomlc17.h"
 
@@ -268,11 +269,7 @@ assets_t *assets_create_from_folder(const char *path)
 			}
 
 			const toml_datum_t keycode = toml_get(value, "keycode");
-			if (keycode.type != TOML_STRING)
-			{
-				SDL_LogWarn(LOG_CATEGORY_INPUT, "Invalid keycode in entry '%s'", key);
-			}
-			else
+			if (keycode.type == TOML_STRING)
 			{
 				const SDL_Keycode parsed = SDL_GetKeyFromName(keycode.u.s);
 				if (parsed == SDLK_UNKNOWN)
@@ -287,6 +284,26 @@ assets_t *assets_create_from_folder(const char *path)
 				if (!input_add(key, input_config))
 				{
 					SDL_LogWarn(LOG_CATEGORY_INPUT, "Invalid keycode '%s': %s", keycode.u.s, SDL_GetError());
+					continue;
+				}
+			}
+
+			const toml_datum_t mouse = toml_get(value, "mouse");
+			if (mouse.type == TOML_STRING)
+			{
+				const SDL_MouseButtonFlags parsed = mouse_button_from_name(mouse.u.s);
+				if (parsed == 0)
+				{
+					SDL_LogWarn(LOG_CATEGORY_INPUT, "Invalid mouse button '%s': %s", mouse.u.s, SDL_GetError());
+					continue;
+				}
+
+				const input_config_t input_config = {
+					.mouse_button = parsed,
+				};
+				if (!input_add(key, input_config))
+				{
+					SDL_LogWarn(LOG_CATEGORY_INPUT, "Invalid mouse button '%s': %s", mouse.u.s, SDL_GetError());
 					continue;
 				}
 			}

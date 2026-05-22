@@ -1,0 +1,61 @@
+#include "mousebutton.h"
+
+#define button_left   "left"
+#define button_middle "middle"
+#define button_right  "right"
+#define button_side1  "side1"
+#define button_side2  "side2"
+
+const char *mouse_button_name(const SDL_MouseButtonFlags flags)
+{
+	switch (flags)
+	{
+		case SDL_BUTTON_LEFT:
+			return button_left;
+
+		case SDL_BUTTON_MIDDLE:
+			return button_middle;
+
+		case SDL_BUTTON_RIGHT:
+			return button_right;
+
+		case SDL_BUTTON_X1:
+			return button_side1;
+
+		case SDL_BUTTON_X2:
+			return button_side2;
+
+		default:
+			return "";
+	}
+}
+
+SDL_MouseButtonFlags mouse_button_from_name(const char *name)
+{
+	if (SDL_strcmp(name, button_left))
+	{
+		return SDL_BUTTON_LEFT;
+	}
+
+	if (SDL_strcmp(name, button_middle))
+	{
+		return SDL_BUTTON_MIDDLE;
+	}
+
+	if (SDL_strcmp(name, button_right))
+	{
+		return SDL_BUTTON_RIGHT;
+	}
+
+	if (SDL_strcmp(name, button_side1))
+	{
+		return SDL_BUTTON_X1;
+	}
+
+	if (SDL_strcmp(name, button_side2))
+	{
+		return SDL_BUTTON_X2;
+	}
+
+	return 0;
+}

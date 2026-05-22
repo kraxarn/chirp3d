@@ -1,6 +1,7 @@
 #include "input.h"
 #include "logcategory.h"
 #include "map.h"
+#include "mousebutton.h"
 
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_log.h>
@@ -38,31 +39,6 @@ static map_t button_map = 0;
 
 // input name -> input map
 static map_t input_map = 0;
-
-[[nodiscard]]
-static const char *mouse_button_name(const SDL_MouseButtonFlags flags)
-{
-	switch (flags)
-	{
-		case SDL_BUTTON_LEFT:
-			return "left";
-
-		case SDL_BUTTON_MIDDLE:
-			return "middle";
-
-		case SDL_BUTTON_RIGHT:
-			return "right";
-
-		case SDL_BUTTON_X1:
-			return "side1";
-
-		case SDL_BUTTON_X2:
-			return "side2";
-
-		default:
-			return "";
-	}
-}
 
 static void update_keyboard_event(const SDL_KeyboardEvent event)
 {
