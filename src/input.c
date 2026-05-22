@@ -56,7 +56,7 @@ static void update_keyboard_event(const SDL_KeyboardEvent event)
 
 static void update_mouse_button_event(const SDL_MouseButtonEvent event)
 {
-	const char *button_name = SDL_GetKeyName(event.button);
+	const char *button_name = mouse_button_name(event.button);
 	map_set(button_map, button_name, event.down ? STATE_PRESSED : STATE_UP);
 }
 
