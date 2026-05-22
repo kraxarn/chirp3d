@@ -10,16 +10,9 @@ typedef struct array_header_t
 
 #define _array_default_capacity 32
 
-#define _array_create(arr, size, cap)												\
-	do {																			\
-		if ((arr) == nullptr)	{													\
-			constexpr size_t init_size = sizeof(array_header_t) + ((size) * (cap));	\
-			array_header_t *header = SDL_malloc(init_size);							\
-			header->count = 0;														\
-			header->capacity = (cap);												\
-			(arr) = (void*) (header + 1);											\
-		}																			\
-	} while (false)
+void *impl_array_create(void *arr, size_t size, size_t capacity);
+
+#define _array_create(arr, size, cap) arr = impl_array_create(arr, size, cap)
 
 #define _array_header(arr) (((array_header_t*) (arr)) - 1)
 
