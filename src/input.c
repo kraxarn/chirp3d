@@ -17,11 +17,6 @@ static void update_keyboard_event(const SDL_KeyboardEvent event)
 	map_set(key_map, key_name, event.down);
 }
 
-static void cleanup_free([[maybe_unused]] void *userdata, void *value)
-{
-	SDL_free(value);
-}
-
 static bool init()
 {
 	if (key_map == 0)
