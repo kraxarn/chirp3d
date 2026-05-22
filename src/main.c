@@ -478,7 +478,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
-		if (input_is_down("jump"))
+		if (input_is_pressed("jump"))
 		{
 			const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
 			if (velocity.y > -0.1F && velocity.y < 0.1F)
