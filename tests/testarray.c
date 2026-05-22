@@ -23,7 +23,22 @@ static void test_array_push()
 	array_destroy(items);
 }
 
+static void test_array_reserve()
+{
+	int *items = nullptr;
+	array_reserve(items, 1);
+
+	assert(array_capacity(items) == 1);
+
+	array_push(items, 1);
+	array_push(items, 2);
+	array_push(items, 3);
+
+	assert(array_capacity(items) > 1);
+}
+
 void test_array()
 {
 	test_array_push();
+	test_array_reserve();
 }
