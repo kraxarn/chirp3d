@@ -5,7 +5,14 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_log.h>
 
-// key name -> is down
+typedef enum key_state_t : Sint64
+{
+	STATE_UP,
+	STATE_DOWN,
+	STATE_PRESSED,
+} key_state_t;
+
+// key name -> key state
 static map_t key_map = 0;
 
 // input name -> keycode
@@ -14,7 +21,7 @@ static map_t input_map = 0;
 static void update_keyboard_event(const SDL_KeyboardEvent event)
 {
 	const char *key_name = SDL_GetKeyName(event.key);
-	map_set(key_map, key_name, event.down);
+	map_set(key_map, key_name, event.down ? STATE_PRESSED : STATE_UP);
 }
 
 static bool init()
@@ -66,12 +73,6 @@ bool input_add(const char *name, const input_config_t config)
 	return map_set(input_map, name, config.keycode);
 }
 
-bool input_is_key_down(const SDL_Keycode keycode)
-{
-	const char *key_name = SDL_GetKeyName(keycode);
-	return map_get(key_map, key_name, false);
-}
-
 bool input_is_down(const char *name)
 {
 	const SDL_Keycode keycode = map_get(input_map, name, SDLK_UNKNOWN);
@@ -81,5 +82,13 @@ bool input_is_down(const char *name)
 	}
 
 	const char *key_name = SDL_GetKeyName(keycode);
-	return map_get(key_map, key_name, false);
+	const key_state_t state = map_get(key_map, key_name, STATE_UP);
+
+	if (state == STATE_PRESSED)
+	{
+		map_set(key_map, key_name, STATE_DOWN);
+		return true;
+	}
+
+	return state == STATE_DOWN;
 }
