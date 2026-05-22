@@ -12,21 +12,15 @@ typedef struct array_header_t
 
 void *impl_array_create(void *arr, size_t size, size_t capacity);
 void impl_array_destroy(void *arr);
+void *impl_array_resize(void *arr, size_t elem_size, size_t size);
 
-#define _array_create(arr, size, cap) arr = impl_array_create(arr, size, cap)
 #define _array_header(arr)            (((array_header_t*) (arr)) - 1)
+#define _array_create(arr, size, cap) arr = impl_array_create(arr, size, cap)
+#define _array_resize(arr, size)      arr = impl_array_resize(arr, sizeof(*arr), size)
 
 #define array_destroy(arr)  impl_array_destroy(arr)
 #define array_size(arr)     _array_header(arr)->count
 #define array_capacity(arr) _array_header(arr)->capacity
-
-#define _array_resize(arr, size)																	\
-	do {																							\
-		array_capacity(arr) = (size);																\
-		const size_t new_size = sizeof(array_header_t) + (sizeof(*(arr)) * array_capacity(arr));	\
-		array_header_t *header = SDL_realloc(_array_header(arr), new_size);							\
-		(arr) = (void*) (header + 1);																\
-	} while (false)
 
 #define array_reserve(arr, size)							\
 	do {													\

@@ -25,3 +25,11 @@ void impl_array_destroy(void *arr)
 
 	SDL_free(_array_header(arr));
 }
+
+void *impl_array_resize(void *arr, const size_t elem_size, const size_t size)
+{
+	array_capacity(arr) = size;
+	const size_t new_size = sizeof(array_header_t) + (elem_size * array_capacity(arr));
+	array_header_t *header = SDL_realloc(_array_header(arr), new_size);
+	return header + 1;
+}
