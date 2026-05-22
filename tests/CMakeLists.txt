@@ -30,7 +30,10 @@ target_include_directories(${TESTS_TARGET} PRIVATE
 
 add_test(NAME test_array COMMAND ${TESTS_TARGET} 1)
 
-target_link_libraries(${TESTS_TARGET} PRIVATE SDL3::SDL3)
+target_link_libraries(${TESTS_TARGET} PRIVATE
+	chirp3d
+	SDL3::SDL3
+)
 
 if (TARGET SDL3-shared)
 	add_custom_command(

@@ -4,7 +4,11 @@ project(chirp3d LANGUAGES C VERSION 0.1.0)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-if (ANDROID)
+option(ENABLE_TESTS "Build unit tests" OFF)
+
+if (ENABLE_TESTS)
+	add_library(${PROJECT_NAME} STATIC)
+elseif (ANDROID)
 	add_library(${PROJECT_NAME} SHARED)
 else ()
 	add_executable(${PROJECT_NAME})
@@ -37,7 +41,6 @@ include(deps/dcimgui.cmake)
 
 include(resources.cmake)
 
-option(ENABLE_TESTS "Build unit tests" OFF)
 if (ENABLE_TESTS)
 	add_subdirectory(tests)
 endif ()
