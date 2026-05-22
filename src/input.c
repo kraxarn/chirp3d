@@ -8,8 +8,8 @@
 typedef enum key_state_t : Sint64
 {
 	STATE_UP,
-	STATE_DOWN,
 	STATE_PRESSED,
+	STATE_DOWN,
 } key_state_t;
 
 // key name -> key state
@@ -21,6 +21,14 @@ static map_t input_map = 0;
 static void update_keyboard_event(const SDL_KeyboardEvent event)
 {
 	const char *key_name = SDL_GetKeyName(event.key);
+
+	// Events get repeatedly triggered when key is held down
+	const key_state_t state = map_get(key_map, key_name, STATE_UP);
+	if (state != STATE_DOWN && event.down)
+	{
+		return;
+	}
+
 	map_set(key_map, key_name, event.down ? STATE_PRESSED : STATE_UP);
 }
 
