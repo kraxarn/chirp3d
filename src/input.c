@@ -73,12 +73,14 @@ bool input_add(const char *name, const input_config_t config)
 	return map_set(input_map, name, config.keycode);
 }
 
-bool input_is_down(const char *name)
+[[nodiscard]]
+static key_state_t input_state(const char *name)
 {
 	const SDL_Keycode keycode = map_get(input_map, name, SDLK_UNKNOWN);
 	if (keycode == SDLK_UNKNOWN)
 	{
-		return SDL_SetError("Unmapped input: %s", name);
+		SDL_LogWarn(LOG_CATEGORY_INPUT, "Unmapped input: %s", name);
+		return STATE_UP;
 	}
 
 	const char *key_name = SDL_GetKeyName(keycode);
@@ -87,8 +89,17 @@ bool input_is_down(const char *name)
 	if (state == STATE_PRESSED)
 	{
 		map_set(key_map, key_name, STATE_DOWN);
-		return true;
 	}
 
-	return state == STATE_DOWN;
+	return state;
+}
+
+bool input_is_pressed(const char *name)
+{
+	return input_state(name) == STATE_PRESSED;
+}
+
+bool input_is_down(const char *name)
+{
+	return input_state(name) != STATE_UP;
 }
