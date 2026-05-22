@@ -564,11 +564,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		SDL_BindGPUGraphicsPipeline(render_pass, state->pipeline);
 
 		// Only draw scene directly as model
-		model_draw(state->models[1], render_pass, command_buffer, view_proj);
+		model_draw(array_at(state->models, 1), render_pass, command_buffer, view_proj);
 
 		for (size_t i = 0; i < array_size(state->instances); i++)
 		{
-			model_instance_draw(state->instances[i], render_pass, command_buffer, view_proj);
+			model_instance_draw(array_at(state->instances, i), render_pass, command_buffer, view_proj);
 		}
 
 		cImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
