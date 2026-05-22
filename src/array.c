@@ -4,14 +4,14 @@
 
 static constexpr size_t default_capacity = 32;
 
-void *impl_array_create(void *arr, const size_t size, const size_t capacity)
+static void *array_create(void *arr, const size_t capacity, const size_t item_size)
 {
 	if (arr != nullptr)
 	{
 		return arr;
 	}
 
-	const size_t init_size = sizeof(array_header_t) + (size * capacity);
+	const size_t init_size = sizeof(array_header_t) + (item_size * capacity);
 	array_header_t *header = SDL_malloc(init_size);
 	header->count = 0;
 	header->capacity = capacity;
@@ -28,24 +28,24 @@ void impl_array_destroy(void *arr)
 	SDL_free(_array_header(arr));
 }
 
-void *impl_array_resize(void *arr, const size_t elem_size, const size_t size)
+static void *array_resize(void *arr, const size_t new_capacity, const size_t item_size)
 {
-	array_capacity(arr) = size;
-	const size_t new_size = sizeof(array_header_t) + (elem_size * array_capacity(arr));
+	array_capacity(arr) = new_capacity;
+	const size_t new_size = sizeof(array_header_t) + (item_size * array_capacity(arr));
 	array_header_t *header = SDL_realloc(_array_header(arr), new_size);
 	return header + 1;
 }
 
-void *impl_array_reserve(void *arr, const size_t size)
+void *impl_array_reserve(void *arr, const size_t capacity, const size_t item_size)
 {
 	if (arr == nullptr)
 	{
-		return _array_create((arr), sizeof(*(arr)), (size));
+		return array_create(arr, capacity, item_size);
 	}
 
-	if (array_capacity(arr) < size)
+	if (array_capacity(arr) < capacity)
 	{
-		return _array_resize(arr, size);
+		return array_resize(arr, capacity, item_size);
 	}
 
 	return arr;
@@ -53,11 +53,11 @@ void *impl_array_reserve(void *arr, const size_t size)
 
 void *impl_array_push(void *arr, const size_t item_size)
 {
-	_array_create(arr, item_size, default_capacity);
+	arr = array_create(arr, default_capacity, item_size);
 
 	if (array_size(arr) == array_capacity(arr))
 	{
-		_array_resize((arr), array_capacity(arr) * 2);
+		arr = array_resize(arr, array_capacity(arr) * 2, item_size);
 	}
 
 	return arr;
