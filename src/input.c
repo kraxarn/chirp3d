@@ -24,7 +24,7 @@ static void update_keyboard_event(const SDL_KeyboardEvent event)
 
 	// Events get repeatedly triggered when key is held down
 	const key_state_t state = map_get(key_map, key_name, STATE_UP);
-	if (state != STATE_DOWN && event.down)
+	if (state != STATE_UP && event.down)
 	{
 		return;
 	}
