@@ -34,10 +34,7 @@ typedef struct app_state_t
 	float dt;
 
 	model_t **models;
-	size_t model_count;
-
 	node_instance_t **instances;
-	size_t instance_count;
 
 	physics_body_id_t player_body_id;
 } app_state_t;

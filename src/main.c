@@ -1,4 +1,5 @@
 #include "appstate.h"
+#include "array.h"
 #include "assets.h"
 #include "camera.h"
 #include "gpu.h"
@@ -350,11 +351,8 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(state->window, "Failed to initialise physics engine");
 	}
 
-	state->model_count = 2;
-	state->models = (model_t**) SDL_malloc(sizeof(model_t*) * state->model_count);
-
-	state->instance_count = 1;
-	state->instances = (node_instance_t**) SDL_malloc(sizeof(node_instance_t*) * state->instance_count);
+	array_reserve(state->models, 2);
+	array_reserve(state->instances, 1);
 
 	{
 		SDL_IOStream *model_stream = assets_load(state->assets, "models/blaster");
@@ -363,24 +361,26 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 			return fatal_error(state->window, "Failed to load model data");
 		}
 
-		state->models[0] = model_create(state->device, model_stream, true);
-		if (state->models[0] == nullptr)
+		model_t *model = model_create(state->device, model_stream, true);
+		if (model == nullptr)
 		{
 			return fatal_error(state->window, "Failed to load model");
 		}
+		array_push(state->models, model);
 
-		state->instances[0] = model_create_instance(state->models[0], nullptr);
-		if (state->instances[0] == nullptr)
+		node_instance_t *instance = model_create_instance(model, nullptr);
+		if (instance == nullptr)
 		{
 			return fatal_error(state->window, "Failed to create instance");
 		}
+		array_push(state->instances, instance);
 
-		model_set_rotation(state->instances[0], (vector3f_t){
+		model_set_rotation(instance, (vector3f_t){
 			.x = 0.F,
 			.y = 90.F,
 			.z = 0.F,
 		});
-		model_set_position(state->instances[0], (vector3f_t){
+		model_set_position(instance, (vector3f_t){
 			.x = 5.F,
 			.y = 1.F,
 			.z = -5.F,
@@ -393,13 +393,13 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 			return fatal_error(state->window, "Failed to load model data");
 		}
 
-		state->models[1] = model_create(state->device, model_stream, true);
-		if (state->models[1] == nullptr)
+		model_t *model = model_create(state->device, model_stream, true);
+		if (model == nullptr)
 		{
 			return fatal_error(state->window, "Failed to load model");
 		}
+		array_push(state->models, model);
 	}
-
 
 	return build_scene(state);
 }
@@ -566,7 +566,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		// Only draw scene directly as model
 		model_draw(state->models[1], render_pass, command_buffer, view_proj);
 
-		for (size_t i = 0; i < state->instance_count; i++)
+		for (size_t i = 0; i < array_size(state->instances); i++)
 		{
 			model_instance_draw(state->instances[i], render_pass, command_buffer, view_proj);
 		}
@@ -625,17 +625,17 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 {
 	const app_state_t *state = appstate;
 
-	for (size_t i = 0; i < state->model_count; i++)
+	for (size_t i = 0; i < array_size(state->models); i++)
 	{
 		model_destroy(state->models[i]);
 	}
-	SDL_free((void*) state->models);
+	array_destroy(state->models);
 
-	for (size_t i = 0; i < state->instance_count; i++)
+	for (size_t i = 0; i < array_size(state->instances); i++)
 	{
 		model_destroy_instance(state->instances[i]);
 	}
-	SDL_free((void*) state->instances);
+	array_destroy(state->instances);
 
 	assets_destroy(state->assets);
 	physics_destroy(state->physics_engine);
