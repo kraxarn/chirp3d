@@ -6,9 +6,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 option(ENABLE_TESTS "Build unit tests" OFF)
 
-if (ENABLE_TESTS)
-	add_library(${PROJECT_NAME} STATIC)
-elseif (ANDROID)
+if (ANDROID)
 	add_library(${PROJECT_NAME} SHARED)
 else ()
 	add_executable(${PROJECT_NAME})

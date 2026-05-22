@@ -18,10 +18,16 @@ endfunction()
 #add_test_executable(test-math "math.c")
 
 set(TESTS_TARGET "${PROJECT_NAME}_tests")
+set(ENGINE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../src")
 
 add_executable(${TESTS_TARGET}
 	main.c
 	testarray.c
+)
+
+# TODO: Maybe move stuff we test to a separate library
+target_sources(${TESTS_TARGET} PRIVATE
+	"${ENGINE_SRC}/array.c"
 )
 
 target_include_directories(${TESTS_TARGET} PRIVATE
@@ -30,10 +36,7 @@ target_include_directories(${TESTS_TARGET} PRIVATE
 
 add_test(NAME test_array COMMAND ${TESTS_TARGET} 1)
 
-target_link_libraries(${TESTS_TARGET} PRIVATE
-	chirp3d
-	SDL3::SDL3
-)
+target_link_libraries(${TESTS_TARGET} PRIVATE SDL3::SDL3)
 
 if (TARGET SDL3-shared)
 	add_custom_command(
