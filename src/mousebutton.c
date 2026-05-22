@@ -32,27 +32,27 @@ const char *mouse_button_name(const SDL_MouseButtonFlags flags)
 
 SDL_MouseButtonFlags mouse_button_from_name(const char *name)
 {
-	if (SDL_strcmp(name, button_left))
+	if (SDL_strcmp(name, button_left) == 0)
 	{
 		return SDL_BUTTON_LEFT;
 	}
 
-	if (SDL_strcmp(name, button_middle))
+	if (SDL_strcmp(name, button_middle) == 0)
 	{
 		return SDL_BUTTON_MIDDLE;
 	}
 
-	if (SDL_strcmp(name, button_right))
+	if (SDL_strcmp(name, button_right) == 0)
 	{
 		return SDL_BUTTON_RIGHT;
 	}
 
-	if (SDL_strcmp(name, button_side1))
+	if (SDL_strcmp(name, button_side1) == 0)
 	{
 		return SDL_BUTTON_X1;
 	}
 
-	if (SDL_strcmp(name, button_side2))
+	if (SDL_strcmp(name, button_side2) == 0)
 	{
 		return SDL_BUTTON_X2;
 	}
