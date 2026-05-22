@@ -23,5 +23,5 @@ void impl_array_destroy(void *arr)
 		return;
 	}
 
-	SDL_free(arr);
+	SDL_free(_array_header(arr));
 }
