@@ -15,3 +15,13 @@ void *impl_array_create(void *arr, const size_t size, const size_t capacity)
 	header->capacity = capacity;
 	return header + 1;
 }
+
+void impl_array_destroy(void *arr)
+{
+	if (arr == nullptr)
+	{
+		return;
+	}
+
+	SDL_free(arr);
+}

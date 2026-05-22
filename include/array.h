@@ -11,18 +11,12 @@ typedef struct array_header_t
 #define _array_default_capacity 32
 
 void *impl_array_create(void *arr, size_t size, size_t capacity);
+void impl_array_destroy(void *arr);
 
 #define _array_create(arr, size, cap) arr = impl_array_create(arr, size, cap)
+#define _array_header(arr)            (((array_header_t*) (arr)) - 1)
 
-#define _array_header(arr) (((array_header_t*) (arr)) - 1)
-
-#define array_destroy(arr)					\
-	do {									\
-		if ((arr) != nullptr) {				\
-			SDL_free(_array_header(arr));	\
-		}									\
-	} while (false)
-
+#define array_destroy(arr)  impl_array_destroy(arr)
 #define array_size(arr)     _array_header(arr)->count
 #define array_capacity(arr) _array_header(arr)->capacity
 
