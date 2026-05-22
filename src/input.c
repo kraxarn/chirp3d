@@ -5,31 +5,83 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_log.h>
 
-typedef enum key_state_t : Sint64
+typedef enum : Sint64
 {
 	STATE_UP,
 	STATE_PRESSED,
 	STATE_DOWN,
-} key_state_t;
+} input_state_t;
 
-// key name -> key state
+typedef enum : Uint8
+{
+	TYPE_UNKNOWN,
+	TYPE_KEYBOARD,
+	TYPE_MOUSE_BUTTON,
+} input_type_t;
+
+typedef struct
+{
+	input_type_t type;
+
+	union
+	{
+		SDL_Keycode keycode;
+		SDL_MouseButtonFlags mouse_button;
+	};
+} input_map_t;
+
+// key name -> input state
 static map_t key_map = 0;
 
-// input name -> keycode
+// mouse button name -> input state
+static map_t button_map = 0;
+
+// input name -> input map
 static map_t input_map = 0;
+
+[[nodiscard]]
+static const char *mouse_button_name(const SDL_MouseButtonFlags flags)
+{
+	switch (flags)
+	{
+		case SDL_BUTTON_LEFT:
+			return "left";
+
+		case SDL_BUTTON_MIDDLE:
+			return "middle";
+
+		case SDL_BUTTON_RIGHT:
+			return "right";
+
+		case SDL_BUTTON_X1:
+			return "side1";
+
+		case SDL_BUTTON_X2:
+			return "side2";
+
+		default:
+			return "";
+	}
+}
 
 static void update_keyboard_event(const SDL_KeyboardEvent event)
 {
 	const char *key_name = SDL_GetKeyName(event.key);
 
 	// Events get repeatedly triggered when key is held down
-	const key_state_t state = map_get(key_map, key_name, STATE_UP);
+	const input_state_t state = map_get(key_map, key_name, STATE_UP);
 	if (state != STATE_UP && event.down)
 	{
 		return;
 	}
 
 	map_set(key_map, key_name, event.down ? STATE_PRESSED : STATE_UP);
+}
+
+static void update_mouse_button_event(const SDL_MouseButtonEvent event)
+{
+	const char *button_name = SDL_GetKeyName(event.button);
+	map_set(button_map, button_name, event.down ? STATE_PRESSED : STATE_UP);
 }
 
 static bool init()
@@ -60,10 +112,26 @@ void input_update(const SDL_Event *event)
 		return;
 	}
 
-	if (event->type == SDL_EVENT_KEY_DOWN || event->type == SDL_EVENT_KEY_UP)
+	switch (event->type)
 	{
-		update_keyboard_event(event->key);
+		case SDL_EVENT_KEY_DOWN:
+		case SDL_EVENT_KEY_UP:
+			update_keyboard_event(event->key);
+			break;
+
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
+		case SDL_EVENT_MOUSE_BUTTON_UP:
+			update_mouse_button_event(event->button);
+			break;
+
+		default:
+			break;
 	}
+}
+
+static void input_map_cleanup([[maybe_unused]] void *userdata, void *value)
+{
+	SDL_free(value);
 }
 
 bool input_add(const char *name, const input_config_t config)
@@ -78,25 +146,67 @@ bool input_add(const char *name, const input_config_t config)
 		return SDL_SetError("Property already exists");
 	}
 
-	return map_set(input_map, name, config.keycode);
+	input_map_t *map = SDL_malloc(sizeof(input_map_t));
+
+	if (!SDL_SetPointerPropertyWithCleanup(input_map, name, map,
+		input_map_cleanup, nullptr))
+	{
+		SDL_free(map);
+		return false;
+	}
+
+	if (config.keycode != SDLK_UNKNOWN)
+	{
+		map->type = TYPE_KEYBOARD;
+		map->keycode = config.keycode;
+	}
+	else if (config.mouse_button > 0)
+	{
+		map->type = TYPE_MOUSE_BUTTON;
+		map->mouse_button = config.mouse_button;
+	}
+	else
+	{
+		SDL_ClearProperty(input_map, name);
+		return SDL_SetError("Unknown input mapping");
+	}
+
+	return true;
 }
 
 [[nodiscard]]
-static key_state_t input_state(const char *name)
+static input_state_t input_state(const char *name)
 {
-	const SDL_Keycode keycode = map_get(input_map, name, SDLK_UNKNOWN);
-	if (keycode == SDLK_UNKNOWN)
+	const input_map_t *input = map_get(input_map, name, nullptr);
+	if (input == nullptr)
 	{
 		SDL_LogWarn(LOG_CATEGORY_INPUT, "Unmapped input: %s", name);
 		return STATE_UP;
 	}
 
-	const char *key_name = SDL_GetKeyName(keycode);
-	const key_state_t state = map_get(key_map, key_name, STATE_UP);
+	map_t map;
+	const char *key;
 
+	switch (input->type)
+	{
+		case TYPE_KEYBOARD:
+			map = key_map;
+			key = SDL_GetKeyName(input->keycode);
+			break;
+
+		case TYPE_MOUSE_BUTTON:
+			map = button_map;
+			key = mouse_button_name(input->mouse_button);
+			break;
+
+		default:
+			return STATE_UP;
+	}
+
+	const input_state_t state = map_get(map, key, STATE_UP);
 	if (state == STATE_PRESSED)
 	{
-		map_set(key_map, key_name, STATE_DOWN);
+		map_set(map, key, STATE_DOWN);
 	}
 
 	return state;

@@ -2,6 +2,8 @@
 
 #include <SDL3/SDL_properties.h>
 
+#include <stddef.h>
+
 typedef SDL_PropertiesID map_t;
 
 #define map_create   SDL_CreateProperties
@@ -13,6 +15,7 @@ typedef void (*map_cleanup_callback_t)(void *value);
 #define map_get(map,name,fallback)		\
 	_Generic((fallback),				\
 		void*:  SDL_GetPointerProperty,	\
+		nullptr_t:  SDL_GetPointerProperty,	\
 		char*:  SDL_GetStringProperty,	\
 		Sint64: SDL_GetNumberProperty,	\
 		int:    SDL_GetNumberProperty,	\
@@ -24,6 +27,7 @@ typedef void (*map_cleanup_callback_t)(void *value);
 #define map_set(map,name,value)			\
 	_Generic((value),					\
 		void*:  SDL_SetPointerProperty,	\
+		nullptr_t:  SDL_SetPointerProperty,	\
 		char*:  SDL_SetStringProperty,	\
 		Sint64: SDL_SetNumberProperty,	\
 		int:    SDL_SetNumberProperty,	\
