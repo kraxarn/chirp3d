@@ -46,35 +46,26 @@ typedef struct
 	bool activate;
 } body_config_t;
 
-typedef struct box_config_t
+typedef struct
 {
-	physics_motion_type_t motion_type;
-	object_layer_t layer;
-	vector3f_t position;
 	vector3f_t half_extents;
-	bool activate;
 	float friction;
+	body_config_t body;
 } box_config_t;
 
-typedef struct sphere_config_t
+typedef struct
 {
-	physics_motion_type_t motion_type;
-	object_layer_t layer;
-	vector3f_t position;
 	float radius;
-	bool activate;
+	body_config_t body;
 } sphere_config_t;
 
-typedef struct capsule_config_t
+typedef struct
 {
 	float half_height;
 	float radius;
-	vector3f_t position;
-	physics_motion_type_t motion_type;
-	object_layer_t layer;
-	bool activate;
 	physics_allowed_dof_t allowed_dof;
 	float max_linear_velocity;
+	body_config_t body;
 } capsule_config_t;
 
 typedef struct

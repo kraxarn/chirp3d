@@ -191,21 +191,15 @@ static JPH_BodyID add_body(physics_engine_t *engine, const JPH_BodyCreationSetti
 
 physics_body_id_t physics_add_box(physics_engine_t *engine, const box_config_t *config)
 {
-	JPH_BoxShape *shape = JPH_BoxShape_Create(
-		jph_vec3(&config->half_extents), JPH_DEFAULT_CONVEX_RADIUS
-	);
-
-	JPH_BodyCreationSettings *settings = JPH_BodyCreationSettings_Create3(
-		(JPH_Shape*) shape, jph_vec3(&config->position), nullptr,
-		jph_motion_type(config->motion_type), config->layer
-	);
+	JPH_BoxShape *shape = JPH_BoxShape_Create(jph_vec3(&config->half_extents), JPH_DEFAULT_CONVEX_RADIUS);
+	JPH_BodyCreationSettings *settings = create_body_settings(&config->body, (JPH_Shape*) shape);
 
 	if (config->friction != 0.F)
 	{
 		JPH_BodyCreationSettings_SetFriction(settings, config->friction);
 	}
 
-	const JPH_BodyID body_id = add_body(engine, settings, config->activate);
+	const JPH_BodyID body_id = add_body(engine, settings, config->body.activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 	return body_id;
 }
@@ -213,13 +207,9 @@ physics_body_id_t physics_add_box(physics_engine_t *engine, const box_config_t *
 physics_body_id_t physics_add_sphere(physics_engine_t *engine, const sphere_config_t *config)
 {
 	JPH_SphereShape *shape = JPH_SphereShape_Create(config->radius);
+	JPH_BodyCreationSettings *settings = create_body_settings(&config->body, (JPH_Shape*) shape);
 
-	JPH_BodyCreationSettings *settings = JPH_BodyCreationSettings_Create3(
-		(JPH_Shape*) shape, jph_vec3(&config->position), nullptr,
-		jph_motion_type(config->motion_type), config->layer
-	);
-
-	const JPH_BodyID body_id = add_body(engine, settings, config->activate);
+	const JPH_BodyID body_id = add_body(engine, settings, config->body.activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 	return body_id;
 }
@@ -227,11 +217,7 @@ physics_body_id_t physics_add_sphere(physics_engine_t *engine, const sphere_conf
 physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_config_t *config)
 {
 	JPH_CapsuleShape *shape = JPH_CapsuleShape_Create(config->half_height, config->radius);
-
-	JPH_BodyCreationSettings *settings = JPH_BodyCreationSettings_Create3(
-		(JPH_Shape*) shape, jph_vec3(&config->position), nullptr,
-		jph_motion_type(config->motion_type), config->layer
-	);
+	JPH_BodyCreationSettings *settings = create_body_settings(&config->body, (JPH_Shape*) shape);
 
 	if (config->allowed_dof != 0)
 	{
@@ -243,7 +229,7 @@ physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_co
 		JPH_BodyCreationSettings_SetMaxLinearVelocity(settings, config->max_linear_velocity);
 	}
 
-	const JPH_BodyID body_id = add_body(engine, settings, config->activate);
+	const JPH_BodyID body_id = add_body(engine, settings, config->body.activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 	return body_id;
 }

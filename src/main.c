@@ -135,23 +135,27 @@ static SDL_AppResult build_scene(app_state_t *state)
 	const auto floor_size = (vector3f_t){.x = 100.F, .y = 0.F, .z = 100.F};
 
 	const box_config_t floor_config = {
-		.motion_type = MOTION_TYPE_STATIC,
-		.layer = OBJ_LAYER_STATIC,
-		.position = vector3f_zero(),
 		.half_extents = floor_size,
-		.activate = false,
 		.friction = 15.F,
+		.body = (body_config_t){
+			.motion_type = MOTION_TYPE_STATIC,
+			.layer = OBJ_LAYER_STATIC,
+			.position = vector3f_zero(),
+			.activate = false,
+		},
 	};
 	physics_add_box(state->physics_engine, &floor_config);
 
 	const capsule_config_t player_config = {
 		.half_height = 0.5F,
 		.radius = 1.F,
-		.position = vector3f_zero(),
-		.motion_type = MOTION_TYPE_DYNAMIC,
-		.layer = OBJ_LAYER_PLAYER,
-		.activate = false,
 		.allowed_dof = DOF_TRANSLATION_3D,
+		.body = (body_config_t){
+			.position = vector3f_zero(),
+			.motion_type = MOTION_TYPE_DYNAMIC,
+			.layer = OBJ_LAYER_DYNAMIC,
+			.activate = false,
+		},
 	};
 	state->player_body_id = physics_add_capsule(state->physics_engine, &player_config);
 	physics_body_set_position(state->physics_engine, state->player_body_id, state->camera.position, true);
