@@ -392,6 +392,14 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		}
 		array_push(state->models, model);
 	}
+	{
+		model_t *model = assets_load_model(state->assets, state->device, "bullet");
+		if (model == nullptr)
+		{
+			return fatal_error(state->window, "Failed to load model");
+		}
+		array_push(state->models, model);
+	}
 
 	return build_scene(state);
 }
@@ -483,6 +491,47 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 				physics_body_set_linear_velocity(state->physics_engine, state->player_body_id, jump_velocity);
 			}
 		}
+
+		if (input_is_pressed("shoot"))
+		{
+			node_instance_t *instance = model_create_instance(array_at(state->models, 2), nullptr);
+			if (instance == nullptr)
+			{
+				SDL_LogError(LOG_CATEGORY_CORE, "Failed to create bullet instance: %s", SDL_GetError());
+			}
+			else
+			{
+				static constexpr float firepower = 50.F;
+
+				array_push(state->instances, instance);
+				model_set_position(instance, state->camera.position);
+
+				const cylinder_config_t config = {
+					.half_height = 0.5F,
+					.radius = 1.F,
+					.body = (body_config_t){
+						.position = state->camera.position,
+						.motion_type = MOTION_TYPE_DYNAMIC,
+						.layer = OBJ_LAYER_DYNAMIC,
+						.activate = true,
+					},
+				};
+				const physics_body_id_t body_id = physics_add_cylinder(state->physics_engine, &config);
+
+				const node_instance_physics_t instance_physics = {
+					.instance = instance,
+					.body_id = body_id,
+				};
+				array_push(state->instance_physics, instance_physics);
+
+				const vector3f_t direction = vector3f_scale(
+					vector3f_normalize(
+						vector3f_sub(state->camera.target, state->camera.position)
+					), firepower
+				);
+				physics_body_set_linear_velocity(state->physics_engine, body_id, direction);
+			}
+		}
 	}
 
 	const vector3f_t min_velocity =
@@ -521,6 +570,15 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		.y = SDL_atan2f(-forward_n.z, forward_n.x) - (SDL_PI_F * 0.5F),
 		.z = 0.0F,
 	});
+
+	if (state->instance_physics != nullptr)
+	{
+		for (size_t i = 0; i < array_size(state->instance_physics); i++)
+		{
+			node_instance_physics_t *item = array_ptr(state->instance_physics, i);
+			model_set_position(item->instance, physics_body_position(state->physics_engine, item->body_id));
+		}
+	}
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 
