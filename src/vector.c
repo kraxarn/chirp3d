@@ -123,3 +123,14 @@ vector4f_t vector4f_one()
 		.w = 1.F,
 	};
 }
+
+vector4f_t vector4f_normalize(const vector4f_t vec)
+{
+	const float magnitude = SDL_sqrtf((vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z) + (vec.w * vec.w));
+	return (vector4f_t){
+		.x = vec.x / magnitude,
+		.y = vec.y / magnitude,
+		.z = vec.z / magnitude,
+		.w = vec.w / magnitude,
+	};
+}

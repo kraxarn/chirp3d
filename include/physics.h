@@ -103,6 +103,9 @@ void physics_body_set_position(const physics_engine_t *engine, physics_body_id_t
 [[nodiscard]]
 vector4f_t physics_body_rotation(const physics_engine_t *engine, physics_body_id_t body_id);
 
+void physics_body_set_rotation(const physics_engine_t *engine,
+	physics_body_id_t body_id, vector4f_t rotation, bool activate);
+
 [[nodiscard]]
 vector3f_t physics_body_linear_velocity(const physics_engine_t *engine, physics_body_id_t body_id);
 

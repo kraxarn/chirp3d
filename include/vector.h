@@ -83,3 +83,6 @@ vector3f_t vector3f_clamp(vector3f_t vec, vector3f_t min, vector3f_t max);
 
 [[nodiscard]]
 vector4f_t vector4f_one();
+
+[[nodiscard]]
+vector4f_t vector4f_normalize(vector4f_t vec);

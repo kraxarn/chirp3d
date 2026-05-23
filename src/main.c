@@ -525,12 +525,15 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 				};
 				array_push(state->instance_physics, instance_physics);
 
-				const vector3f_t direction = vector3f_scale(
-					vector3f_normalize(
-						vector3f_sub(state->camera.target, state->camera.position)
-					), firepower
-				);
-				physics_body_set_linear_velocity(state->physics_engine, body_id, direction);
+				const vector3f_t forward = vector3f_normalize(vector3f_sub(state->camera.target, position));
+				const vector3f_t velocity = vector3f_scale(forward, firepower);
+				physics_body_set_linear_velocity(state->physics_engine, body_id, velocity);
+				physics_body_set_rotation(state->physics_engine, body_id, vector4f_normalize((vector4f_t){
+					.x = 1.F,
+					.y = 0.F,
+					.z = 0.F,
+					.w = 0.F,
+				}), true);
 			}
 		}
 	}
@@ -578,6 +581,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		{
 			node_instance_physics_t *item = array_ptr(state->instance_physics, i);
 			model_instance_set_position(item->instance, physics_body_position(state->physics_engine, item->body_id));
+			const vector4f_t rotation = physics_body_rotation(state->physics_engine, item->body_id);
+			model_instance_set_rotation(item->instance, (vector3f_t){
+				.x = rotation.x, .y = rotation.y, .z = rotation.z,
+			});
 		}
 	}
 

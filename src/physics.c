@@ -264,6 +264,13 @@ vector4f_t physics_body_rotation(const physics_engine_t *engine, const physics_b
 	return rotation;
 }
 
+void physics_body_set_rotation(const physics_engine_t *engine, const physics_body_id_t body_id,
+	vector4f_t rotation, const bool activate)
+{
+	JPH_BodyInterface_SetRotation(engine->body_interface, body_id,
+		jph_quat(&rotation), jph_activation(activate));
+}
+
 vector3f_t physics_body_linear_velocity(const physics_engine_t *engine, const physics_body_id_t body_id)
 {
 	vector3f_t velocity;
