@@ -50,6 +50,7 @@ typedef struct node_t
 	size_t primitive_count;
 
 	matrix4x4_t world_transform;
+	vector3f_t translation;
 } node_t;
 
 typedef struct camera_t
@@ -448,6 +449,7 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 
 		node_t *node = model->nodes + nn;
 		node->name = SDL_strdup(gltf_node->name);
+		node->translation = *((vector3f_t*) gltf_node->translation);
 
 		if (node->name != nullptr
 			&& !map_set(model->node_indices, node->name, (Sint64) nn))
@@ -1059,8 +1061,7 @@ vector3f_t model_node_position(const model_t *model, const char *node)
 		return vector3f_zero();
 	}
 
-	// return model->nodes[(size_t) index].position; // TODO: Maybe add base position?
-	return vector3f_zero();
+	return model->nodes[(size_t) index].translation;
 }
 
 vector3f_t model_instance_position(const node_instance_t *instance)
