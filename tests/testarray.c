@@ -37,8 +37,31 @@ static void test_array_reserve()
 	assert(array_capacity(items) > 1);
 }
 
+static void test_array_create_zero()
+{
+	int *items = nullptr;
+	array_reserve(items, 3);
+
+	assert(items[0] == 0);
+	assert(items[1] == 0);
+	assert(items[2] == 0);
+}
+
+static void test_array_resize_zero()
+{
+	int *items = nullptr;
+	array_reserve(items, 1);
+	array_reserve(items, 3);
+
+	assert(items[0] == 0);
+	assert(items[1] == 0);
+	assert(items[2] == 0);
+}
+
 void test_array()
 {
 	test_array_push();
 	test_array_reserve();
+	test_array_create_zero();
+	test_array_resize_zero();
 }

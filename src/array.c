@@ -32,9 +32,11 @@ void impl_array_destroy(void *arr)
 
 static void *array_resize(void *arr, const size_t new_capacity, const size_t item_size)
 {
+	const size_t old_capacity = array_capacity(arr);
 	array_capacity(arr) = new_capacity;
 	const size_t new_size = sizeof(array_header_t) + (item_size * array_capacity(arr));
 	array_header_t *header = SDL_realloc(_array_header(arr), new_size);
+	SDL_memset(((void *) (header + 1)) + (old_capacity * item_size), 0, (new_capacity - old_capacity) * item_size);
 	return header + 1;
 }
 
