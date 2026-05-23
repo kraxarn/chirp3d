@@ -11,8 +11,10 @@ static void *array_create(void *arr, const size_t capacity, const size_t item_si
 		return arr;
 	}
 
-	const size_t init_size = sizeof(array_header_t) + (item_size * capacity);
-	array_header_t *header = SDL_malloc(init_size);
+	const size_t items_size = item_size * capacity;
+	array_header_t *header = SDL_malloc(sizeof(array_header_t) + items_size);
+	SDL_memset(header + 1, 0, items_size);
+
 	header->count = 0;
 	header->capacity = capacity;
 	return header + 1;
