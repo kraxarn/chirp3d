@@ -1063,6 +1063,11 @@ vector3f_t model_node_position(const model_t *model, const char *node)
 	return vector3f_zero();
 }
 
+vector3f_t model_instance_position(const node_instance_t *instance)
+{
+	return instance->position;
+}
+
 void model_set_position(node_instance_t *instance, const vector3f_t position)
 {
 	instance->position = position;

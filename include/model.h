@@ -41,6 +41,9 @@ void model_set_rotation(node_instance_t *instance, vector3f_t rotation);
 [[nodiscard]]
 vector3f_t model_node_position(const model_t *model, const char *node);
 
+[[nodiscard]]
+vector3f_t model_instance_position(const node_instance_t *instance);
+
 void model_set_position(node_instance_t *instance, vector3f_t position);
 
 void model_set_scale(node_instance_t *instance, vector3f_t scale);

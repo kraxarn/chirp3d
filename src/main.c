@@ -501,16 +501,17 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			}
 			else
 			{
-				static constexpr float firepower = 50.F;
+				static constexpr float firepower = 100.F;
 
+				const vector3f_t position = model_instance_position(state->instances[0]);
 				array_push(state->instances, instance);
-				model_set_position(instance, state->camera.position);
+				model_set_position(instance, position);
 
 				const cylinder_config_t config = {
 					.half_height = 0.5F,
 					.radius = 1.F,
 					.body = (body_config_t){
-						.position = state->camera.position,
+						.position = position,
 						.motion_type = MOTION_TYPE_DYNAMIC,
 						.layer = OBJ_LAYER_DYNAMIC,
 						.activate = true,
