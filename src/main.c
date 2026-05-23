@@ -508,13 +508,13 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 				model_instance_set_position(instance, position);
 
 				const cylinder_config_t config = {
-					.half_height = 0.5F,
-					.radius = 1.F,
+					.half_height = 0.1F,
+					.radius = 0.5F,
 					.body = (body_config_t){
 						.position = position,
 						.motion_type = MOTION_TYPE_DYNAMIC,
 						.layer = OBJ_LAYER_DYNAMIC,
-						.activate = true,
+						.activate = false,
 					},
 				};
 				const physics_body_id_t body_id = physics_add_cylinder(state->physics_engine, &config);
@@ -529,10 +529,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 				const vector3f_t velocity = vector3f_scale(forward, firepower);
 				physics_body_set_linear_velocity(state->physics_engine, body_id, velocity);
 				physics_body_set_rotation(state->physics_engine, body_id, vector4f_normalize((vector4f_t){
-					.x = 1.F,
-					.y = 0.F,
-					.z = 0.F,
-					.w = 0.F,
+					.x = 0.5F,
 				}), true);
 			}
 		}
