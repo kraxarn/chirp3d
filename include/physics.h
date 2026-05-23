@@ -12,7 +12,7 @@ typedef enum object_layer_t: Uint32
 {
 	OBJ_LAYER_DEFAULT = 0,
 	OBJ_LAYER_STATIC  = 1,
-	OBJ_LAYER_PLAYER  = 2,
+	OBJ_LAYER_DYNAMIC = 2,
 
 	OBJ_LAYER_COUNT = 3,
 } object_layer_t;
@@ -37,6 +37,14 @@ typedef enum physics_allowed_dof_t
 	DOF_TRANSLATION_3D = DOF_TRANSLATION_X | DOF_TRANSLATION_Y | DOF_TRANSLATION_Z,
 	DOF_ROTATION_3D    = DOF_ROTATION_X | DOF_ROTATION_Y | DOF_ROTATION_Z,
 } physics_allowed_dof_t;
+
+typedef struct
+{
+	vector3f_t position;
+	physics_motion_type_t motion_type;
+	object_layer_t layer;
+	bool activate;
+} body_config_t;
 
 typedef struct box_config_t
 {
@@ -69,6 +77,13 @@ typedef struct capsule_config_t
 	float max_linear_velocity;
 } capsule_config_t;
 
+typedef struct
+{
+	float half_height;
+	float radius;
+	body_config_t body;
+} cylinder_config_t;
+
 [[nodiscard]]
 physics_engine_t *physics_create();
 
@@ -85,6 +100,8 @@ physics_body_id_t physics_add_box(physics_engine_t *engine, const box_config_t *
 physics_body_id_t physics_add_sphere(physics_engine_t *engine, const sphere_config_t *config);
 
 physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_config_t *config);
+
+physics_body_id_t physics_add_cylinder(physics_engine_t *engine, const cylinder_config_t *config);
 
 [[nodiscard]]
 vector3f_t physics_body_position(const physics_engine_t *engine, physics_body_id_t body_id);

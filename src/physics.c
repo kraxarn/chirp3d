@@ -75,10 +75,10 @@ physics_engine_t *physics_create()
 
 	JPH_ObjectLayerPairFilter *obj_filter = JPH_ObjectLayerPairFilterTable_Create(OBJ_LAYER_COUNT);
 	JPH_ObjectLayerPairFilterTable_EnableCollision(obj_filter,
-		OBJ_LAYER_STATIC, OBJ_LAYER_PLAYER
+		OBJ_LAYER_STATIC, OBJ_LAYER_DYNAMIC
 	);
 	JPH_ObjectLayerPairFilterTable_EnableCollision(obj_filter,
-		OBJ_LAYER_PLAYER, OBJ_LAYER_STATIC
+		OBJ_LAYER_DYNAMIC, OBJ_LAYER_STATIC
 	);
 
 	JPH_BroadPhaseLayerInterface *bp_interface = JPH_BroadPhaseLayerInterfaceTable_Create(
@@ -88,7 +88,7 @@ physics_engine_t *physics_create()
 		OBJ_LAYER_STATIC, BP_LAYER_NON_MOVING
 	);
 	JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(bp_interface,
-		OBJ_LAYER_PLAYER, BP_LAYER_MOVING
+		OBJ_LAYER_DYNAMIC, BP_LAYER_MOVING
 	);
 
 	JPH_ObjectVsBroadPhaseLayerFilter *layer_filter = JPH_ObjectVsBroadPhaseLayerFilterTable_Create(
@@ -172,6 +172,15 @@ void physics_set_gravity(const physics_engine_t *engine, const vector3f_t gravit
 	JPH_PhysicsSystem_SetGravity(engine->physics_system, jph_vec3(&gravity));
 }
 
+[[nodiscard]]
+static JPH_BodyCreationSettings *create_body_settings(const body_config_t *config, const JPH_Shape *shape)
+{
+	return JPH_BodyCreationSettings_Create3(
+		shape, jph_vec3(&config->position), nullptr,
+		jph_motion_type(config->motion_type), config->layer
+	);
+}
+
 static JPH_BodyID add_body(physics_engine_t *engine, const JPH_BodyCreationSettings *settings, const bool activate)
 {
 	const JPH_Activation activation = jph_activation(activate);
@@ -187,7 +196,7 @@ physics_body_id_t physics_add_box(physics_engine_t *engine, const box_config_t *
 	);
 
 	JPH_BodyCreationSettings *settings = JPH_BodyCreationSettings_Create3(
-		(JPH_Shape *) shape, jph_vec3(&config->position), nullptr,
+		(JPH_Shape*) shape, jph_vec3(&config->position), nullptr,
 		jph_motion_type(config->motion_type), config->layer
 	);
 
@@ -206,7 +215,7 @@ physics_body_id_t physics_add_sphere(physics_engine_t *engine, const sphere_conf
 	JPH_SphereShape *shape = JPH_SphereShape_Create(config->radius);
 
 	JPH_BodyCreationSettings *settings = JPH_BodyCreationSettings_Create3(
-		(JPH_Shape *) shape, jph_vec3(&config->position), nullptr,
+		(JPH_Shape*) shape, jph_vec3(&config->position), nullptr,
 		jph_motion_type(config->motion_type), config->layer
 	);
 
@@ -220,7 +229,7 @@ physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_co
 	JPH_CapsuleShape *shape = JPH_CapsuleShape_Create(config->half_height, config->radius);
 
 	JPH_BodyCreationSettings *settings = JPH_BodyCreationSettings_Create3(
-		(JPH_Shape *) shape, jph_vec3(&config->position), nullptr,
+		(JPH_Shape*) shape, jph_vec3(&config->position), nullptr,
 		jph_motion_type(config->motion_type), config->layer
 	);
 
@@ -235,6 +244,16 @@ physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_co
 	}
 
 	const JPH_BodyID body_id = add_body(engine, settings, config->activate);
+	JPH_BodyCreationSettings_Destroy(settings);
+	return body_id;
+}
+
+physics_body_id_t physics_add_cylinder(physics_engine_t *engine, const cylinder_config_t *config)
+{
+	JPH_CylinderShape *shape = JPH_CylinderShape_Create(config->half_height, config->radius);
+	JPH_BodyCreationSettings *settings = create_body_settings(&config->body, (JPH_Shape*) shape);
+
+	const JPH_BodyID body_id = add_body(engine, settings, config->body.activate);
 	JPH_BodyCreationSettings_Destroy(settings);
 	return body_id;
 }
