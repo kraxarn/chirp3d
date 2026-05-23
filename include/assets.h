@@ -1,5 +1,6 @@
 #pragma once
 
+#include "model.h"
 #include "windowconfig.h"
 
 #include <SDL3/SDL_iostream.h>
@@ -29,3 +30,6 @@ SDL_IOStream *assets_load(assets_t *assets, const char *name);
 
 [[nodiscard]]
 SDL_Surface *assets_load_texture(assets_t *assets, const char *name);
+
+[[nodiscard]]
+model_t *assets_load_model(assets_t *assets, SDL_GPUDevice *device, const char *name);

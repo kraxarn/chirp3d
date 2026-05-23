@@ -355,13 +355,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	array_reserve(state->instances, 1);
 
 	{
-		SDL_IOStream *model_stream = assets_load(state->assets, "models/blaster");
-		if (model_stream == nullptr)
-		{
-			return fatal_error(state->window, "Failed to load model data");
-		}
-
-		model_t *model = model_create(state->device, model_stream, true);
+		model_t *model = assets_load_model(state->assets, state->device, "blaster");
 		if (model == nullptr)
 		{
 			return fatal_error(state->window, "Failed to load model");
@@ -387,13 +381,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		});
 	}
 	{
-		SDL_IOStream *model_stream = assets_load(state->assets, "models/scene");
-		if (model_stream == nullptr)
-		{
-			return fatal_error(state->window, "Failed to load model data");
-		}
-
-		model_t *model = model_create(state->device, model_stream, true);
+		model_t *model = assets_load_model(state->assets, state->device, "scene");
 		if (model == nullptr)
 		{
 			return fatal_error(state->window, "Failed to load model");
