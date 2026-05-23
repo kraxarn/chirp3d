@@ -373,12 +373,12 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		}
 		array_push(state->instances, instance);
 
-		model_set_rotation(instance, (vector3f_t){
+		model_instance_set_rotation(instance, (vector3f_t){
 			.x = 0.F,
 			.y = 90.F,
 			.z = 0.F,
 		});
-		model_set_position(instance, (vector3f_t){
+		model_instance_set_position(instance, (vector3f_t){
 			.x = 5.F,
 			.y = 1.F,
 			.z = -5.F,
@@ -505,7 +505,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 				const vector3f_t position = model_instance_position(state->instances[0]);
 				array_push(state->instances, instance);
-				model_set_position(instance, position);
+				model_instance_set_position(instance, position);
 
 				const cylinder_config_t config = {
 					.half_height = 0.5F,
@@ -564,9 +564,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(forward_n, 0.2F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(right_n, 0.25F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(up_n, -0.2F));
-	model_set_position(state->instances[0], weapon_position);
+	model_instance_set_position(state->instances[0], weapon_position);
 
-	model_set_rotation(state->instances[0], (vector3f_t){
+	model_instance_set_rotation(state->instances[0], (vector3f_t){
 		.x = SDL_asinf(forward_n.y),
 		.y = SDL_atan2f(-forward_n.z, forward_n.x) - (SDL_PI_F * 0.5F),
 		.z = 0.0F,
@@ -577,7 +577,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		for (size_t i = 0; i < array_size(state->instance_physics); i++)
 		{
 			node_instance_physics_t *item = array_ptr(state->instance_physics, i);
-			model_set_position(item->instance, physics_body_position(state->physics_engine, item->body_id));
+			model_instance_set_position(item->instance, physics_body_position(state->physics_engine, item->body_id));
 		}
 	}
 

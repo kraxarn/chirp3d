@@ -1044,7 +1044,7 @@ void model_instance_draw(node_instance_t *instance,
 		matrix4x4_multiply(instance->projection, projection));
 }
 
-void model_set_rotation(node_instance_t *instance, const vector3f_t rotation)
+void model_instance_set_rotation(node_instance_t *instance, const vector3f_t rotation)
 {
 	instance->rotation = rotation;
 	instance->rebuild_projection = true;
@@ -1068,13 +1068,13 @@ vector3f_t model_instance_position(const node_instance_t *instance)
 	return instance->position;
 }
 
-void model_set_position(node_instance_t *instance, const vector3f_t position)
+void model_instance_set_position(node_instance_t *instance, const vector3f_t position)
 {
 	instance->position = position;
 	instance->rebuild_projection = true;
 }
 
-void model_set_scale(node_instance_t *instance, const vector3f_t scale)
+void model_instance_set_scale(node_instance_t *instance, const vector3f_t scale)
 {
 	instance->scale = scale;
 	instance->rebuild_projection = true;

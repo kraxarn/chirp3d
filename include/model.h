@@ -36,14 +36,14 @@ void model_draw(const model_t *model, SDL_GPURenderPass *render_pass,
 void model_instance_draw(node_instance_t *instance, SDL_GPURenderPass *render_pass,
 	SDL_GPUCommandBuffer *command_buffer, matrix4x4_t projection);
 
-void model_set_rotation(node_instance_t *instance, vector3f_t rotation);
-
 [[nodiscard]]
 vector3f_t model_node_position(const model_t *model, const char *node);
+
+void model_instance_set_rotation(node_instance_t *instance, vector3f_t rotation);
 
 [[nodiscard]]
 vector3f_t model_instance_position(const node_instance_t *instance);
 
-void model_set_position(node_instance_t *instance, vector3f_t position);
+void model_instance_set_position(node_instance_t *instance, vector3f_t position);
 
-void model_set_scale(node_instance_t *instance, vector3f_t scale);
+void model_instance_set_scale(node_instance_t *instance, vector3f_t scale);
