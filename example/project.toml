@@ -18,7 +18,7 @@ map = "test"
 
 [assets]
 textures = ["dark", "green", "light", "orange", "purple", "red"]
-models = ["cube"]
+models = ["scene", "blaster", "bullet"]
 
 [input]
 move_forward  = { keycode = "w", axis = "left_y",  axis_range = [0.05, 1.0  ] }
@@ -28,3 +28,4 @@ move_right    = { keycode = "d", axis = "left_x",  axis_range = [0.05, 1.0  ] }
 move_up       = { keycode = "q", axis = "right_y", axis_range = [0.05, 1.0  ] }
 move_down     = { keycode = "e", axis = "right_y", axis_range = [-1.0, -0.05] }
 jump          = { keycode = "space" }
+shoot         = { mouse   = "left"  }
