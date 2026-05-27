@@ -11,17 +11,6 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_timer.h>
 
-#define CGLTF_MALLOC(size) SDL_malloc(size)
-#define CGLTF_FREE(ptr)    SDL_free(ptr)
-#define CGLTF_ATOI(str)    SDL_atoi(str)
-#define CGLTF_ATOF(str)    SDL_atof(str)
-#define CGLTF_ATOLL(str)   SDL_strtoll(str,nullptr,10)
-
-#ifndef NDEBUG
-#define CGLTF_VALIDATE_ENABLE_ASSERTS 1
-#endif
-
-#define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
 
 typedef struct material_t
