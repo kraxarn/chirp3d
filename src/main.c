@@ -219,11 +219,17 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 	*appstate = state;
 
-	const char *assets_path = argc == 2 ? argv[1] : SDL_GetBasePath();
-	state->assets = assets_create_from_folder(assets_path);
+	const char *base_path = SDL_GetBasePath();
+	const size_t assets_path_len = SDL_strlen(base_path) + SDL_arraysize("assets.nest") + 1;
+	char *assets_path = SDL_calloc(assets_path_len, sizeof(char));
+	SDL_strlcat(assets_path, base_path, assets_path_len);
+	SDL_strlcat(assets_path, "assets.nest", assets_path_len);
+
+	state->assets = assets_create(assets_path);
+	SDL_free(assets_path);
 	if (state->assets == nullptr)
 	{
-		return fatal_error(nullptr, "Failed to load assets");
+		return fatal_error(state->window, "Failed to load assets");
 	}
 
 #ifdef FORCE_X11
