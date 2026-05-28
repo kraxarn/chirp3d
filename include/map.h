@@ -7,6 +7,7 @@
 typedef SDL_PropertiesID map_t;
 
 #define map_create   SDL_CreateProperties
+#define map_destroy  SDL_DestroyProperties
 #define map_contains SDL_HasProperty
 
 // Custom callback to directly support common "destroy" functions
