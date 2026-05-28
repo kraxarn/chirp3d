@@ -8,28 +8,19 @@
 
 typedef struct assets_t assets_t;
 
-typedef SDL_IOStream *(*assets_load_func_t)(assets_t *assets, const char *name);
-
-typedef void (*assets_cleanup_func_t)(assets_t *assets);
-
-typedef struct assets_t
-{
-	assets_load_func_t load;
-	assets_cleanup_func_t cleanup;
-	window_config_t window_config;
-	void *data;
-} assets_t;
-
 [[nodiscard]]
 assets_t *assets_create(const char *path);
 
 void assets_destroy(assets_t *assets);
 
 [[nodiscard]]
-SDL_IOStream *assets_load(assets_t *assets, const char *name);
+window_config_t assets_window_config(const assets_t *assets);
 
 [[nodiscard]]
-SDL_Surface *assets_load_texture(assets_t *assets, const char *name);
+SDL_IOStream *assets_load(const assets_t *assets, const char *name);
 
 [[nodiscard]]
-model_t *assets_load_model(assets_t *assets, SDL_GPUDevice *device, const char *name);
+SDL_Surface *assets_load_texture(const assets_t *assets, const char *name);
+
+[[nodiscard]]
+model_t *assets_load_model(const assets_t *assets, SDL_GPUDevice *device, const char *name);

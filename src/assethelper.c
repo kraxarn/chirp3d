@@ -6,23 +6,7 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_surface.h>
 
-void assets_destroy(assets_t *assets)
-{
-	if (assets == nullptr)
-	{
-		return;
-	}
-
-	assets->cleanup(assets);
-	SDL_free(assets);
-}
-
-SDL_IOStream *assets_load(assets_t *assets, const char *name)
-{
-	return assets->load(assets, name);
-}
-
-SDL_Surface *assets_load_texture(assets_t *assets, const char *name)
+SDL_Surface *assets_load_texture(const assets_t *assets, const char *name)
 {
 	char *path = nullptr;
 	if (SDL_asprintf(&path, "textures/%s", name) < 0)
@@ -41,7 +25,7 @@ SDL_Surface *assets_load_texture(assets_t *assets, const char *name)
 	return load_qoi(stream, true);
 }
 
-model_t *assets_load_model(assets_t *assets, SDL_GPUDevice *device, const char *name)
+model_t *assets_load_model(const assets_t *assets, SDL_GPUDevice *device, const char *name)
 {
 	char *path = nullptr;
 	if (SDL_asprintf(&path, "models/%s", name) < 0)

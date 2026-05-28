@@ -247,7 +247,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 	state->last_update = SDL_GetTicks();
 
-	const window_config_t window_config = state->assets->window_config;
+	const window_config_t window_config = assets_window_config(state->assets);
 
 	state->window = SDL_CreateWindow(window_config.title,
 		window_config.size.x, window_config.size.y,
