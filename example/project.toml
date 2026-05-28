@@ -1,4 +1,4 @@
-[project.metadata]
+[metadata]
 name = "chirp3d example"
 version = "1.0.0"
 identifier = "com.kraxarn.chirp3d_example"
@@ -7,14 +7,14 @@ copyright = "Copyright (c) 2026 kraxarn"
 url = "https://github.com/kraxarn/chirp3d"
 type = "game"
 
-[project.window]
+[window]
 title = "chirp3d example"
 size = [1280, 720]
 fullscreen = false
 icon = ""
 
-[project.run]
-map = "test"
+[run]
+scene = "test"
 
 [assets]
 textures = ["dark", "green", "light", "orange", "purple", "red"]

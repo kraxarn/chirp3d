@@ -14,11 +14,18 @@ typedef struct
 typedef enum
 {
 	JSON_UNDEFINED = 0,
-	JSON_OBJECT    = 1 << 0,
-	JSON_ARRAY     = 1 << 1,
-	JSON_STRING    = 1 << 2,
-	JSON_PRIMITIVE = 1 << 3,
+	JSON_OBJECT    = 1,
+	JSON_ARRAY     = 2,
+	JSON_STRING    = 3,
+	JSON_PRIMITIVE = 4,
 } json_type_t;
+
+typedef enum
+{
+	JSON_ERROR_OOM        = -1,
+	JSON_ERROR_INVALID    = -2,
+	JSON_ERROR_INCOMPLETE = -3
+} json_error_t;
 
 typedef struct
 {
