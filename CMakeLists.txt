@@ -27,7 +27,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 include(deps/sdl3.cmake)
 include(deps/qoi.cmake)
 include(deps/stb.cmake)
-include(deps/tomlc17.cmake)
 include(deps/joltc.cmake)
 include(deps/maple-font.cmake)
 include(deps/cpuinfo.cmake)
