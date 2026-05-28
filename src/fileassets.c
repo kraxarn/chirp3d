@@ -91,6 +91,60 @@ static bool parse_project_metadata(char *json, const json_token_t *token)
 }
 
 [[nodiscard]]
+static bool parse_project_window(char *json, window_config_t *window_config,
+	const json_token_t *tokens, const int token_count, const json_token_t *token)
+{
+	for (int i = (token + 1)->parent + 2; i < token_count; i++)
+	{
+		const json_token_t *key = tokens + i;
+
+		if (key->start < (token + 1)->start || key->end > (token + 1)->end)
+		{
+			break;
+		}
+
+		const json_token_t *value = key + 1;
+
+		if (is_key(json, key, "tit"))
+		{
+			const size_t title_size = value->end - value->start + 1;
+			char *title = SDL_malloc(title_size);
+			SDL_strlcpy(title, json + value->start, title_size);
+
+			window_config->title = title;
+		}
+		else if (is_key(json, key, "siz"))
+		{
+			const long width = SDL_strtol(json + (value + 1)->start, nullptr, 10);
+			const long height = SDL_strtol(json + (value + 2)->start, nullptr, 10);
+
+			window_config->size.x = (int) width;
+			window_config->size.y = (int) height;
+		}
+		else if (is_key(json, key, "ful"))
+		{
+			const bool fullscreen = SDL_strncmp(json + value->start, "true", 4) == 0;
+
+			window_config->fullscreen = fullscreen;
+		}
+		else if (is_key(json, key, "ico"))
+		{
+			// TODO: Icons are currently not supported
+		}
+		else
+		{
+			SDL_SetError("Unknown window key: %.*s", token_str(key));
+			SDL_free(json);
+			return false;
+		}
+
+		i += value->type == JSON_ARRAY ? 3 : 1;
+	}
+
+	return true;
+}
+
+[[nodiscard]]
 static bool parse_project(SDL_IOStream *stream, assets_t *assets)
 {
 	size_t json_len = 0;
@@ -131,61 +185,11 @@ static bool parse_project(SDL_IOStream *stream, assets_t *assets)
 			continue;
 		}
 
-		if (is_key(json, token, "met") && parse_project_metadata(json, token))
+		if ((is_key(json, token, "met")
+				&& parse_project_metadata(json, token))
+			|| (is_key(json, token, "win")
+				&& parse_project_window(json, &assets->window_config, tokens, count, token)))
 		{
-			i += size;
-			continue;
-		}
-
-		if (is_key(json, token, "win"))
-		{
-			for (int j = i + 2; j < count; j++)
-			{
-				const json_token_t *key = tokens + j;
-
-				if (key->start < (token + 1)->start || key->end > (token + 1)->end)
-				{
-					break;
-				}
-
-				const json_token_t *value = key + 1;
-
-				if (is_key(json, key, "tit"))
-				{
-					const size_t title_size = value->end - value->start + 1;
-					char *title = SDL_malloc(title_size);
-					SDL_strlcpy(title, json + value->start, title_size);
-
-					assets->window_config.title = title;
-				}
-				else if (is_key(json, key, "siz"))
-				{
-					const long width = SDL_strtol(json + (value + 1)->start, nullptr, 10);
-					const long height = SDL_strtol(json + (value + 2)->start, nullptr, 10);
-
-					assets->window_config.size.x = (int) width;
-					assets->window_config.size.y = (int) height;
-				}
-				else if (is_key(json, key, "ful"))
-				{
-					const bool fullscreen = SDL_strncmp(json + value->start, "true", 4) == 0;
-
-					assets->window_config.fullscreen = fullscreen;
-				}
-				else if (is_key(json, key, "ico"))
-				{
-					// TODO: Icons are currently not supported
-				}
-				else
-				{
-					SDL_SetError("Unknown window key: %.*s", token_str(key));
-					SDL_free(json);
-					return false;
-				}
-
-				j += value->type == JSON_ARRAY ? 3 : 1;
-			}
-
 			i += size;
 			continue;
 		}
