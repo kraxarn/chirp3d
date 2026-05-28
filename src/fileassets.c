@@ -39,6 +39,58 @@ static bool is_key(const char *json, const json_token_t *token, const char *key)
 
 #define token_str(token) ((int) ((token)->end - (token)->start)), (json + (token)->start)
 
+[[nodiscard]]
+static bool parse_project_metadata(char *json, const json_token_t *token)
+{
+	for (int j = 0; j < (token + 1)->size; j++)
+	{
+		const json_token_t *key = token + 2 + (ptrdiff_t) (j * 2);
+		const json_token_t *value = key + 1;
+
+		const char *prop_name;
+		if (is_key(json, key, "nam"))
+		{
+			prop_name = SDL_PROP_APP_METADATA_NAME_STRING;
+		}
+		else if (is_key(json, key, "ver"))
+		{
+			prop_name = SDL_PROP_APP_METADATA_VERSION_STRING;
+		}
+		else if (is_key(json, key, "ide"))
+		{
+			prop_name = SDL_PROP_APP_METADATA_IDENTIFIER_STRING;
+		}
+		else if (is_key(json, key, "cre"))
+		{
+			prop_name = SDL_PROP_APP_METADATA_CREATOR_STRING;
+		}
+		else if (is_key(json, key, "cop"))
+		{
+			prop_name = SDL_PROP_APP_METADATA_COPYRIGHT_STRING;
+		}
+		else if (is_key(json, key, "url"))
+		{
+			prop_name = SDL_PROP_APP_METADATA_URL_STRING;
+		}
+		else if (is_key(json, key, "typ"))
+		{
+			prop_name = SDL_PROP_APP_METADATA_TYPE_STRING;
+		}
+		else
+		{
+			SDL_SetError("Unknown metadata key: %.*s", token_str(key));
+			SDL_free(json);
+			return false;
+		}
+
+		json[value->end] = '\0';
+		SDL_SetAppMetadataProperty(prop_name, json + value->start);
+	}
+
+	return true;
+}
+
+[[nodiscard]]
 static bool parse_project(SDL_IOStream *stream, assets_t *assets)
 {
 	size_t json_len = 0;
@@ -74,58 +126,18 @@ static bool parse_project(SDL_IOStream *stream, assets_t *assets)
 		const json_type_t type = i + 1 == count ? JSON_UNDEFINED : (token + 1)->type;
 		const int size = i + 1 == count ? 0 : (token + 1)->size;
 
-		if (is_key(json, token, "met") && type == JSON_OBJECT)
+		if (type != JSON_OBJECT)
 		{
-			for (int j = 0; j < size; j++)
-			{
-				const json_token_t *key = token + 2 + (ptrdiff_t) (j * 2);
-				const json_token_t *value = key + 1;
+			continue;
+		}
 
-				const char *prop_name;
-				if (is_key(json, key, "nam"))
-				{
-					prop_name = SDL_PROP_APP_METADATA_NAME_STRING;
-				}
-				else if (is_key(json, key, "ver"))
-				{
-					prop_name = SDL_PROP_APP_METADATA_VERSION_STRING;
-				}
-				else if (is_key(json, key, "ide"))
-				{
-					prop_name = SDL_PROP_APP_METADATA_IDENTIFIER_STRING;
-				}
-				else if (is_key(json, key, "cre"))
-				{
-					prop_name = SDL_PROP_APP_METADATA_CREATOR_STRING;
-				}
-				else if (is_key(json, key, "cop"))
-				{
-					prop_name = SDL_PROP_APP_METADATA_COPYRIGHT_STRING;
-				}
-				else if (is_key(json, key, "url"))
-				{
-					prop_name = SDL_PROP_APP_METADATA_URL_STRING;
-				}
-				else if (is_key(json, key, "typ"))
-				{
-					prop_name = SDL_PROP_APP_METADATA_TYPE_STRING;
-				}
-				else
-				{
-					SDL_SetError("Unknown metadata key: %.*s", token_str(key));
-					SDL_free(json);
-					return false;
-				}
-
-				json[value->end] = '\0';
-				SDL_SetAppMetadataProperty(prop_name, json + value->start);
-			}
-
+		if (is_key(json, token, "met") && parse_project_metadata(json, token))
+		{
 			i += size;
 			continue;
 		}
 
-		if (is_key(json, token, "win") && type == JSON_OBJECT)
+		if (is_key(json, token, "win"))
 		{
 			for (int j = i + 2; j < count; j++)
 			{
@@ -178,7 +190,7 @@ static bool parse_project(SDL_IOStream *stream, assets_t *assets)
 			continue;
 		}
 
-		if (is_key(json, token, "inp") && type == JSON_OBJECT)
+		if (is_key(json, token, "inp"))
 		{
 			const json_token_t *prev_parent = nullptr;
 			input_config_t input_config = {0};
