@@ -686,17 +686,23 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 {
 	const app_state_t *state = appstate;
 
-	for (size_t i = 0; i < array_size(state->models); i++)
+	if (state->models != nullptr)
 	{
-		model_destroy(state->models[i]);
+		for (size_t i = 0; i < array_size(state->models); i++)
+		{
+			model_destroy(state->models[i]);
+		}
+		array_destroy(state->models);
 	}
-	array_destroy(state->models);
 
-	for (size_t i = 0; i < array_size(state->instances); i++)
+	if (state->instances != nullptr)
 	{
-		model_destroy_instance(state->instances[i]);
+		for (size_t i = 0; i < array_size(state->instances); i++)
+		{
+			model_destroy_instance(state->instances[i]);
+		}
+		array_destroy(state->instances);
 	}
-	array_destroy(state->instances);
 
 	assets_destroy(state->assets);
 	physics_destroy(state->physics_engine);
