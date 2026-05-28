@@ -39,7 +39,6 @@ static bool is_key(const char *json, const json_token_t *token, const char *key)
 
 #define token_str(token) ((int) ((token)->end - (token)->start)), (json + (token)->start)
 
-[[nodiscard]]
 static bool parse_project_metadata(char *json, const json_token_t *token)
 {
 	for (int j = 0; j < (token + 1)->size; j++)
@@ -90,7 +89,6 @@ static bool parse_project_metadata(char *json, const json_token_t *token)
 	return true;
 }
 
-[[nodiscard]]
 static bool parse_project_window(char *json, window_config_t *window_config,
 	const json_token_t *tokens, const int token_count, const json_token_t *token)
 {
@@ -144,6 +142,97 @@ static bool parse_project_window(char *json, window_config_t *window_config,
 	return true;
 }
 
+static bool parse_project_input(char *json, const json_token_t *tokens,
+	const int token_count, const json_token_t *token)
+{
+	const json_token_t *prev_parent = nullptr;
+	input_config_t input_config = {0};
+
+	for (int i = (token + 1)->parent + 2; i < token_count; i++)
+	{
+		const json_token_t *key = tokens + i;
+
+		if (key->start < (token + 1)->start || key->end > (token + 1)->end)
+		{
+			break;
+		}
+
+		if ((key + 1)->type == JSON_OBJECT)
+		{
+			i++;
+			continue;
+		}
+
+		const json_token_t *parent = tokens + key->parent - 1;
+		const json_token_t *value = key + 1;
+
+		if (prev_parent != nullptr && parent != prev_parent)
+		{
+			json[prev_parent->end] = '\0';
+			if (!input_add(json + prev_parent->start, input_config))
+			{
+				SDL_free(json);
+				return false;
+			}
+			SDL_zero(input_config);
+		}
+
+		if (is_key(json, key, "key"))
+		{
+			json[value->end] = '\0';
+			input_config.keycode = SDL_GetKeyFromName(json + value->start);
+			if (input_config.keycode == SDLK_UNKNOWN)
+			{
+				SDL_SetError("Unknown keycode for %.*s: %s",
+					token_str(key), json + value->start);
+				SDL_free(json);
+				return false;
+			}
+		}
+		else if (is_key(json, key, "mou"))
+		{
+			json[value->end] = '\0';
+			input_config.mouse_button = mouse_button_from_name(json + value->start);
+			if (input_config.mouse_button == 0)
+			{
+				SDL_SetError("Unknown mouse button for %.*s: %s",
+					token_str(key), json + value->start);
+				SDL_free(json);
+				return false;
+			}
+		}
+		else if (is_key(json, key, "axi"))
+		{
+			// TODO: Gamepads are currently not supported
+		}
+		else if (is_key(json, key, "ara"))
+		{
+			// TODO: Gamepads are currently not supported
+		}
+		else
+		{
+			SDL_SetError("Unknown input key: %.*s", token_str(key));
+			SDL_free(json);
+			return false;
+		}
+
+		i += value->type == JSON_ARRAY ? 3 : 1;
+		prev_parent = parent;
+	}
+
+	if (prev_parent != nullptr)
+	{
+		json[prev_parent->end] = '\0';
+		if (!input_add(json + prev_parent->start, input_config))
+		{
+			SDL_free(json);
+			return false;
+		}
+	}
+
+	return true;
+}
+
 [[nodiscard]]
 static bool parse_project(SDL_IOStream *stream, assets_t *assets)
 {
@@ -188,101 +277,11 @@ static bool parse_project(SDL_IOStream *stream, assets_t *assets)
 		if ((is_key(json, token, "met")
 				&& parse_project_metadata(json, token))
 			|| (is_key(json, token, "win")
-				&& parse_project_window(json, &assets->window_config, tokens, count, token)))
+				&& parse_project_window(json, &assets->window_config, tokens, count, token))
+			|| (is_key(json, token, "inp")
+				&& parse_project_input(json, tokens, count, token)))
 		{
 			i += size;
-			continue;
-		}
-
-		if (is_key(json, token, "inp"))
-		{
-			const json_token_t *prev_parent = nullptr;
-			input_config_t input_config = {0};
-
-			for (int j = i + 2; j < count; j++)
-			{
-				const json_token_t *key = tokens + j;
-
-				if (key->start < (token + 1)->start || key->end > (token + 1)->end)
-				{
-					break;
-				}
-
-				if ((key + 1)->type == JSON_OBJECT)
-				{
-					j++;
-					continue;
-				}
-
-				const json_token_t *parent = tokens + key->parent - 1;
-				const json_token_t *value = key + 1;
-
-				if (prev_parent != nullptr && parent != prev_parent)
-				{
-					json[prev_parent->end] = '\0';
-					if (!input_add(json + prev_parent->start, input_config))
-					{
-						SDL_free(json);
-						return false;
-					}
-					SDL_zero(input_config);
-				}
-
-				if (is_key(json, key, "key"))
-				{
-					json[value->end] = '\0';
-					input_config.keycode = SDL_GetKeyFromName(json + value->start);
-					if (input_config.keycode == SDLK_UNKNOWN)
-					{
-						SDL_SetError("Unknown keycode for %.*s: %s",
-							token_str(key), json + value->start);
-						SDL_free(json);
-						return false;
-					}
-				}
-				else if (is_key(json, key, "mou"))
-				{
-					json[value->end] = '\0';
-					input_config.mouse_button = mouse_button_from_name(json + value->start);
-					if (input_config.mouse_button == 0)
-					{
-						SDL_SetError("Unknown mouse button for %.*s: %s",
-							token_str(key), json + value->start);
-						SDL_free(json);
-						return false;
-					}
-				}
-				else if (is_key(json, key, "axi"))
-				{
-					// TODO: Gamepads are currently not supported
-				}
-				else if (is_key(json, key, "ara"))
-				{
-					// TODO: Gamepads are currently not supported
-				}
-				else
-				{
-					SDL_SetError("Unknown input key: %.*s", token_str(key));
-					SDL_free(json);
-					return false;
-				}
-
-				j += value->type == JSON_ARRAY ? 3 : 1;
-				prev_parent = parent;
-			}
-
-			if (prev_parent != nullptr)
-			{
-				json[prev_parent->end] = '\0';
-				if (!input_add(json + prev_parent->start, input_config))
-				{
-					SDL_free(json);
-					return false;
-				}
-			}
-
-			i += size;
-			continue;
 		}
 	}
 
