@@ -42,6 +42,7 @@ if (ANDROID)
 		"${JAVA_SRC}/SDLControllerManager.java"
 		"${JAVA_SRC}/SDLDummyEdit.java"
 		"${JAVA_SRC}/SDLInputConnection.java"
+		"${JAVA_SRC}/SDLSensorManager.java"
 		"${JAVA_SRC}/SDLSurface.java"
 		DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/java/org/libsdl/app"
 	)
