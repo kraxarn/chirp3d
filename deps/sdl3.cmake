@@ -2,7 +2,7 @@ include(FetchContent)
 
 FetchContent_Declare(sdl
 	GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-	GIT_TAG release-3.4.8
+	GIT_TAG release-3.4.10
 )
 
 find_package(SDL3 3.4 QUIET)
