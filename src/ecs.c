@@ -11,7 +11,7 @@ static void log_debug_info()
 	constexpr size_t temp_len = 160;
 	char temp[temp_len] = {0};
 
-#define append(str) do { if (temp[0] != '\0') SDL_strlcat(temp, ", ", temp_len); SDL_strlcat(temp, str, temp_len); } while(false)
+#define append(str) do{if(temp[0]!='\0')SDL_strlcat(temp,", ",temp_len);SDL_strlcat(temp,str,temp_len);}while(false)
 
 #ifdef FLECS_CPP
 	append("cpp");
