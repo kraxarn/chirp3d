@@ -107,5 +107,5 @@ void ecs_create()
 	log_debug_info();
 
 	ecs_world_t *ecs = ecs_init();
-	ecs_quit(ecs);
+	ecs_fini(ecs);
 }
