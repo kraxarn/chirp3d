@@ -407,6 +407,9 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		array_push(state->models, model);
 	}
 
+	const vector3f_t spawn_position = model_node_position(state->models[1], "Spawn");
+	SDL_Log("Spawn: %f %f %f", spawn_position.x, spawn_position.y, spawn_position.z);
+
 	return build_scene(state);
 }
 
