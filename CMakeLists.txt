@@ -32,6 +32,7 @@ include(deps/maple-font.cmake)
 include(deps/cpuinfo.cmake)
 include(deps/cgltf.cmake)
 include(deps/microui.cmake)
+include(deps/flecs.cmake)
 
 include(deps/imgui.cmake)
 include(deps/dcimgui.cmake)
