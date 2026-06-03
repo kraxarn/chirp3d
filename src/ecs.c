@@ -1,4 +1,5 @@
 #include "ecs.h"
+#include "ecsosapi.h"
 #include "logcategory.h"
 #include "vector.h"
 
@@ -105,6 +106,9 @@ static void log_debug_info()
 void ecs_create()
 {
 	log_debug_info();
+
+	ecs_os_api_t os_api = ecs_os_api_create();
+	ecs_os_set_api(&os_api);
 
 	ecs_world_t *ecs = ecs_init();
 	ecs_fini(ecs);
