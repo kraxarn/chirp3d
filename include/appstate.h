@@ -2,6 +2,7 @@
 
 #include "assets.h"
 #include "camera.h"
+#include "ecs.h"
 #include "model.h"
 #include "physics.h"
 #include "physicsconfig.h"
@@ -34,6 +35,7 @@ typedef struct
 	camera_t camera;
 	physics_engine_t *physics_engine;
 	physics_config_t physics_config;
+	ecs_world_t *ecs;
 
 	Uint64 last_update;
 	time_info_t time;

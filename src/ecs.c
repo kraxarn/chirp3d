@@ -103,13 +103,17 @@ static void log_debug_info()
 	SDL_LogDebug(LOG_CATEGORY_ECS, "ECS addons: %s", temp);
 }
 
-void ecs_create()
+ecs_world_t *ecs_create()
 {
 	log_debug_info();
 
 	ecs_os_api_t os_api = ecs_os_api_create();
 	ecs_os_set_api(&os_api);
 
-	ecs_world_t *ecs = ecs_init();
-	ecs_fini(ecs);
+	return ecs_init();
+}
+
+void ecs_destroy(ecs_world_t *world)
+{
+	ecs_fini(world);
 }

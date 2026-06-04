@@ -411,7 +411,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	const vector3f_t spawn_position = model_node_position(state->models[1], "Spawn");
 	SDL_Log("Spawn: %f %f %f", spawn_position.x, spawn_position.y, spawn_position.z);
 
-	ecs_create();
+	state->ecs = ecs_create();
 
 	return build_scene(state);
 }
@@ -712,6 +712,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 
 	assets_destroy(state->assets);
 	physics_destroy(state->physics_engine);
+	ecs_destroy(state->ecs);
 
 	cImGui_ImplSDL3_Shutdown();
 	cImGui_ImplSDLGPU3_Shutdown();
