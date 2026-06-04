@@ -8,10 +8,6 @@
 #include <SDL3/SDL_thread.h>
 #include <SDL3/SDL_timer.h>
 
-// SDL doesn't support sint64 atomics, but stdlib does
-// (we could also use full mutexes)
-#include <stdatomic.h>
-
 static void *malloc_(const ecs_size_t size)
 {
 	return SDL_malloc((size_t) size);
@@ -94,22 +90,53 @@ static ecs_os_thread_id_t thread_self()
 
 static Sint32 ainc(Sint32 *count)
 {
-	return atomic_fetch_add((_Atomic Sint32*) count, 1) + 1;
+	return SDL_AtomicIncRef((SDL_AtomicInt*) count) + 1;
 }
 
 static Sint32 adec(Sint32 *count)
 {
-	return atomic_fetch_sub((_Atomic Sint32*) count, 1) - 1;
+	return SDL_AtomicDecRef((SDL_AtomicInt*) count) - 1;
+}
+
+// SDL currently doesn't support Sint64 atomics, so we fall back to full mutexes
+// (we could also use C11 atomics, which could cause unexpected platform differences)
+
+static SDL_Mutex *la_mutex = nullptr;
+
+static void la_lock()
+{
+	if (la_mutex == nullptr)
+	{
+		la_mutex = SDL_CreateMutex();
+		if (la_mutex == nullptr)
+		{
+			SDL_LogError(LOG_CATEGORY_ECS, "Failed to create mutex: %s", SDL_GetError());
+			return;
+		}
+	}
+
+	SDL_LockMutex(la_mutex);
+}
+
+static void la_unlock()
+{
+	SDL_UnlockMutex(la_mutex);
 }
 
 static Sint64 lainc(Sint64 *count)
 {
-	return atomic_fetch_add((_Atomic Sint64*) count, 1) + 1;
+	la_lock();
+	const Sint64 value = *count += 1;
+	la_unlock();
+	return value;
 }
 
 static Sint64 ladec(Sint64 *count)
 {
-	return atomic_fetch_sub((_Atomic Sint64*) count, 1) - 1;
+	la_lock();
+	const Sint64 value = *count -= 1;
+	la_unlock();
+	return value;
 }
 
 static ecs_os_mutex_t mutex_new()
