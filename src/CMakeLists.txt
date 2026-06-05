@@ -26,6 +26,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/mousebutton.c
 	${CMAKE_CURRENT_SOURCE_DIR}/physics.c
 	${CMAKE_CURRENT_SOURCE_DIR}/physicsconfig.c
+	${CMAKE_CURRENT_SOURCE_DIR}/scriptengine.c
 	${CMAKE_CURRENT_SOURCE_DIR}/shader.c
 	${CMAKE_CURRENT_SOURCE_DIR}/systeminfo.c
 	${CMAKE_CURRENT_SOURCE_DIR}/vector.c

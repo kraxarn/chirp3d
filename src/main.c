@@ -14,6 +14,7 @@
 #include "physics.h"
 #include "physicsconfig.h"
 #include "resources.h"
+#include "scriptengine.h"
 #include "shader.h"
 #include "systeminfo.h"
 #include "vector.h"
@@ -412,6 +413,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_Log("Spawn: %f %f %f", spawn_position.x, spawn_position.y, spawn_position.z);
 
 	state->ecs = ecs_create();
+	script_engine_create();
 
 	return build_scene(state);
 }
@@ -713,6 +715,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	assets_destroy(state->assets);
 	physics_destroy(state->physics_engine);
 	ecs_destroy(state->ecs);
+	script_engine_destroy();
 
 	cImGui_ImplSDL3_Shutdown();
 	cImGui_ImplSDLGPU3_Shutdown();
