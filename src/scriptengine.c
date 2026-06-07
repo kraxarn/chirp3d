@@ -56,7 +56,7 @@ static void gc_mark(void (*func)(py_Ref val, void *ctx), void *ctx)
 	// We probably want to do stuff here later
 }
 
-void script_engine_create()
+void script_engine_create(ecs_world_t *ecs_world)
 {
 	py_initialize();
 
@@ -68,7 +68,7 @@ void script_engine_create()
 	callbacks->getchr = get_chr;
 	callbacks->gc_mark = gc_mark;
 
-	add_module_ecs();
+	add_module_ecs(ecs_world);
 	add_module_math();
 
 	char *path = nullptr;

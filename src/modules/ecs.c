@@ -1,5 +1,6 @@
 #include "modules.h"
 
+#include "flecs.h"
 #include "pocketpy.h"
 
 typedef enum
@@ -15,11 +16,32 @@ typedef enum
 	PHASE_ON_STORE    = 8,
 } phase_t;
 
+static ecs_world_t *world = nullptr;
+
 static bool dec_component(const int argc, py_TValue *argv)
 {
 	PY_CHECK_ARGC(1);
+	PY_CHECK_ARG_TYPE(0, tp_type);
 
-	// TODO: Make component
+	const char *name = py_tpname(py_totype(argv));
+
+	const ecs_entity_desc_t entity_desc = {
+		.id = 0,
+		.use_low_id = true,
+		.name = name,
+		.symbol = name,
+	};
+	const ecs_component_desc_t component_desc = {
+		.entity = ecs_entity_init(world, &entity_desc),
+		.type = (ecs_type_info_t){
+			.size = ECS_SIZEOF(void*),
+			.alignment = ECS_ALIGNOF(void*),
+		},
+	};
+	if (ecs_component_init(world, &component_desc) == 0)
+	{
+		return RuntimeError("Failed to create component %s", name);
+	}
 
 	py_assign(py_retval(), py_arg(0));
 	return true;
@@ -87,8 +109,10 @@ static void add_phase(py_TValue *mod)
 	py_bindproperty(type, "ON_STORE", phase_getter_on_store, nullptr);
 }
 
-void add_module_ecs()
+void add_module_ecs(ecs_world_t *ecs_world)
 {
+	world = ecs_world;
+
 	py_TValue *mod = py_newmodule("ecs");
 
 	py_bindfunc(mod, "component", dec_component);

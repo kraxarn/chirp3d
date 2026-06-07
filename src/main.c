@@ -413,7 +413,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_Log("Spawn: %f %f %f", spawn_position.x, spawn_position.y, spawn_position.z);
 
 	state->ecs = ecs_create();
-	script_engine_create();
+	script_engine_create(state->ecs);
 
 	return build_scene(state);
 }
