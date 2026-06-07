@@ -11,4 +11,5 @@ typedef enum log_category_t
 	LOG_CATEGORY_PHYSICS,
 	LOG_CATEGORY_MODEL,
 	LOG_CATEGORY_ECS,
+	LOG_CATEGORY_SCRIPT,
 } log_category_t;

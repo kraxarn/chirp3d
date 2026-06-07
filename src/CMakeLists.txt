@@ -1,3 +1,4 @@
+add_subdirectory(modules)
 add_subdirectory(ui)
 
 target_sources(${PROJECT_NAME} PRIVATE

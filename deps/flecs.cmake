@@ -16,6 +16,11 @@ FetchContent_MakeAvailable(flecs)
 
 target_compile_definitions(flecs_static PUBLIC
 	FLECS_CUSTOM_BUILD
+	FLECS_NO_OS_API_IMPL
+	FLECS_MODULE
+	FLECS_SYSTEM
+	FLECS_PIPELINE
+	FLECS_TIMER
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE flecs_static)
