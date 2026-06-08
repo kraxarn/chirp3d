@@ -26,8 +26,8 @@ static bool dec_component(const int argc, py_TValue *argv)
 	const ecs_component_desc_t component_desc = {
 		.entity = ecs_entity_init(world, &entity_desc),
 		.type = (ecs_type_info_t){
-			.size = ECS_SIZEOF(void*),
-			.alignment = ECS_ALIGNOF(void*),
+			.size = ECS_SIZEOF(py_TValue),
+			.alignment = ECS_ALIGNOF(py_TValue),
 		},
 	};
 	const ecs_entity_t entity = ecs_component_init(world, &component_desc);
@@ -70,9 +70,7 @@ static bool dec_system(const int argc, py_TValue *argv)
 		return true;
 	}
 
-	if (argv->type == tp_function
-		&& phase > 0
-		&& query != nullptr)
+	if (argv->type == tp_function && phase > 0 && query != nullptr)
 	{
 		PY_CHECK_ARGC(1);
 
@@ -108,6 +106,39 @@ static bool dec_system(const int argc, py_TValue *argv)
 	}
 
 	return TypeError("expected 'int', got '%t'", argv->type);
+}
+
+static bool spawn(const int argc, py_TValue *argv)
+{
+	if (argc == 1)
+	{
+		PY_CHECK_ARG_TYPE(0, tp_tuple);
+	}
+	else if (argc > 1)
+	{
+		PY_CHECK_ARGC(1);
+	}
+
+	const ecs_entity_t entity = ecs_new(world);
+
+	if (argc > 0)
+	{
+		for (int i = 0; i < py_tuple_len(argv); i++)
+		{
+			const py_TValue *item = py_tuple_getitem(argv, i);
+
+			const ecs_entity_t item_entity = ecs_lookup(world, py_tpname(item->type));
+			if (item_entity == 0)
+			{
+				return TypeError("unexpected type '%t'", item->type);
+			}
+
+			ecs_set_id(world, entity, item_entity, sizeof(py_TValue), item);
+		}
+	}
+
+	py_newint(py_retval(), (py_i64) entity);
+	return true;
 }
 
 // Not necessary (at all), but it cleans up a lot of single-line functions
@@ -150,6 +181,7 @@ void add_module_ecs(ecs_world_t *ecs_world)
 
 	py_bindfunc(mod, "component", dec_component);
 	py_bind(mod, "system(q, s='')", dec_system);
+	py_bind(mod, "spawn(*args)", spawn);
 
 	add_phase(mod);
 }
