@@ -17,7 +17,7 @@ icon = ""
 scene = "test"
 
 [assets]
-textures = ["dark", "green", "light", "orange", "purple", "red"]
+textures = []
 models = ["scene", "blaster", "bullet"]
 
 [input]
