@@ -22,6 +22,7 @@
 #include "ui/debugoverlay.h"
 
 #include "dcimgui.h"
+#include "flecs.h"
 #include "backends/dcimgui_impl_sdl3.h"
 #include "backends/dcimgui_impl_sdlgpu3.h"
 
@@ -440,6 +441,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		state->time.count = 0;
 		state->time.duration = 0;
 	}
+
+	ecs_progress(state->ecs, state->dt);
 
 	if (!physics_update(state->physics_engine, state->dt))
 	{
