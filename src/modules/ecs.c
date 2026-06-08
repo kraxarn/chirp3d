@@ -6,55 +6,9 @@
 
 #include <SDL3/SDL_log.h>
 
-typedef enum
-{
-	PHASE_INVALID     = 0,
-	PHASE_ON_LOAD     = 1,
-	PHASE_POST_LOAD   = 2,
-	PHASE_PRE_UPDATE  = 3,
-	PHASE_ON_UPDATE   = 4,
-	PHASE_ON_VALIDATE = 5,
-	PHASE_POST_UPDATE = 6,
-	PHASE_PRE_STORE   = 7,
-	PHASE_ON_STORE    = 8,
-} phase_t;
-
 typedef py_TValue *py_iter_func_t;
 
 static ecs_world_t *world = nullptr;
-
-static ecs_entity_t phase_entity(const phase_t phase)
-{
-	switch (phase)
-	{
-		case PHASE_ON_LOAD:
-			return EcsOnLoad;
-
-		case PHASE_POST_LOAD:
-			return EcsPostLoad;
-
-		case PHASE_PRE_UPDATE:
-			return EcsPreUpdate;
-
-		case PHASE_ON_UPDATE:
-			return EcsOnUpdate;
-
-		case PHASE_ON_VALIDATE:
-			return EcsOnValidate;
-
-		case PHASE_POST_UPDATE:
-			return EcsPostUpdate;
-
-		case PHASE_PRE_STORE:
-			return EcsPreStore;
-
-		case PHASE_ON_STORE:
-			return EcsOnStore;
-
-		default:
-			return 0;
-	}
-}
 
 static bool dec_component(const int argc, py_TValue *argv)
 {
@@ -95,7 +49,7 @@ static void system_run(ecs_iter_t *iter)
 
 static bool dec_system(const int argc, py_TValue *argv)
 {
-	static phase_t phase = PHASE_INVALID;
+	static ecs_entity_t phase = 0;
 	static const char *query = nullptr;
 
 	if (argv->type == tp_property)
@@ -114,7 +68,7 @@ static bool dec_system(const int argc, py_TValue *argv)
 	}
 
 	if (argv->type == tp_function
-		&& phase != PHASE_INVALID
+		&& phase > 0
 		&& query != nullptr)
 	{
 		PY_CHECK_ARGC(1);
@@ -128,7 +82,7 @@ static bool dec_system(const int argc, py_TValue *argv)
 			.query = (ecs_query_desc_t){
 				.expr = "Position, [in] Velocity",
 			},
-			.phase = phase_entity(phase),
+			.phase = phase,
 			.callback = system_run,
 		};
 		const ecs_entity_t entity = ecs_system_init(world, &system_desc);
@@ -141,11 +95,11 @@ static bool dec_system(const int argc, py_TValue *argv)
 		ecs_set_id(world, entity, ecs_id(py_iter_func_t), sizeof(py_iter_func_t*), argv);
 
 		SDL_LogDebug(LOG_CATEGORY_SCRIPT, "Added system (%s): %s",
-			ecs_get_name(world, phase_entity(phase)),
+			ecs_get_name(world, phase),
 			query[0] == '\0' ? "<empty>" : query
 		);
 
-		phase = PHASE_INVALID;
+		phase = 0;
 		query = nullptr;
 
 		py_newnone(py_retval());
@@ -164,14 +118,14 @@ static bool dec_system(const int argc, py_TValue *argv)
 		return true;													\
 	}
 
-phase_getter(on_load, PHASE_ON_LOAD)
-phase_getter(post_load, PHASE_POST_LOAD)
-phase_getter(pre_update, PHASE_PRE_UPDATE)
-phase_getter(on_update, PHASE_ON_UPDATE)
-phase_getter(on_validate, PHASE_ON_VALIDATE)
-phase_getter(post_update, PHASE_POST_UPDATE)
-phase_getter(pre_store, PHASE_PRE_STORE)
-phase_getter(on_store, PHASE_ON_STORE)
+phase_getter(on_load, EcsOnLoad)
+phase_getter(post_load, EcsPostLoad)
+phase_getter(pre_update, EcsPreUpdate)
+phase_getter(on_update, EcsOnUpdate)
+phase_getter(on_validate, EcsOnValidate)
+phase_getter(post_update, EcsPostUpdate)
+phase_getter(pre_store, EcsPreStore)
+phase_getter(on_store, EcsOnStore)
 
 static void add_phase(py_TValue *mod)
 {
