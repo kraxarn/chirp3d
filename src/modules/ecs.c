@@ -80,7 +80,7 @@ static bool dec_system(const int argc, py_TValue *argv)
 		const ecs_system_desc_t system_desc = {
 			.entity = ecs_entity_init(world, &entity_desc),
 			.query = (ecs_query_desc_t){
-				.expr = "Position, [in] Velocity",
+				.expr = query,
 			},
 			.phase = phase,
 			.callback = system_run,
