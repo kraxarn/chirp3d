@@ -45,7 +45,8 @@ jobs:
         if: ${{ matrix.compiler == 'clang' }}
         uses: egor-tensin/setup-clang@v2
         with:
-          version: 'latest'
+          # 'latest' is latest available in repos, not latest clang version
+          version: '22'
           cc: '1'
 
       - name: Install SDL3
