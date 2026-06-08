@@ -1,7 +1,10 @@
+#include "logcategory.h"
 #include "modules.h"
 
 #include "flecs.h"
 #include "pocketpy.h"
+
+#include <SDL3/SDL_log.h>
 
 typedef enum
 {
@@ -38,10 +41,13 @@ static bool dec_component(const int argc, py_TValue *argv)
 			.alignment = ECS_ALIGNOF(void*),
 		},
 	};
-	if (ecs_component_init(world, &component_desc) == 0)
+	const ecs_entity_t entity = ecs_component_init(world, &component_desc);
+	if (entity == 0)
 	{
 		return RuntimeError("Failed to create component %s", name);
 	}
+
+	SDL_LogDebug(LOG_CATEGORY_SCRIPT, "Added entity: %s (ID %lu)", name, entity);
 
 	py_assign(py_retval(), py_arg(0));
 	return true;
