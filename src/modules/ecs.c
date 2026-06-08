@@ -94,10 +94,8 @@ static bool dec_system(const int argc, py_TValue *argv)
 		ECS_COMPONENT(world, py_iter_func_t);
 		ecs_set_id(world, entity, ecs_id(py_iter_func_t), sizeof(py_iter_func_t*), argv);
 
-		SDL_LogDebug(LOG_CATEGORY_SCRIPT, "Added system (%s): %s",
-			ecs_get_name(world, phase),
-			query[0] == '\0' ? "<empty>" : query
-		);
+		SDL_LogDebug(LOG_CATEGORY_SCRIPT, "Added system %s: \"%s\" (ID %lu)",
+			ecs_get_name(world, phase), query, entity);
 
 		phase = 0;
 		query = nullptr;
