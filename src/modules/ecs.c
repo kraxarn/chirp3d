@@ -126,14 +126,12 @@ static bool spawn(const int argc, py_TValue *argv)
 		for (int i = 0; i < py_tuple_len(argv); i++)
 		{
 			const py_TValue *item = py_tuple_getitem(argv, i);
-
-			const ecs_entity_t item_entity = ecs_lookup(world, py_tpname(item->type));
-			if (item_entity == 0)
+			const ecs_entity_t component = ecs_lookup(world, py_tpname(item->type));
+			if (component == 0)
 			{
 				return TypeError("unexpected type '%t'", item->type);
 			}
-
-			ecs_set_id(world, entity, item_entity, sizeof(py_TValue), item);
+			ecs_set_id(world, entity, component, sizeof(py_TValue), item);
 		}
 	}
 
