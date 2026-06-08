@@ -3,7 +3,7 @@ import enum
 def component(func):
 	"""Declare the class as an ECS component"""
 
-def system(phase: Phase):
+def system(phase: Phase, query: str = ""):
 	"""Declare the function as a system"""
 
 def spawn(*components) -> Entity:
