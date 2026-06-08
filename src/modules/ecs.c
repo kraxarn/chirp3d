@@ -6,7 +6,7 @@
 
 #include <SDL3/SDL_log.h>
 
-typedef py_TValue *py_iter_func_t;
+typedef py_TValue py_iter_func_t;
 
 static ecs_world_t *world = nullptr;
 
@@ -44,7 +44,10 @@ static bool dec_component(const int argc, py_TValue *argv)
 
 static void system_run(ecs_iter_t *iter)
 {
-	// TODO
+	const ecs_entity_t system = iter->system;
+	ECS_COMPONENT(world, py_iter_func_t);
+	const auto iter_func = ecs_get(world, system, py_iter_func_t);
+	py_call((py_Ref) iter_func, 0, nullptr);
 }
 
 static bool dec_system(const int argc, py_TValue *argv)
@@ -92,7 +95,7 @@ static bool dec_system(const int argc, py_TValue *argv)
 		}
 
 		ECS_COMPONENT(world, py_iter_func_t);
-		ecs_set_id(world, entity, ecs_id(py_iter_func_t), sizeof(py_iter_func_t*), argv);
+		ecs_set_id(world, entity, ecs_id(py_iter_func_t), sizeof(py_iter_func_t), argv);
 
 		SDL_LogDebug(LOG_CATEGORY_SCRIPT, "Added system %s: \"%s\" (ID %lu)",
 			ecs_get_name(world, phase), query, entity);
