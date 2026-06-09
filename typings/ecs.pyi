@@ -12,6 +12,10 @@ def spawn(*components) -> Entity:
 class Entity:
 	"""ECS entity"""
 
+class Iterator:
+	"""ECS query iterator"""
+	def field[T](self, field_type: type[T], index: int) -> T: ...
+
 class Phase(enum.Enum):
 	ON_LOAD = 1
 	POST_LOAD = 2
