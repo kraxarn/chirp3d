@@ -16,13 +16,10 @@ jobs:
         include:
           - os: windows-latest
             arch: 'x86_64'
-            clang-version: 'latest'
             compile-flags: '-march=x86-64-v3'
 
           - os: windows-latest
             arch: 'x86'
-            # Clang 22 seems to have dropped binaries for x86
-            clang-version: '21'
             compile-flags: '-march=i686 -m32 -mavx2 -mfxsr -mf16c'
 
           - os: windows-11-arm
@@ -33,10 +30,10 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Set up compiler
-        if: ${{ matrix.clang-version != '' }}
+        if: ${{ matrix.arch == 'x86_64' || matrix.arch == 'x86' }}
         uses: egor-tensin/setup-clang@v2
         with:
-          version: ${{ matrix.clang-version }}
+          version: 'latest'
           cc: '1'
 
       # setup-clang uses choco which doesn't support arm64
