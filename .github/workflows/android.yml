@@ -37,7 +37,9 @@ jobs:
 
       - name: Build
         working-directory: ${{runner.workspace}}/chirp3d/android
-        run: ANDROID_ABI="${{matrix.arch}}" ./gradlew --info assembleRelease
+        env:
+          ANDROID_ABI: ${{ matrix.arch }}
+        run: ./gradlew --info assembleRelease
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
