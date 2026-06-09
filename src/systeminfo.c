@@ -35,12 +35,12 @@ const char *system_info_cpu_name()
 
 bool system_info_cpu_supported()
 {
-#if CPUINFO_ARCH_X86_64
+#if defined(CPUINFO_ARCH_X86_64) || defined(CPUINFO_ARCH_X86)
 	if (!SDL_HasAVX2() || !SDL_HasSSE42())
 	{
 		return SDL_SetError("CPU doesn't support required AVX2 and SSE4.2 features");
 	}
-#elif CPUINFO_ARCH_ARM64
+#elif defined(CPUINFO_ARCH_ARM64) || defined(CPUINFO_ARCH_ARM)
 	if (!SDL_HasNEON())
 	{
 		return SDL_SetError("CPU doesn't support required NEON features");
