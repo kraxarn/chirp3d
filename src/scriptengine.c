@@ -72,7 +72,7 @@ void script_engine_create(ecs_world_t *ecs_world)
 	add_module_math();
 
 	char *path = nullptr;
-	SDL_asprintf(&path, "%s../example/assets/scripts/main.py", SDL_GetBasePath());
+	SDL_asprintf(&path, "%s../example/scripts/main.py", SDL_GetBasePath());
 
 	size_t data_size = 0;
 	void *data = SDL_LoadFile(path, &data_size);
