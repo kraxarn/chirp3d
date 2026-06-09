@@ -37,7 +37,7 @@ jobs:
 
       - name: Build
         working-directory: ${{runner.workspace}}/chirp3d/android
-        run: ./gradlew --info -Pandroid.ndk.abiFilters=${{matrix.arch}} assembleRelease
+        run: ./gradlew --info -Pandroid.defaultConfig.externalNativeBuild.cmake.abiFilters=${{matrix.arch}} assembleRelease
 
       - name: Prepare upload
         working-directory: ${{runner.workspace}}/chirp3d/android/app/build/outputs/apk/release
