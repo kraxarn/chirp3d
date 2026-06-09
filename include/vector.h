@@ -46,6 +46,9 @@ typedef struct vector3u16_t
 } vector3u16_t;
 
 [[nodiscard]]
+vector2f_t vector2f_add(vector2f_t vec1, vector2f_t vec2);
+
+[[nodiscard]]
 vector3f_t vector3f_zero();
 
 [[nodiscard]]

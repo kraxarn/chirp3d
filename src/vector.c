@@ -2,6 +2,14 @@
 
 #include <SDL3/SDL_stdinc.h>
 
+vector2f_t vector2f_add(const vector2f_t vec1, const vector2f_t vec2)
+{
+	return (vector2f_t){
+		.x = vec1.x + vec2.x,
+		.y = vec1.y + vec2.y,
+	};
+}
+
 vector3f_t vector3f_zero()
 {
 	return (vector3f_t){
