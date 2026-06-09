@@ -47,7 +47,15 @@ static void system_run(ecs_iter_t *iter)
 	const ecs_entity_t system = iter->system;
 	ECS_COMPONENT(world, py_iter_func_t);
 	const auto iter_func = ecs_get(world, system, py_iter_func_t);
-	py_call((py_Ref) iter_func, 0, nullptr);
+
+	const py_Type iter_type = py_gettype("ecs", py_name("Iterator"));
+
+	const auto iter_obj = (ecs_iter_t**) py_newobject(py_retval(), iter_type,
+		0, sizeof(ecs_iter_t*));
+
+	*iter_obj = iter;
+
+	py_call((py_Ref) iter_func, 1, py_retval());
 }
 
 static bool dec_system(const int argc, py_TValue *argv)
@@ -139,6 +147,29 @@ static bool spawn(const int argc, py_TValue *argv)
 	return true;
 }
 
+static bool iterator_field(const int argc, py_TValue *argv)
+{
+	PY_CHECK_ARGC(3);
+	PY_CHECK_ARG_TYPE(0, py_gettype("ecs", py_name("Iterator")));
+	PY_CHECK_ARG_TYPE(1, tp_type);
+	PY_CHECK_ARG_TYPE(2, tp_int);
+
+	const ecs_iter_t *iter = *((ecs_iter_t**) py_touserdata(py_arg(0)));
+
+	const py_Type type = py_totype(py_arg(1));
+	const ecs_entity_t entity = ecs_lookup(world, py_tpname(type));
+	if (entity == 0)
+	{
+		return TypeError("unexpected type '%t'", type);
+	}
+
+	const py_TValue *value = ecs_field_w_size(iter,
+		sizeof(py_TValue), (int8_t) py_toint(py_arg(2)));
+
+	py_assign(py_retval(), value);
+	return true;
+}
+
 // Not necessary (at all), but it cleans up a lot of single-line functions
 #define phase_getter(name, phase)										\
 	static bool phase_getter_##name(const int argc, py_TValue *argv) {	\
@@ -171,6 +202,13 @@ static void add_phase(py_TValue *mod)
 	py_bindproperty(type, "ON_STORE", phase_getter_on_store, nullptr);
 }
 
+static void add_iterator(py_TValue *mod)
+{
+	const py_Type type = py_newtype("Iterator", tp_object, mod, nullptr);
+
+	py_bindmethod(type, "field", iterator_field);
+}
+
 void add_module_ecs(ecs_world_t *ecs_world)
 {
 	world = ecs_world;
@@ -182,4 +220,5 @@ void add_module_ecs(ecs_world_t *ecs_world)
 	py_bind(mod, "spawn(*args)", spawn);
 
 	add_phase(mod);
+	add_iterator(mod);
 }
