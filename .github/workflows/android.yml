@@ -41,6 +41,12 @@ jobs:
           ANDROID_ABI: ${{ matrix.arch }}
         run: ./gradlew --info assembleRelease
 
+      - name: Prepare upload
+        working-directory: ${{runner.workspace}}/chirp3d/android/app/build/outputs/apk/release
+        env:
+          ANDROID_ABI: ${{ matrix.arch }}
+        run: mv "app-release.apk" "chirp3d-android-$ANDROID_ABI.apk"
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
