@@ -20,9 +20,18 @@ android {
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_PLATFORM=android-24", "-DANDROID_STL=c++_static"
+                abiFilters "arm64-v8a", "armeabi-v7a"
             }
         }
     }
+	splits {
+		abi {
+			enable true
+			reset()
+			include "arm64-v8a", "armeabi-v7a"
+			universalApk false
+		}
+	}
 	signingConfigs {
 		create("release") {
 			keyAlias keystoreProperties["keyAlias"]
@@ -42,6 +51,14 @@ android {
         tasks["merge${variant.name.capitalize()}Assets"]
             .dependsOn("externalNativeBuild${variant.name.capitalize()}")
     }
+	applicationVariants.all { variant ->
+		variant.outputs.each { output ->
+			def abi = output.getFilter(com.android.build.OutputFile.ABI)
+			if (abi != null) {
+				output.outputFileName = "chirp3d-android-${abi}.apk"
+			}
+		}
+	}
     if (!project.hasProperty('EXCLUDE_NATIVE_LIBS')) {
         sourceSets.main {
             jniLibs.srcDir 'libs'
