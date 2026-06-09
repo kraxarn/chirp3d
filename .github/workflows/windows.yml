@@ -23,7 +23,7 @@ jobs:
             arch: 'x86'
             # Clang 22 seems to have dropped binaries for x86
             clang-version: '21'
-            compile-flags: '-march=i686 -m32 -mavx2 -mfxsr'
+            compile-flags: '-march=i686 -m32 -mavx2 -mfxsr -mf16c'
 
           - os: windows-11-arm
             arch: 'arm64'
