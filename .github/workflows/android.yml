@@ -35,6 +35,6 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: chirp3d-android
+          name: chirp3d-android-arm64-v8a
           path: android/app/build/outputs/apk/release/*-arm64-v8a.apk
           archive: false
