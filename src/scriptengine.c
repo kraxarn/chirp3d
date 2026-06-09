@@ -70,26 +70,25 @@ void script_engine_create(ecs_world_t *ecs_world)
 
 	add_module_ecs(ecs_world);
 	add_module_math();
+}
 
-	char *path = nullptr;
-	SDL_asprintf(&path, "%s../example/scripts/main.py", SDL_GetBasePath());
-
-	size_t data_size = 0;
-	void *data = SDL_LoadFile(path, &data_size);
-	SDL_free(path);
-
-	if (data == nullptr)
+bool script_engine_exec(const char *filename, SDL_IOStream *stream, const bool close_io)
+{
+	size_t file_size;
+	void *file_data = SDL_LoadFile_IO(stream, &file_size, close_io);
+	if (file_data == nullptr)
 	{
-		SDL_LogError(LOG_CATEGORY_SCRIPT, "%s", SDL_GetError());
-		return;
+		return false;
 	}
 
-	if (!py_exec(data, "main", EXEC_MODE, nullptr))
+	if (!py_execo(file_data, (int) file_size, filename, nullptr))
 	{
-		py_printexc();
+		free(file_data);
+		return SDL_SetError("%s", py_formatexc());
 	}
 
-	SDL_free(data);
+	free(file_data);
+	return true;
 }
 
 void script_engine_destroy()

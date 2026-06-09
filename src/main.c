@@ -416,6 +416,17 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	state->ecs = ecs_create();
 	script_engine_create(state->ecs);
 
+	SDL_IOStream *script_stream = assets_load_script(state->assets, "main");
+	if (script_stream == nullptr)
+	{
+		return fatal_error(state->window, "Failed to load script");
+	}
+
+	if (!script_engine_exec("main", script_stream, true))
+	{
+		return fatal_error(state->window, "Failed to execute script");
+	}
+
 	return build_scene(state);
 }
 

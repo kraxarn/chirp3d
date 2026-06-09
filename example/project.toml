@@ -19,6 +19,7 @@ scene = "test"
 [assets]
 textures = []
 models = ["scene", "blaster", "bullet"]
+scripts = ["main"]
 
 [input]
 move_forward  = { keycode = "w", axis = "left_y",  axis_range = [0.05, 1.0  ] }

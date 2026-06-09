@@ -43,3 +43,17 @@ model_t *assets_load_model(const assets_t *assets, SDL_GPUDevice *device, const 
 
 	return model_create(device, stream, true);
 }
+
+SDL_IOStream *assets_load_script(const assets_t *assets, const char *name)
+{
+	char *path = nullptr;
+	if (SDL_asprintf(&path, "scripts/%s", name) < 0)
+	{
+		return nullptr;
+	}
+
+	SDL_IOStream *stream = assets_load(assets, path);
+	SDL_free(path);
+
+	return stream;
+}
