@@ -7,7 +7,14 @@ env:
 
 jobs:
   build:
+    name: '${{ matrix.arch }}'
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - arch: 'arm64-v8a'
+          - arch: 'armeabi-v7a'
 
     steps:
       - uses: actions/checkout@v5
@@ -30,11 +37,11 @@ jobs:
 
       - name: Build
         working-directory: ${{runner.workspace}}/chirp3d/android
-        run: ./gradlew --info assembleRelease
+        run: ANDROID_ABI="${{matrix.arch}}" ./gradlew --info assembleRelease
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: chirp3d-android-arm64-v8a
+          name: chirp3d-android-${{matrix.arch}}
           archive: false
           path: android/app/build/outputs/apk/release/*.apk
