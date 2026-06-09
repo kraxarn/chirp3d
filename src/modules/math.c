@@ -28,9 +28,9 @@ static bool vector2_repr(const int argc, py_TValue *argv)
 	constexpr size_t buf_size = 32;
 	char buf[buf_size];
 
-	const int length = SDL_snprintf(buf, buf_size, "%-6.2f %-6.2f", vec->x, vec->y);
+	const int length = SDL_snprintf(buf, buf_size, "<Vector2(%.f, %.f)>", vec->x, vec->y);
 
-	py_newstrv(py_retval(), (c11_sv){.data = buf, .size = length - 1});
+	py_newstrv(py_retval(), (c11_sv){.data = buf, .size = length});
 	return true;
 }
 
