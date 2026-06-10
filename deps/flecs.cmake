@@ -22,6 +22,7 @@ target_compile_definitions(flecs_static PUBLIC
 	FLECS_PIPELINE
 	FLECS_TIMER
 	FLECS_QUERY_DSL
+	FLECS_LOG
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE flecs_static)

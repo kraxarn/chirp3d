@@ -68,7 +68,13 @@ static void log_(const Sint32 level, const char *file, const Sint32 line, const 
 			break;
 	}
 
-	SDL_LogMessage(LOG_CATEGORY_ECS, priority, "%s:%d: %s", file, line, msg);
+	// flecs logging can be very verbose, only log warnings and errors
+	if (priority < SDL_LOG_PRIORITY_WARN)
+	{
+		return;
+	}
+
+	SDL_LogMessage(LOG_CATEGORY_ECS, priority, "%s", msg);
 }
 
 static ecs_os_thread_t thread_new(const ecs_os_thread_callback_t callback, void *param)
