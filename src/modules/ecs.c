@@ -1,3 +1,4 @@
+#include "ecs.h"
 #include "logcategory.h"
 #include "modules.h"
 
@@ -7,8 +8,6 @@
 #include <SDL3/SDL_log.h>
 
 typedef py_TValue py_iter_func_t;
-
-static ecs_world_t *world = nullptr;
 
 static bool dec_component(const int argc, py_TValue *argv)
 {
@@ -24,13 +23,13 @@ static bool dec_component(const int argc, py_TValue *argv)
 		.symbol = name,
 	};
 	const ecs_component_desc_t component_desc = {
-		.entity = ecs_entity_init(world, &entity_desc),
+		.entity = ecs_entity_init(ecs_world(), &entity_desc),
 		.type = (ecs_type_info_t){
 			.size = ECS_SIZEOF(py_TValue),
 			.alignment = ECS_ALIGNOF(py_TValue),
 		},
 	};
-	const ecs_entity_t entity = ecs_component_init(world, &component_desc);
+	const ecs_entity_t entity = ecs_component_init(ecs_world(), &component_desc);
 	if (entity == 0)
 	{
 		return RuntimeError("Failed to create component %s", name);
@@ -45,8 +44,8 @@ static bool dec_component(const int argc, py_TValue *argv)
 static void system_run(ecs_iter_t *iter)
 {
 	const ecs_entity_t system = iter->system;
-	ECS_COMPONENT(world, py_iter_func_t);
-	const auto iter_func = ecs_get(world, system, py_iter_func_t);
+	ECS_COMPONENT(ecs_world(), py_iter_func_t);
+	const auto iter_func = ecs_get(ecs_world(), system, py_iter_func_t);
 
 	const py_Type iter_type = py_gettype("ecs", py_name("Iterator"));
 
@@ -87,24 +86,24 @@ static bool dec_system(const int argc, py_TValue *argv)
 			.name = nullptr,
 		};
 		const ecs_system_desc_t system_desc = {
-			.entity = ecs_entity_init(world, &entity_desc),
+			.entity = ecs_entity_init(ecs_world(), &entity_desc),
 			.query = (ecs_query_desc_t){
 				.expr = query,
 			},
 			.phase = phase,
 			.callback = system_run,
 		};
-		const ecs_entity_t entity = ecs_system_init(world, &system_desc);
+		const ecs_entity_t entity = ecs_system_init(ecs_world(), &system_desc);
 		if (entity == 0)
 		{
 			return RuntimeError("Failed to create system");
 		}
 
-		ECS_COMPONENT(world, py_iter_func_t);
-		ecs_set_id(world, entity, ecs_id(py_iter_func_t), sizeof(py_iter_func_t), argv);
+		ECS_COMPONENT(ecs_world(), py_iter_func_t);
+		ecs_set_id(ecs_world(), entity, ecs_id(py_iter_func_t), sizeof(py_iter_func_t), argv);
 
 		SDL_LogDebug(LOG_CATEGORY_SCRIPT, "Added system %s: \"%s\" (ID %lu)",
-			ecs_get_name(world, phase), query, entity);
+			ecs_get_name(ecs_world(), phase), query, entity);
 
 		phase = 0;
 		query = nullptr;
@@ -127,19 +126,19 @@ static bool spawn(const int argc, py_TValue *argv)
 		PY_CHECK_ARGC(1);
 	}
 
-	const ecs_entity_t entity = ecs_new(world);
+	const ecs_entity_t entity = ecs_new(ecs_world());
 
 	if (argc > 0)
 	{
 		for (int i = 0; i < py_tuple_len(argv); i++)
 		{
 			const py_TValue *item = py_tuple_getitem(argv, i);
-			const ecs_entity_t component = ecs_lookup(world, py_tpname(item->type));
+			const ecs_entity_t component = ecs_lookup(ecs_world(), py_tpname(item->type));
 			if (component == 0)
 			{
 				return TypeError("unexpected type '%t'", item->type);
 			}
-			ecs_set_id(world, entity, component, sizeof(py_TValue), item);
+			ecs_set_id(ecs_world(), entity, component, sizeof(py_TValue), item);
 		}
 	}
 
@@ -242,10 +241,8 @@ static void add_iterator(py_TValue *mod)
 	py_bindproperty(type, "count", iterator_count, nullptr);
 }
 
-void add_module_ecs(ecs_world_t *ecs_world)
+void add_module_ecs()
 {
-	world = ecs_world;
-
 	py_TValue *mod = py_newmodule("ecs");
 
 	py_bindfunc(mod, "component", dec_component);

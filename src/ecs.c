@@ -7,6 +7,8 @@
 
 #include <SDL3/SDL_log.h>
 
+static ecs_world_t *world = nullptr;
+
 static void log_debug_info()
 {
 	constexpr size_t temp_len = 160;
@@ -103,17 +105,28 @@ static void log_debug_info()
 	SDL_LogDebug(LOG_CATEGORY_ECS, "ECS addons: %s", temp);
 }
 
-ecs_world_t *ecs_create()
+void ecs_create()
 {
+	if (world != nullptr)
+	{
+		return;
+	}
+
 	log_debug_info();
 
 	ecs_os_api_t os_api = ecs_os_api_create();
 	ecs_os_set_api(&os_api);
 
-	return ecs_init();
+	world = ecs_init();
 }
 
-void ecs_destroy(ecs_world_t *world)
+void ecs_destroy()
 {
 	ecs_fini(world);
+	world = nullptr;
+}
+
+ecs_world_t *ecs_world()
+{
+	return world;
 }

@@ -413,8 +413,8 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	const vector3f_t spawn_position = model_node_position(state->models[1], "Spawn");
 	SDL_Log("Spawn: %f %f %f", spawn_position.x, spawn_position.y, spawn_position.z);
 
-	state->ecs = ecs_create();
-	script_engine_create(state->ecs);
+	ecs_create();
+	script_engine_create();
 
 	SDL_IOStream *script_stream = assets_load_script(state->assets, "main");
 	if (script_stream == nullptr)
@@ -453,7 +453,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		state->time.duration = 0;
 	}
 
-	ecs_progress(state->ecs, state->dt);
+	ecs_progress(ecs_world(), state->dt);
 
 	if (!physics_update(state->physics_engine, state->dt))
 	{
@@ -728,7 +728,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 
 	assets_destroy(state->assets);
 	physics_destroy(state->physics_engine);
-	ecs_destroy(state->ecs);
+	ecs_destroy();
 	script_engine_destroy();
 
 	cImGui_ImplSDL3_Shutdown();
