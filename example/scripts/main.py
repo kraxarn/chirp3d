@@ -14,10 +14,10 @@ class Velocity(math.Vector2):
 
 @ecs.system(ecs.Phase.ON_UPDATE, "Position, [in] Velocity")
 def move(it: ecs.Iterator):
-	pos = it.field(Position, 0)
-	vel = it.field(Velocity, 1)
-	pos += vel
-	print("positon:", pos, "velocity:", vel)
+	pos: Position = it.get(0)
+	vel: Velocity = it.get(1)
+	it.set(0, pos + vel)
+	print("position:", pos, "velocity:", vel)
 
 
 if __name__ == "__main__":

@@ -147,26 +147,46 @@ static bool spawn(const int argc, py_TValue *argv)
 	return true;
 }
 
-static bool iterator_field(const int argc, py_TValue *argv)
+static bool iterator_get(const int argc, py_TValue *argv)
 {
-	PY_CHECK_ARGC(3);
+	PY_CHECK_ARGC(2);
 	PY_CHECK_ARG_TYPE(0, py_gettype("ecs", py_name("Iterator")));
-	PY_CHECK_ARG_TYPE(1, tp_type);
-	PY_CHECK_ARG_TYPE(2, tp_int);
+	PY_CHECK_ARG_TYPE(1, tp_int);
 
 	const ecs_iter_t *iter = *((ecs_iter_t**) py_touserdata(py_arg(0)));
 
-	const py_Type type = py_totype(py_arg(1));
-	const ecs_entity_t entity = ecs_lookup(world, py_tpname(type));
-	if (entity == 0)
+	const Sint8 index = (int8_t) py_toint(py_arg(1));
+	if (ecs_field_is_writeonly(iter, index))
 	{
-		return TypeError("unexpected type '%t'", type);
+		return RuntimeError("Field is write-only");
 	}
 
 	const py_TValue *value = ecs_field_w_size(iter,
-		sizeof(py_TValue), (int8_t) py_toint(py_arg(2)));
+		sizeof(py_TValue), index);
 
 	py_assign(py_retval(), value);
+	return true;
+}
+
+static bool iterator_set(const int argc, py_TValue *argv)
+{
+	PY_CHECK_ARGC(3);
+	PY_CHECK_ARG_TYPE(0, py_gettype("ecs", py_name("Iterator")));
+	PY_CHECK_ARG_TYPE(1, tp_int);
+
+	const ecs_iter_t *iter = *((ecs_iter_t**) py_touserdata(py_arg(0)));
+
+	const Sint8 index = (int8_t) py_toint(py_arg(1));
+	if (ecs_field_is_readonly(iter, index))
+	{
+		return RuntimeError("Field is read-only");
+	}
+
+	py_TValue *value = ecs_field_w_size(iter,
+		sizeof(py_TValue), index);
+	py_assign(value, py_arg(2));
+
+	py_newnone(py_retval());
 	return true;
 }
 
@@ -217,7 +237,8 @@ static void add_iterator(py_TValue *mod)
 {
 	const py_Type type = py_newtype("Iterator", tp_object, mod, nullptr);
 
-	py_bindmethod(type, "field", iterator_field);
+	py_bindmethod(type, "get", iterator_get);
+	py_bindmethod(type, "set", iterator_set);
 	py_bindproperty(type, "count", iterator_count, nullptr);
 }
 
