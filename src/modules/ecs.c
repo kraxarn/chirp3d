@@ -170,6 +170,17 @@ static bool iterator_field(const int argc, py_TValue *argv)
 	return true;
 }
 
+static bool iterator_count(const int argc, py_TValue *argv)
+{
+	PY_CHECK_ARGC(1);
+	PY_CHECK_ARG_TYPE(0, py_gettype("ecs", py_name("Iterator")));
+
+	const ecs_iter_t *iter = *((ecs_iter_t**) py_touserdata(py_arg(0)));
+
+	py_newint(py_retval(), iter->count);
+	return true;
+}
+
 // Not necessary (at all), but it cleans up a lot of single-line functions
 #define phase_getter(name, phase)										\
 	static bool phase_getter_##name(const int argc, py_TValue *argv) {	\
@@ -207,6 +218,7 @@ static void add_iterator(py_TValue *mod)
 	const py_Type type = py_newtype("Iterator", tp_object, mod, nullptr);
 
 	py_bindmethod(type, "field", iterator_field);
+	py_bindproperty(type, "count", iterator_count, nullptr);
 }
 
 void add_module_ecs(ecs_world_t *ecs_world)
