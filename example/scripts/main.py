@@ -16,7 +16,7 @@ class Velocity(math.Vector2):
 def move(it: ecs.Iterator):
 	pos: Position = it.get(0)
 	vel: Velocity = it.get(1)
-	it.set(0, pos + vel)
+	pos = it.set(0, pos + vel)
 	print("position:", pos, "velocity:", vel)
 
 

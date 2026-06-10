@@ -185,7 +185,7 @@ static bool iterator_set(const int argc, py_TValue *argv)
 		sizeof(py_TValue), index);
 	py_assign(value, py_arg(2));
 
-	py_newnone(py_retval());
+	py_assign(py_retval(), value);
 	return true;
 }
 
