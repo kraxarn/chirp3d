@@ -30,7 +30,6 @@ typedef struct
 	SDL_GPUGraphicsPipeline *pipeline;
 	SDL_GPUTexture *depth_texture;
 
-	assets_t *assets;
 	camera_t camera;
 	physics_engine_t *physics_engine;
 	physics_config_t physics_config;

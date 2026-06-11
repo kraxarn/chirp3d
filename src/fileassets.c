@@ -22,13 +22,6 @@ typedef struct
 	Uint32 size;
 } file_descriptor_t;
 
-typedef struct assets_t
-{
-	SDL_IOStream *stream;
-	window_config_t window_config;
-	map_t desc;
-} assets_t;
-
 // Supported version of nest
 static constexpr Uint8 nest_version = 1;
 
@@ -340,32 +333,25 @@ static bool validate_header(SDL_IOStream *stream)
 	return true;
 }
 
-assets_t *assets_create(const char *path)
+bool assets_create(const char *path, assets_t *assets)
 {
 	SDL_IOStream *stream = SDL_IOFromFile(path, "rb");
 	if (stream == nullptr)
 	{
-		return nullptr;
+		return false;
 	}
 
 	if (!validate_header(stream))
 	{
 		SDL_CloseIO(stream);
-		return nullptr;
+		return false;
 	}
 
 	Uint32 file_count = 0;
 	if (!SDL_ReadU32LE(stream, &file_count))
 	{
 		SDL_CloseIO(stream);
-		return nullptr;
-	}
-
-	assets_t *assets = SDL_malloc(sizeof(assets_t));
-	if (assets == nullptr)
-	{
-		SDL_CloseIO(stream);
-		return nullptr;
+		return false;
 	}
 
 	assets->stream = stream;
@@ -374,7 +360,7 @@ assets_t *assets_create(const char *path)
 	if (assets->desc == 0)
 	{
 		assets_destroy(assets);
-		return nullptr;
+		return false;
 	}
 
 	for (Uint32 i = 0; i < file_count; i++)
@@ -388,14 +374,14 @@ assets_t *assets_create(const char *path)
 			|| !SDL_ReadU32LE(stream, &descriptor->size))
 		{
 			assets_destroy(assets);
-			return nullptr;
+			return false;
 		}
 
 		if (descriptor->flags != 0)
 		{
 			SDL_SetError("Unknown flag: %d", descriptor->flags);
 			assets_destroy(assets);
-			return nullptr;
+			return false;
 		}
 
 		static constexpr size_t hash_str_len = 9;
@@ -405,20 +391,20 @@ assets_t *assets_create(const char *path)
 		if (!map_set_with_cleanup(assets->desc, hash_str, descriptor, SDL_free))
 		{
 			assets_destroy(assets);
-			return nullptr;
+			return false;
 		}
 	}
 
 	if (!parse_project(assets_load(assets, "project"), assets))
 	{
 		assets_destroy(assets);
-		return nullptr;
+		return false;
 	}
 
-	return assets;
+	return true;
 }
 
-void assets_destroy(assets_t *assets)
+void assets_destroy(const assets_t *assets)
 {
 	if (assets == nullptr)
 	{
@@ -429,8 +415,6 @@ void assets_destroy(assets_t *assets)
 
 	SDL_CloseIO(assets->stream);
 	map_destroy(assets->desc);
-
-	SDL_free(assets);
 }
 
 window_config_t assets_window_config(const assets_t *assets)

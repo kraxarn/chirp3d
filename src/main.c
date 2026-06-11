@@ -17,6 +17,7 @@
 #include "scriptengine.h"
 #include "shader.h"
 #include "systeminfo.h"
+#include "systems.h"
 #include "vector.h"
 #include "windowconfig.h"
 #include "ui/debugoverlay.h"
@@ -40,7 +41,6 @@
 
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
-#include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_iostream.h>
@@ -222,18 +222,11 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 	*appstate = state;
 
-	const char *base_path = SDL_GetBasePath();
-	const size_t assets_path_len = SDL_strlen(base_path) + SDL_arraysize("assets.nest") + 1;
-	char *assets_path = SDL_calloc(assets_path_len, sizeof(char));
-	SDL_strlcat(assets_path, base_path, assets_path_len);
-	SDL_strlcat(assets_path, "assets.nest", assets_path_len);
+	ecs_create();
 
-	state->assets = assets_create(assets_path);
-	SDL_free(assets_path);
-	if (state->assets == nullptr)
-	{
-		return fatal_error(state->window, "Failed to load assets");
-	}
+	ECS_COMPONENT(ecs_world(), Assets);
+	system_register_assets();
+	const assets_t *assets = ecs_singleton_get(ecs_world(), Assets);
 
 #ifdef FORCE_X11
 	if (!SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11"))
@@ -250,7 +243,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 	state->last_update = SDL_GetTicks();
 
-	const window_config_t window_config = assets_window_config(state->assets);
+	const window_config_t window_config = assets_window_config(assets);
 
 	state->window = SDL_CreateWindow(window_config.title,
 		window_config.size.x, window_config.size.y,
@@ -368,7 +361,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	array_reserve(state->instances, 1);
 
 	{
-		model_t *model = assets_load_model(state->assets, state->device, "blaster");
+		model_t *model = assets_load_model(assets, state->device, "blaster");
 		if (model == nullptr)
 		{
 			return fatal_error(state->window, "Failed to load model");
@@ -394,7 +387,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		});
 	}
 	{
-		model_t *model = assets_load_model(state->assets, state->device, "scene");
+		model_t *model = assets_load_model(assets, state->device, "scene");
 		if (model == nullptr)
 		{
 			return fatal_error(state->window, "Failed to load model");
@@ -402,7 +395,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		array_push(state->models, model);
 	}
 	{
-		model_t *model = assets_load_model(state->assets, state->device, "bullet");
+		model_t *model = assets_load_model(assets, state->device, "bullet");
 		if (model == nullptr)
 		{
 			return fatal_error(state->window, "Failed to load model");
@@ -413,10 +406,9 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	const vector3f_t spawn_position = model_node_position(state->models[1], "Spawn");
 	SDL_Log("Spawn: %f %f %f", spawn_position.x, spawn_position.y, spawn_position.z);
 
-	ecs_create();
 	script_engine_create();
 
-	SDL_IOStream *script_stream = assets_load_script(state->assets, "main");
+	SDL_IOStream *script_stream = assets_load_script(assets, "main");
 	if (script_stream == nullptr)
 	{
 		return fatal_error(state->window, "Failed to load script");
@@ -726,7 +718,9 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 		array_destroy(state->instances);
 	}
 
-	assets_destroy(state->assets);
+	ECS_COMPONENT(ecs_world(), Assets);
+	assets_destroy(ecs_singleton_get(ecs_world(), Assets));
+
 	physics_destroy(state->physics_engine);
 	ecs_destroy();
 	script_engine_destroy();

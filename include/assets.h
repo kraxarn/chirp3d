@@ -1,17 +1,22 @@
 #pragma once
 
+#include "map.h"
 #include "model.h"
 #include "windowconfig.h"
 
 #include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_surface.h>
 
-typedef struct assets_t assets_t;
+typedef struct
+{
+	SDL_IOStream *stream;
+	window_config_t window_config;
+	map_t desc;
+} assets_t;
 
-[[nodiscard]]
-assets_t *assets_create(const char *path);
+bool assets_create(const char *path, assets_t *assets);
 
-void assets_destroy(assets_t *assets);
+void assets_destroy(const assets_t *assets);
 
 [[nodiscard]]
 window_config_t assets_window_config(const assets_t *assets);
