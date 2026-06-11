@@ -117,6 +117,14 @@ void ecs_create()
 	ecs_os_api_t os_api = ecs_os_api_create();
 	ecs_os_set_api(&os_api);
 
+#ifdef FLECS_REST
+	ecs_singleton_set(ecs_world(), EcsRest, {0});
+#endif
+
+#ifdef FLECS_STATS
+	ECS_IMPORT(ecs_world(), FlecsStats);
+#endif
+
 	world = ecs_init();
 }
 

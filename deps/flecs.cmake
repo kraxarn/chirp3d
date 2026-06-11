@@ -25,4 +25,11 @@ target_compile_definitions(flecs_static PUBLIC
 	FLECS_LOG
 )
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	target_compile_definitions(flecs_static PUBLIC
+		FLECS_REST
+		FLECS_STATS
+	)
+endif ()
+
 target_link_libraries(${PROJECT_NAME} PRIVATE flecs_static)
