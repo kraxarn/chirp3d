@@ -29,6 +29,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	target_compile_definitions(flecs_static PUBLIC
 		FLECS_REST
 		FLECS_STATS
+		FLECS_METRICS
 	)
 endif ()
 
