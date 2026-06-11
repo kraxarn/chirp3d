@@ -117,15 +117,15 @@ void ecs_create()
 	ecs_os_api_t os_api = ecs_os_api_create();
 	ecs_os_set_api(&os_api);
 
+	world = ecs_init();
+
 #ifdef FLECS_REST
-	ecs_singleton_set(ecs_world(), EcsRest, {0});
+	ecs_singleton_set(world, EcsRest, {0});
 #endif
 
 #ifdef FLECS_STATS
-	ECS_IMPORT(ecs_world(), FlecsStats);
+	ECS_IMPORT(world, FlecsStats);
 #endif
-
-	world = ecs_init();
 }
 
 void ecs_destroy()
