@@ -241,6 +241,9 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error(nullptr, "Initialisation failed");
 	}
 
+	const ecs_entity_t init = ecs_lookup(ecs_world(), "chirp.Init");
+	ecs_set_id(ecs_world(), init, init, sizeof(SDL_InitFlags), &init_flags);
+
 	state->last_update = SDL_GetTicks();
 
 	const window_config_t window_config = assets_window_config(assets);
