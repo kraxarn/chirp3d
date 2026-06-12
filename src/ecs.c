@@ -122,7 +122,7 @@ static void log_debug_info()
 		ecs_component_init(world, &c_desc);				\
 	} while (false)
 
-static void module([[maybe_unused]] ecs_world_t *w)
+static void module([[maybe_unused]] ecs_world_t *ewt)
 {
 	const ecs_entity_t scope = ecs_get_scope(world);
 	{
