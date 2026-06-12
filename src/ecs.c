@@ -1,4 +1,5 @@
 #include "ecs.h"
+#include "assets.h"
 #include "ecsosapi.h"
 #include "logcategory.h"
 #include "vector.h"
@@ -105,6 +106,29 @@ static void log_debug_info()
 	SDL_LogDebug(LOG_CATEGORY_ECS, "ECS addons: %s", temp);
 }
 
+static void ChirpImport(ecs_world_t *mod_world)
+{
+	const ecs_entity_t scope = ecs_get_scope(mod_world);
+	{
+		ECS_MODULE(mod_world, Chirp);
+
+		const ecs_entity_desc_t entity_desc = {
+			.use_low_id = true,
+			.name = "Assets",
+			.symbol = "assets_t",
+		};
+		const ecs_component_desc_t component_desc = {
+			.entity = ecs_entity_init(ecs_world(), &entity_desc),
+			.type = (ecs_type_info_t){
+				.size = ECS_SIZEOF(assets_t),
+				.alignment = ECS_ALIGNOF(assets_t),
+			},
+		};
+		ecs_component_init(mod_world, &component_desc);
+	}
+	ecs_set_scope(mod_world, scope);
+}
+
 void ecs_create()
 {
 	if (world != nullptr)
@@ -118,6 +142,8 @@ void ecs_create()
 	ecs_os_set_api(&os_api);
 
 	world = ecs_init();
+
+	ECS_IMPORT(world, Chirp);
 
 #ifdef FLECS_REST
 	ecs_singleton_set(world, EcsRest, {0});

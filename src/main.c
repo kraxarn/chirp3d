@@ -224,8 +224,8 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 	ecs_create();
 
+	const ecs_entity_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
 	system_register_assets();
-	const ecs_entity_t assets_id = ecs_lookup(ecs_world(), "Assets");
 	const assets_t *assets = ecs_get_id(ecs_world(), assets_id, assets_id);
 
 #ifdef FORCE_X11
@@ -718,7 +718,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 		array_destroy(state->instances);
 	}
 
-	const ecs_entity_t assets_id = ecs_lookup(ecs_world(), "Assets");
+	const ecs_entity_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
 	assets_destroy(ecs_get_id(ecs_world(), assets_id, assets_id));
 
 	physics_destroy(state->physics_engine);

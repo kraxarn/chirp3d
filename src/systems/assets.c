@@ -18,28 +18,14 @@ static void on_file_opened([[maybe_unused]] void *userdata,
 	assets_t assets;
 	if (assets_create(filelist[0], &assets))
 	{
-		const ecs_entity_t entity = ecs_lookup(ecs_world(), "Assets");
+		const ecs_entity_t entity = ecs_lookup(ecs_world(), "chirp.Assets");
 		ecs_set_id(ecs_world(), entity, entity,
-			sizeof(Assets), &assets);
+			sizeof(assets_t), &assets);
 	}
 }
 
 void system_register_assets()
 {
-	const ecs_entity_desc_t entity_desc = {
-		.use_low_id = true,
-		.name = "Assets",
-		.symbol = "Assets",
-	};
-	const ecs_component_desc_t component_desc = {
-		.entity = ecs_entity_init(ecs_world(), &entity_desc),
-		.type = (ecs_type_info_t){
-			.size = ECS_SIZEOF(Assets),
-			.alignment = ECS_ALIGNOF(Assets),
-		},
-	};
-	ecs_component_init(ecs_world(), &component_desc);
-
 	const char *base_path = SDL_GetBasePath();
 	const size_t path_len = SDL_strlen(base_path) + SDL_arraysize("assets.nest") + 1;
 	char *path = SDL_calloc(path_len, sizeof(char));
@@ -51,9 +37,9 @@ void system_register_assets()
 	{
 		SDL_free(path);
 
-		const ecs_entity_t entity = ecs_lookup(ecs_world(), "Assets");
+		const ecs_entity_t entity = ecs_lookup(ecs_world(), "chirp.Assets");
 		ecs_set_id(ecs_world(), entity, entity,
-			sizeof(Assets), &assets);
+			sizeof(assets_t), &assets);
 
 		return;
 	}
