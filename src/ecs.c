@@ -106,7 +106,7 @@ static void log_debug_info()
 	SDL_LogDebug(LOG_CATEGORY_ECS, "ECS addons: %s", temp);
 }
 
-static void ChirpImport(ecs_world_t *mod_world)
+static void module(ecs_world_t *mod_world)
 {
 	const ecs_entity_t scope = ecs_get_scope(mod_world);
 	{
@@ -143,7 +143,7 @@ void ecs_create()
 
 	world = ecs_init();
 
-	ECS_IMPORT(world, Chirp);
+	ecs_import(world, module, "chirp");
 
 #ifdef FLECS_REST
 	ecs_singleton_set(world, EcsRest, {0});
