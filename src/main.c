@@ -311,11 +311,15 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error("Failed to get window size");
 	}
 
-	state->depth_texture = create_depth_texture(gpu_device, depth_size);
-	if (state->depth_texture == nullptr)
+	SDL_GPUTexture *depth_texture = create_depth_texture(gpu_device, depth_size);
+	if (depth_texture == nullptr)
 	{
 		return fatal_error("Failed to initialise depth texture");
 	}
+
+	const ecs_entity_t depth_texture_id = ecs_lookup(ecs_world(), "chirp.DepthTexture");
+	ecs_set_id(ecs_world(), depth_texture_id, depth_texture_id,
+		sizeof(SDL_GPUTexture*), (const void*) &depth_texture);
 
 	state->camera = camera_create_default();
 	state->physics_config = physics_config_create_default();
@@ -646,8 +650,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	vector2f_t size;
 
 	SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
+	SDL_GPUTexture *depth_texture = ecs_mut_data_ptr("chirp.DepthTexture");
 
-	if (draw_begin(gpu_device, window, clear_color, state->depth_texture,
+	if (draw_begin(gpu_device, window, clear_color, depth_texture,
 		draw_data, &command_buffer, &render_pass, &size))
 	{
 		const matrix4x4_t proj = matrix4x4_create_perspective(
@@ -715,12 +720,14 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 	if (event->type == SDL_EVENT_WINDOW_RESIZED)
 	{
 		SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
-		SDL_ReleaseGPUTexture(gpu_device, state->depth_texture);
+		const auto depth_texture = (SDL_GPUTexture**) ecs_const_data("chirp.DepthTexture");
+
+		SDL_ReleaseGPUTexture(gpu_device, *depth_texture);
 		const auto size = (vector2i_t){
 			.x = event->window.data1,
 			.y = event->window.data2,
 		};
-		state->depth_texture = create_depth_texture(gpu_device, size);
+		*depth_texture = create_depth_texture(gpu_device, size);
 	}
 
 	return SDL_APP_CONTINUE;
@@ -760,8 +767,9 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
 	SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
 	SDL_GPUGraphicsPipeline *pipeline = ecs_mut_data_ptr("chirp.GpuGraphicsPipeline");
+	SDL_GPUTexture *depth_texture = ecs_mut_data_ptr("chirp.DepthTexture");
 
-	SDL_ReleaseGPUTexture(gpu_device, state->depth_texture);
+	SDL_ReleaseGPUTexture(gpu_device, depth_texture);
 	SDL_ReleaseGPUGraphicsPipeline(gpu_device, pipeline);
 	SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
 

@@ -5,7 +5,6 @@
 #include "physics.h"
 #include "physicsconfig.h"
 
-#include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_stdinc.h>
 
 typedef struct
@@ -23,8 +22,6 @@ typedef struct
 
 typedef struct
 {
-	SDL_GPUTexture *depth_texture;
-
 	camera_t camera;
 	physics_engine_t *physics_engine;
 	physics_config_t physics_config;

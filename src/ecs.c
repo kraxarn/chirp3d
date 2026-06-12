@@ -138,6 +138,7 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 		component("Window", SDL_Window*);
 		component("GpuDevice", SDL_GPUDevice*);
 		component("GpuGraphicsPipeline", SDL_GPUGraphicsPipeline*);
+		component("DepthTexture", SDL_GPUTexture*);
 	}
 	ecs_set_scope(world, scope);
 }
