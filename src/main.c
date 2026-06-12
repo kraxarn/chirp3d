@@ -55,10 +55,14 @@
 
 static constexpr auto mouse_sensitivity = 0.0015F;
 
-static SDL_AppResult fatal_error([[maybe_unused]] SDL_Window *window, const char *message)
+static SDL_AppResult fatal_error(const char *message)
 {
 	SDL_LogCritical(LOG_CATEGORY_CORE, "%s: %s", message, SDL_GetError());
 #ifdef NDEBUG
+	const void *window_data = ecs_const_data("chirp.Window")
+	SDL_Window *window = window_data != nullptr
+		? *((SDL_Window**) window_data)
+		: nullptr;
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, message, SDL_GetError(), window);
 #endif
 	return SDL_APP_FAILURE;
@@ -112,14 +116,16 @@ static bool init_imgui(const app_state_t *state)
 	ImGuiStyle_ScaleAllSizes(style, content_scale);
 	style->FontScaleDpi = content_scale;
 
-	if (!cImGui_ImplSDL3_InitForSDLGPU(state->window))
+	SDL_Window *window = *((SDL_Window**) ecs_const_data("chirp.Window"));
+
+	if (!cImGui_ImplSDL3_InitForSDLGPU(window))
 	{
 		return SDL_SetError("Failed to initialise SDL3 backend");
 	}
 
 	ImGui_ImplSDLGPU3_InitInfo init_info = {
 		.Device = state->device,
-		.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(state->device, state->window),
+		.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(state->device, window),
 		.MSAASamples = SDL_GPU_SAMPLECOUNT_1,
 		.SwapchainComposition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
 		.PresentMode = SDL_GPU_PRESENTMODE_VSYNC,
@@ -201,7 +207,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 {
 	if (!system_info_cpu_supported())
 	{
-		return fatal_error(nullptr, "Unsupported CPU");
+		return fatal_error("Unsupported CPU");
 	}
 
 #ifdef NDEBUG
@@ -212,13 +218,13 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 	if (!sdl_supported())
 	{
-		return fatal_error(nullptr, "Unsupported SDL version");
+		return fatal_error("Unsupported SDL version");
 	}
 
 	app_state_t *state = SDL_calloc(1, sizeof(app_state_t));
 	if (state == nullptr)
 	{
-		return fatal_error(nullptr, "Memory allocation failed");
+		return fatal_error("Memory allocation failed");
 	}
 	*appstate = state;
 
@@ -238,29 +244,36 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	constexpr SDL_InitFlags init_flags = SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD;
 	if (!SDL_Init(init_flags))
 	{
-		return fatal_error(nullptr, "Initialisation failed");
+		return fatal_error("Initialisation failed");
 	}
 
-	const ecs_entity_t init = ecs_lookup(ecs_world(), "chirp.Init");
-	ecs_set_id(ecs_world(), init, init, sizeof(SDL_InitFlags), &init_flags);
+	const ecs_entity_t init_id = ecs_lookup(ecs_world(), "chirp.Init");
+	ecs_set_id(ecs_world(), init_id, init_id, sizeof(SDL_InitFlags), &init_flags);
 
 	state->last_update = SDL_GetTicks();
 
+	const ecs_entity_t window_config_id = ecs_lookup(ecs_world(), "chirp.WindowConfig");
 	const window_config_t window_config = assets_window_config(assets);
+	ecs_set_id(ecs_world(), window_config_id, window_config_id,
+		sizeof(window_config_t), &window_config);
 
-	state->window = SDL_CreateWindow(window_config.title,
+	SDL_Window *window = SDL_CreateWindow(window_config.title,
 		window_config.size.x, window_config.size.y,
 		window_config_flags(window_config)
 	);
-	if (state->window == nullptr)
+	if (window == nullptr)
 	{
-		return fatal_error(nullptr, "Failed to create window");
+		return fatal_error("Failed to create window");
 	}
 
-	state->device = create_device(state->window);
+	const ecs_entity_t window_id = ecs_lookup(ecs_world(), "chirp.Window");
+	ecs_set_id(ecs_world(), window_id, window_id,
+		sizeof(SDL_Window*), (void*) &window);
+
+	state->device = create_device(window);
 	if (state->device == nullptr)
 	{
-		return fatal_error(state->window, "Failed to initialise GPU context");
+		return fatal_error("Failed to initialise GPU context");
 	}
 
 	log_system_info(state->device);
@@ -278,7 +291,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		}
 	}
 
-	if (!SDL_SetGPUSwapchainParameters(state->device, state->window,
+	if (!SDL_SetGPUSwapchainParameters(state->device, window,
 		SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC))
 	{
 		SDL_LogWarn(LOG_CATEGORY_CORE, "VSync not supported: %s", SDL_GetError());
@@ -286,19 +299,19 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 	if (!init_imgui(state))
 	{
-		return fatal_error(nullptr, "Failed to initialise ImGui");
+		return fatal_error("Failed to initialise ImGui");
 	}
 
 	vector2i_t depth_size;
-	if (!SDL_GetWindowSize(state->window, &depth_size.x, &depth_size.y))
+	if (!SDL_GetWindowSize(window, &depth_size.x, &depth_size.y))
 	{
-		return fatal_error(state->window, "Failed to get window size");
+		return fatal_error("Failed to get window size");
 	}
 
 	state->depth_texture = create_depth_texture(state->device, depth_size);
 	if (state->depth_texture == nullptr)
 	{
-		return fatal_error(state->window, "Failed to initialise depth texture");
+		return fatal_error("Failed to initialise depth texture");
 	}
 
 	state->camera = camera_create_default();
@@ -326,29 +339,29 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 		default:
 			SDL_SetError("Unknown shader format: %d", shader_format(state->device));
-			return fatal_error(state->window, "Failed to find valid shaders");
+			return fatal_error("Failed to find valid shaders");
 	}
 
 	SDL_GPUShader *vert_shader = load_shader(state->device, vert_source,
 		SDL_GPU_SHADERSTAGE_VERTEX, 0, 1);
 	if (vert_shader == nullptr)
 	{
-		return fatal_error(state->window, "Failed to load vertex shader");
+		return fatal_error("Failed to load vertex shader");
 	}
 
 	SDL_GPUShader *frag_shader = load_shader(state->device, frag_source,
 		SDL_GPU_SHADERSTAGE_FRAGMENT, 1, 0);
 	if (frag_shader == nullptr)
 	{
-		return fatal_error(state->window, "Failed to load fragment shader");
+		return fatal_error("Failed to load fragment shader");
 	}
 
-	state->pipeline = create_pipeline(state->device, state->window, vert_shader, frag_shader);
+	state->pipeline = create_pipeline(state->device, window, vert_shader, frag_shader);
 	if (state->pipeline == nullptr)
 	{
 		SDL_ReleaseGPUShader(state->device, vert_shader);
 		SDL_ReleaseGPUShader(state->device, frag_shader);
-		return fatal_error(state->window, "Failed to initialise pipeline");
+		return fatal_error("Failed to initialise pipeline");
 	}
 
 	SDL_ReleaseGPUShader(state->device, vert_shader);
@@ -357,7 +370,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	state->physics_engine = physics_create();
 	if (state->physics_engine == nullptr)
 	{
-		return fatal_error(state->window, "Failed to initialise physics engine");
+		return fatal_error("Failed to initialise physics engine");
 	}
 
 	array_reserve(state->models, 2);
@@ -367,14 +380,14 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		model_t *model = assets_load_model(assets, state->device, "blaster");
 		if (model == nullptr)
 		{
-			return fatal_error(state->window, "Failed to load model");
+			return fatal_error("Failed to load model");
 		}
 		array_push(state->models, model);
 
 		node_instance_t *instance = model_create_instance(model, nullptr);
 		if (instance == nullptr)
 		{
-			return fatal_error(state->window, "Failed to create instance");
+			return fatal_error("Failed to create instance");
 		}
 		array_push(state->instances, instance);
 
@@ -393,7 +406,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		model_t *model = assets_load_model(assets, state->device, "scene");
 		if (model == nullptr)
 		{
-			return fatal_error(state->window, "Failed to load model");
+			return fatal_error("Failed to load model");
 		}
 		array_push(state->models, model);
 	}
@@ -401,7 +414,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		model_t *model = assets_load_model(assets, state->device, "bullet");
 		if (model == nullptr)
 		{
-			return fatal_error(state->window, "Failed to load model");
+			return fatal_error("Failed to load model");
 		}
 		array_push(state->models, model);
 	}
@@ -414,12 +427,12 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_IOStream *script_stream = assets_load_script(assets, "main");
 	if (script_stream == nullptr)
 	{
-		return fatal_error(state->window, "Failed to load script");
+		return fatal_error("Failed to load script");
 	}
 
 	if (!script_engine_exec("main", script_stream, true))
 	{
-		return fatal_error(state->window, "Failed to execute script");
+		return fatal_error("Failed to execute script");
 	}
 
 	return build_scene(state);
@@ -452,10 +465,12 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	if (!physics_update(state->physics_engine, state->dt))
 	{
-		return fatal_error(state->window, "Failed to update physics");
+		return fatal_error("Failed to update physics");
 	}
 
-	if (SDL_GetWindowRelativeMouseMode(state->window))
+	SDL_Window *window = *((SDL_Window**) ecs_const_data("chirp.Window"));
+
+	if (SDL_GetWindowRelativeMouseMode(window))
 	{
 		vector2f_t mouse;
 		SDL_GetRelativeMouseState(&mouse.x, &mouse.y);
@@ -623,7 +638,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	SDL_GPURenderPass *render_pass = nullptr;
 	vector2f_t size;
 
-	if (draw_begin(state->device, state->window, clear_color, state->depth_texture,
+	if (draw_begin(state->device, window, clear_color, state->depth_texture,
 		draw_data, &command_buffer, &render_pass, &size))
 	{
 		const matrix4x4_t proj = matrix4x4_create_perspective(
@@ -653,7 +668,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	}
 	if (!draw_end())
 	{
-		return fatal_error(state->window, "Rendering failed");
+		return fatal_error("Rendering failed");
 	}
 
 	return SDL_APP_CONTINUE;
@@ -669,19 +684,20 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 	cImGui_ImplSDL3_ProcessEvent(event);
 
 	app_state_t *state = appstate;
+	SDL_Window *window = *((SDL_Window**) ecs_const_data("chirp.Window"));
 
 	if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN
 		&& event->button.button == SDL_BUTTON_LEFT
 		&& !ImGui_GetIO()->WantCaptureMouse)
 	{
-		SDL_SetWindowRelativeMouseMode(state->window, true);
+		SDL_SetWindowRelativeMouseMode(window, true);
 	}
 	else if (event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_ESCAPE)
 	{
-		SDL_SetWindowRelativeMouseMode(state->window, false);
+		SDL_SetWindowRelativeMouseMode(window, false);
 	}
 
-	if (SDL_GetWindowRelativeMouseMode(state->window))
+	if (SDL_GetWindowRelativeMouseMode(window))
 	{
 		input_update(event);
 	}
@@ -732,11 +748,17 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	cImGui_ImplSDLGPU3_Shutdown();
 	ImGui_DestroyContext(nullptr);
 
+	const auto window = (SDL_Window**) ecs_const_data("chirp.Window");
+
 	SDL_ReleaseGPUTexture(state->device, state->depth_texture);
 	SDL_ReleaseGPUGraphicsPipeline(state->device, state->pipeline);
-	SDL_ReleaseWindowFromGPUDevice(state->device, state->window);
+	SDL_ReleaseWindowFromGPUDevice(state->device, window != nullptr ? *window : nullptr);
 
-	SDL_DestroyWindow(state->window);
+	if (window != nullptr)
+	{
+		SDL_DestroyWindow(*window);
+	}
+
 	SDL_DestroyGPUDevice(state->device);
 
 	SDL_free(appstate);

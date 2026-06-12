@@ -2,11 +2,13 @@
 #include "assets.h"
 #include "ecsosapi.h"
 #include "logcategory.h"
+#include "windowconfig.h"
 
 #include "flecs.h"
 
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
+#include <SDL3/SDL_video.h>
 
 static ecs_world_t *world = nullptr;
 
@@ -131,6 +133,8 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 	{
 		component("Assets", assets_t);
 		component("Init", SDL_InitFlags);
+		component("WindowConfig", window_config_t);
+		component("Window", SDL_Window*);
 	}
 	ecs_set_scope(world, scope);
 }
@@ -182,4 +186,26 @@ void ecs_destroy()
 ecs_world_t *ecs_world()
 {
 	return world;
+}
+
+const void *ecs_const_data(const char *name)
+{
+	const ecs_entity_t entity = ecs_lookup(world, name);
+	if (entity == 0)
+	{
+		return nullptr;
+	}
+
+	return ecs_get_id(world, entity, entity);
+}
+
+void *ecs_mut_data(const char *name)
+{
+	const ecs_entity_t entity = ecs_lookup(world, name);
+	if (entity == 0)
+	{
+		return nullptr;
+	}
+
+	return ecs_get_mut_id(world, entity, entity);
 }

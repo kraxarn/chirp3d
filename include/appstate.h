@@ -25,7 +25,6 @@ typedef struct
 
 typedef struct
 {
-	SDL_Window *window;
 	SDL_GPUDevice *device;
 	SDL_GPUGraphicsPipeline *pipeline;
 	SDL_GPUTexture *depth_texture;
