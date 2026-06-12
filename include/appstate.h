@@ -2,7 +2,6 @@
 
 #include "model.h"
 #include "physics.h"
-#include "physicsconfig.h"
 
 #include <SDL3/SDL_stdinc.h>
 
