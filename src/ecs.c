@@ -105,25 +105,30 @@ static void log_debug_info()
 	SDL_LogDebug(LOG_CATEGORY_ECS, "ECS addons: %s", temp);
 }
 
+#define component(n,s)									\
+	do {												\
+		const ecs_entity_desc_t e_desc = {				\
+			.use_low_id = true,							\
+			.name = n,									\
+			.symbol = #s,								\
+		};												\
+		const ecs_component_desc_t c_desc = {			\
+			.entity = ecs_entity_init(world, &e_desc),	\
+			.type = (ecs_type_info_t){					\
+				.size = ECS_SIZEOF(s),					\
+				.alignment = ECS_ALIGNOF(s),			\
+			},											\
+		};												\
+		ecs_component_init(world, &c_desc);				\
+	} while (false)
+
 static void module([[maybe_unused]] ecs_world_t *w)
 {
 	const ecs_entity_t scope = ecs_get_scope(world);
 	{
 		ECS_MODULE(world, Chirp);
 
-		const ecs_entity_desc_t entity_desc = {
-			.use_low_id = true,
-			.name = "Assets",
-			.symbol = "assets_t",
-		};
-		const ecs_component_desc_t component_desc = {
-			.entity = ecs_entity_init(ecs_world(), &entity_desc),
-			.type = (ecs_type_info_t){
-				.size = ECS_SIZEOF(assets_t),
-				.alignment = ECS_ALIGNOF(assets_t),
-			},
-		};
-		ecs_component_init(world, &component_desc);
+		component("Assets", assets_t);
 	}
 	ecs_set_scope(world, scope);
 }
