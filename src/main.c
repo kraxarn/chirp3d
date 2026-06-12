@@ -154,6 +154,8 @@ static SDL_AppResult build_scene(app_state_t *state)
 	};
 	physics_add_box(state->physics_engine, &floor_config);
 
+	const camera_t *camera = ecs_const_data("chirp.Camera");
+
 	const capsule_config_t player_config = {
 		.half_height = 0.5F,
 		.radius = 1.F,
@@ -166,7 +168,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 		},
 	};
 	state->player_body_id = physics_add_capsule(state->physics_engine, &player_config);
-	physics_body_set_position(state->physics_engine, state->player_body_id, state->camera.position, true);
+	physics_body_set_position(state->physics_engine, state->player_body_id, camera->position, true);
 
 	const vector3f_t gravity = {.y = -state->physics_config.gravity_y};
 	physics_set_gravity(state->physics_engine, gravity);
@@ -321,7 +323,11 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	ecs_set_id(ecs_world(), depth_texture_id, depth_texture_id,
 		sizeof(SDL_GPUTexture*), (const void*) &depth_texture);
 
-	state->camera = camera_create_default();
+	const ecs_entity_t camera_id = ecs_lookup(ecs_world(), "chirp.Camera");
+	const camera_t camera = camera_create_default();
+	ecs_set_id(ecs_world(), camera_id, camera_id,
+		sizeof(camera_t), &camera);
+
 	state->physics_config = physics_config_create_default();
 
 	SDL_IOStream *vert_source;
@@ -480,50 +486,51 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	}
 
 	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
+	camera_t *camera = ecs_mut_data("chirp.Camera");
 
 	if (SDL_GetWindowRelativeMouseMode(window))
 	{
 		vector2f_t mouse;
 		SDL_GetRelativeMouseState(&mouse.x, &mouse.y);
-		camera_rotate_x(&state->camera, -(mouse.x * mouse_sensitivity));
-		camera_rotate_y(&state->camera, -(mouse.y * mouse_sensitivity));
+		camera_rotate_x(camera, -(mouse.x * mouse_sensitivity));
+		camera_rotate_y(camera, -(mouse.y * mouse_sensitivity));
 
 		const float move_speed = state->physics_config.move_speed;
 		const float jump_speed = state->physics_config.jump_speed;
 
 		if (input_is_down("move_forward"))
 		{
-			const vector3f_t velocity = camera_to_z(&state->camera, move_speed * state->dt);
+			const vector3f_t velocity = camera_to_z(camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_backward"))
 		{
-			const vector3f_t velocity = camera_to_z(&state->camera, -(move_speed * state->dt));
+			const vector3f_t velocity = camera_to_z(camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_left"))
 		{
-			const vector3f_t velocity = camera_to_x(&state->camera, -(move_speed * state->dt));
+			const vector3f_t velocity = camera_to_x(camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_right"))
 		{
-			const vector3f_t velocity = camera_to_x(&state->camera, move_speed * state->dt);
+			const vector3f_t velocity = camera_to_x(camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_up"))
 		{
-			const vector3f_t velocity = camera_to_y(&state->camera, move_speed * state->dt);
+			const vector3f_t velocity = camera_to_y(camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_down"))
 		{
-			const vector3f_t velocity = camera_to_y(&state->camera, -(move_speed * state->dt));
+			const vector3f_t velocity = camera_to_y(camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
 		}
 
@@ -574,7 +581,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 				};
 				array_push(state->instance_physics, instance_physics);
 
-				const vector3f_t forward = vector3f_normalize(vector3f_sub(state->camera.target, position));
+				const vector3f_t forward = vector3f_normalize(vector3f_sub(camera->target, position));
 				const vector3f_t velocity = vector3f_scale(forward, firepower);
 				physics_body_set_linear_velocity(state->physics_engine, body_id, velocity);
 				physics_body_set_rotation(state->physics_engine, body_id, vector4f_normalize((vector4f_t){
@@ -602,14 +609,14 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	// TODO: There should be a better way to do this, right?
 	const vector3f_t player_position = physics_body_position(state->physics_engine, state->player_body_id);
-	state->camera.target = vector3f_add(state->camera.target, vector3f_sub(player_position, state->camera.position));
-	state->camera.position = player_position;
+	camera->target = vector3f_add(camera->target, vector3f_sub(player_position, camera->position));
+	camera->position = player_position;
 
-	const vector3f_t forward_n = vector3f_normalize(vector3f_sub(state->camera.target, state->camera.position));
-	const vector3f_t right_n = vector3f_normalize(vector3f_cross(forward_n, state->camera.up));
-	const vector3f_t up_n = vector3f_normalize(state->camera.up);
+	const vector3f_t forward_n = vector3f_normalize(vector3f_sub(camera->target, camera->position));
+	const vector3f_t right_n = vector3f_normalize(vector3f_cross(forward_n, camera->up));
+	const vector3f_t up_n = vector3f_normalize(camera->up);
 
-	vector3f_t weapon_position = state->camera.position;
+	vector3f_t weapon_position = camera->position;
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(forward_n, 0.2F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(right_n, 0.25F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(up_n, -0.2F));
@@ -656,15 +663,15 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		draw_data, &command_buffer, &render_pass, &size))
 	{
 		const matrix4x4_t proj = matrix4x4_create_perspective(
-			deg2rad(state->camera.fov_y),
+			deg2rad(camera->fov_y),
 			size.x / size.y,
-			state->camera.near_plane,
-			state->camera.far_plane
+			camera->near_plane,
+			camera->far_plane
 		);
 		const matrix4x4_t view = matrix4x4_create_look_at(
-			state->camera.position,
-			state->camera.target,
-			state->camera.up
+			camera->position,
+			camera->target,
+			camera->up
 		);
 		const matrix4x4_t view_proj = matrix4x4_multiply(view, proj);
 

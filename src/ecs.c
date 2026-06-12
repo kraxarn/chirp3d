@@ -1,5 +1,6 @@
 #include "ecs.h"
 #include "assets.h"
+#include "camera.h"
 #include "ecsosapi.h"
 #include "logcategory.h"
 #include "windowconfig.h"
@@ -139,6 +140,7 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 		component("GpuDevice", SDL_GPUDevice*);
 		component("GpuGraphicsPipeline", SDL_GPUGraphicsPipeline*);
 		component("DepthTexture", SDL_GPUTexture*);
+		component("Camera", camera_t);
 	}
 	ecs_set_scope(world, scope);
 }

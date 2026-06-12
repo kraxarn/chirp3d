@@ -71,19 +71,19 @@ static void draw_system_info(SDL_GPUDevice *device)
 	ImGui_Text("%s", gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(device)));
 }
 
-static void draw_camera_info(const camera_t camera)
+static void draw_camera_info(const camera_t *camera)
 {
 	ImGui_TableNextColumn();
 	ImGui_Text("Camera");
 	ImGui_TableNextColumn();
 	ImGui_Text("%-6.2f %-6.2f %-6.2f",
-		camera.position.x, camera.position.y, camera.position.z);
+		camera->position.x, camera->position.y, camera->position.z);
 
 	ImGui_TableNextColumn();
 	ImGui_Text("Target");
 	ImGui_TableNextColumn();
 	ImGui_Text("%-6.2f %-6.2f %-6.2f",
-		camera.target.x, camera.target.y, camera.target.z);
+		camera->target.x, camera->target.y, camera->target.z);
 }
 
 static void draw_physics_info(const physics_engine_t *physics_engine,
@@ -220,13 +220,14 @@ void draw_debug_overlay(app_state_t *state)
 
 			if ((elements & DEBUG_OVERLAY_SYSTEM) > 0)
 			{
-				SDL_GPUDevice *gpu_device = *((SDL_GPUDevice**) ecs_const_data("chirp.GpuDevice"));
+				SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
 				draw_system_info(gpu_device);
 			}
 
 			if ((elements & DEBUG_OVERLAY_CAMERA) > 0)
 			{
-				draw_camera_info(state->camera);
+				const camera_t *camera = ecs_const_data("chirp.Camera");
+				draw_camera_info(camera);
 			}
 
 			if ((elements & DEBUG_OVERLAY_PHYSICS) > 0)

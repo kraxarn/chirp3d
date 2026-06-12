@@ -1,6 +1,5 @@
 #pragma once
 
-#include "camera.h"
 #include "model.h"
 #include "physics.h"
 #include "physicsconfig.h"
@@ -22,7 +21,6 @@ typedef struct
 
 typedef struct
 {
-	camera_t camera;
 	physics_engine_t *physics_engine;
 	physics_config_t physics_config;
 
