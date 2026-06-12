@@ -3,6 +3,8 @@
 #include "camera.h"
 #include "ecsosapi.h"
 #include "logcategory.h"
+#include "physics.h"
+#include "physicsconfig.h"
 #include "windowconfig.h"
 
 #include "flecs.h"
@@ -141,6 +143,8 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 		component("GpuGraphicsPipeline", SDL_GPUGraphicsPipeline*);
 		component("DepthTexture", SDL_GPUTexture*);
 		component("Camera", camera_t);
+		component("PhysicsConfig", physics_config_t);
+		component("PhysicsEngine", physics_engine_t);
 	}
 	ecs_set_scope(world, scope);
 }

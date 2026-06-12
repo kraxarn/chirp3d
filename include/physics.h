@@ -4,7 +4,26 @@
 
 #include <SDL3/SDL_stdinc.h>
 
-typedef struct physics_engine_t physics_engine_t;
+typedef struct JPH_JobSystem JPH_JobSystem;
+typedef struct JPH_PhysicsSystem JPH_PhysicsSystem;
+typedef struct JPH_BodyInterface JPH_BodyInterface;
+typedef Uint32 JPH_BodyID;
+
+// Physics settings
+static constexpr Uint32 max_bodies = SDL_MAX_UINT16;
+static constexpr Uint32 num_body_mutexes = 0;
+static constexpr Uint32 max_body_pairs = SDL_MAX_UINT16;
+static constexpr Uint32 max_contact_constraints = SDL_MAX_UINT16;
+
+typedef struct physics_engine_t
+{
+	JPH_JobSystem *job_system;
+	JPH_PhysicsSystem *physics_system;
+	JPH_BodyInterface *body_interface;
+
+	JPH_BodyID bodies[max_bodies];
+	size_t num_bodies;
+} physics_engine_t;
 
 typedef Uint32 physics_body_id_t;
 
@@ -75,10 +94,9 @@ typedef struct
 	body_config_t body;
 } cylinder_config_t;
 
-[[nodiscard]]
-physics_engine_t *physics_create();
+bool physics_create(physics_engine_t *engine);
 
-void physics_destroy(physics_engine_t *engine);
+void physics_destroy(const physics_engine_t *engine);
 
 void physics_optimize(const physics_engine_t *engine);
 

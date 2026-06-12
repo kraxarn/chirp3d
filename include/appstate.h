@@ -21,9 +21,6 @@ typedef struct
 
 typedef struct
 {
-	physics_engine_t *physics_engine;
-	physics_config_t physics_config;
-
 	Uint64 last_update;
 	time_info_t time;
 	float dt;

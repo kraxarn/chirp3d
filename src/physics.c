@@ -17,22 +17,6 @@ typedef enum broad_phase_layers_t: JPH_BroadPhaseLayer
 	BP_LAYER_COUNT      = 2,
 } broad_phase_layers_t;
 
-// Physics settings
-static constexpr Uint32 max_bodies = SDL_MAX_UINT16;
-static constexpr Uint32 num_body_mutexes = 0;
-static constexpr Uint32 max_body_pairs = SDL_MAX_UINT16;
-static constexpr Uint32 max_contact_constraints = SDL_MAX_UINT16;
-
-typedef struct physics_engine_t
-{
-	JPH_JobSystem *job_system;
-	JPH_PhysicsSystem *physics_system;
-	JPH_BodyInterface *body_interface;
-
-	JPH_BodyID bodies[max_bodies];
-	size_t num_bodies;
-} physics_engine_t;
-
 static void on_trace(const char *message)
 {
 	SDL_LogInfo(LOG_CATEGORY_PHYSICS, "%s", message);
@@ -53,22 +37,16 @@ static bool on_assert(const char *expression, const char *message, const char *f
 	return true;
 }
 
-physics_engine_t *physics_create()
+bool physics_create(physics_engine_t *engine)
 {
 	if (!JPH_Init())
 	{
 		SDL_SetError("JPH initialisation failed");
-		return nullptr;
+		return false;
 	}
 
 	JPH_SetTraceHandler(on_trace);
 	JPH_SetAssertFailureHandler(on_assert);
-
-	physics_engine_t *engine = SDL_malloc(sizeof(physics_engine_t));
-	if (engine == nullptr)
-	{
-		return nullptr;
-	}
 
 	engine->num_bodies = 0;
 	engine->job_system = JPH_JobSystemThreadPool_Create(nullptr);
@@ -109,10 +87,10 @@ physics_engine_t *physics_create()
 
 	engine->body_interface = JPH_PhysicsSystem_GetBodyInterface(engine->physics_system);
 
-	return engine;
+	return true;
 }
 
-void physics_destroy(physics_engine_t *engine)
+void physics_destroy(const physics_engine_t *engine)
 {
 	if (engine == nullptr)
 	{
@@ -127,8 +105,6 @@ void physics_destroy(physics_engine_t *engine)
 	JPH_JobSystem_Destroy(engine->job_system);
 	JPH_PhysicsSystem_Destroy(engine->physics_system);
 	JPH_Shutdown();
-
-	SDL_free(engine);
 }
 
 void physics_optimize(const physics_engine_t *engine)

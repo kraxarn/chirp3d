@@ -173,8 +173,9 @@ void draw_debug_overlay(app_state_t *state)
 
 	if (physics_open)
 	{
-		show_physics_properties(&physics_open,
-			state->physics_engine, &state->physics_config);
+		const physics_engine_t *physics_engine = ecs_const_data("chirp.PhysicsEngine");
+		physics_config_t *physics_config = ecs_mut_data("chirp.PhysicsConfig");
+		show_physics_properties(&physics_open, physics_engine, physics_config);
 	}
 
 	constexpr auto padding = 16.F;
@@ -232,7 +233,8 @@ void draw_debug_overlay(app_state_t *state)
 
 			if ((elements & DEBUG_OVERLAY_PHYSICS) > 0)
 			{
-				draw_physics_info(state->physics_engine, state->player_body_id);
+				const physics_engine_t *physics_engine = ecs_const_data("chirp.PhysicsEngine");
+				draw_physics_info(physics_engine, state->player_body_id);
 			}
 
 			ImGui_EndTable();

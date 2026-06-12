@@ -142,6 +142,9 @@ static SDL_AppResult build_scene(app_state_t *state)
 {
 	const auto floor_size = (vector3f_t){.x = 100.F, .y = 0.F, .z = 100.F};
 
+	physics_engine_t *physics_engine = ecs_mut_data("chirp.PhysicsEngine");
+	const physics_config_t *physics_config = ecs_const_data("chirp.PhysicsConfig");
+
 	const box_config_t floor_config = {
 		.half_extents = floor_size,
 		.friction = 15.F,
@@ -152,7 +155,7 @@ static SDL_AppResult build_scene(app_state_t *state)
 			.activate = false,
 		},
 	};
-	physics_add_box(state->physics_engine, &floor_config);
+	physics_add_box(physics_engine, &floor_config);
 
 	const camera_t *camera = ecs_const_data("chirp.Camera");
 
@@ -167,13 +170,13 @@ static SDL_AppResult build_scene(app_state_t *state)
 			.activate = false,
 		},
 	};
-	state->player_body_id = physics_add_capsule(state->physics_engine, &player_config);
-	physics_body_set_position(state->physics_engine, state->player_body_id, camera->position, true);
+	state->player_body_id = physics_add_capsule(physics_engine, &player_config);
+	physics_body_set_position(physics_engine, state->player_body_id, camera->position, true);
 
-	const vector3f_t gravity = {.y = -state->physics_config.gravity_y};
-	physics_set_gravity(state->physics_engine, gravity);
+	const vector3f_t gravity = {.y = -physics_config->gravity_y};
+	physics_set_gravity(physics_engine, gravity);
 
-	physics_optimize(state->physics_engine);
+	physics_optimize(physics_engine);
 
 	return SDL_APP_CONTINUE;
 }
@@ -328,7 +331,10 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	ecs_set_id(ecs_world(), camera_id, camera_id,
 		sizeof(camera_t), &camera);
 
-	state->physics_config = physics_config_create_default();
+	const ecs_entity_t physics_config_id = ecs_lookup(ecs_world(), "chirp.PhysicsConfig");
+	const physics_config_t physics_config = physics_config_create_default();
+	ecs_set_id(ecs_world(), physics_config_id, physics_config_id,
+		sizeof(physics_config_t), &physics_config);
 
 	SDL_IOStream *vert_source;
 	SDL_IOStream *frag_source;
@@ -384,11 +390,15 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_ReleaseGPUShader(gpu_device, vert_shader);
 	SDL_ReleaseGPUShader(gpu_device, frag_shader);
 
-	state->physics_engine = physics_create();
-	if (state->physics_engine == nullptr)
+	physics_engine_t physics_engine;
+	if (!physics_create(&physics_engine))
 	{
 		return fatal_error("Failed to initialise physics engine");
 	}
+
+	const ecs_entity_t physics_engine_id = ecs_lookup(ecs_world(), "chirp.PhysicsEngine");
+	ecs_set_id(ecs_world(), physics_engine_id, physics_engine_id,
+		sizeof(physics_engine_t), &physics_engine);
 
 	array_reserve(state->models, 2);
 	array_reserve(state->instances, 1);
@@ -480,7 +490,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	ecs_progress(ecs_world(), state->dt);
 
-	if (!physics_update(state->physics_engine, state->dt))
+	physics_engine_t *physics_engine = ecs_mut_data("chirp.PhysicsEngine");
+	const physics_config_t *physics_config = ecs_const_data("chirp.PhysicsConfig");
+
+	if (!physics_update(physics_engine, state->dt))
 	{
 		return fatal_error("Failed to update physics");
 	}
@@ -495,48 +508,48 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		camera_rotate_x(camera, -(mouse.x * mouse_sensitivity));
 		camera_rotate_y(camera, -(mouse.y * mouse_sensitivity));
 
-		const float move_speed = state->physics_config.move_speed;
-		const float jump_speed = state->physics_config.jump_speed;
+		const float move_speed = physics_config->move_speed;
+		const float jump_speed = physics_config->jump_speed;
 
 		if (input_is_down("move_forward"))
 		{
 			const vector3f_t velocity = camera_to_z(camera, move_speed * state->dt);
-			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
+			physics_body_add_linear_velocity(physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_backward"))
 		{
 			const vector3f_t velocity = camera_to_z(camera, -(move_speed * state->dt));
-			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
+			physics_body_add_linear_velocity(physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_left"))
 		{
 			const vector3f_t velocity = camera_to_x(camera, -(move_speed * state->dt));
-			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
+			physics_body_add_linear_velocity(physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_right"))
 		{
 			const vector3f_t velocity = camera_to_x(camera, move_speed * state->dt);
-			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
+			physics_body_add_linear_velocity(physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_up"))
 		{
 			const vector3f_t velocity = camera_to_y(camera, move_speed * state->dt);
-			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
+			physics_body_add_linear_velocity(physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_down("move_down"))
 		{
 			const vector3f_t velocity = camera_to_y(camera, -(move_speed * state->dt));
-			physics_body_add_linear_velocity(state->physics_engine, state->player_body_id, velocity);
+			physics_body_add_linear_velocity(physics_engine, state->player_body_id, velocity);
 		}
 
 		if (input_is_pressed("jump"))
 		{
-			const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
+			const vector3f_t velocity = physics_body_linear_velocity(physics_engine, state->player_body_id);
 			if (velocity.y > -0.1F && velocity.y < 0.1F)
 			{
 				const vector3f_t jump_velocity = {
@@ -544,7 +557,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 					.y = jump_speed,
 					.z = velocity.z,
 				};
-				physics_body_set_linear_velocity(state->physics_engine, state->player_body_id, jump_velocity);
+				physics_body_set_linear_velocity(physics_engine, state->player_body_id, jump_velocity);
 			}
 		}
 
@@ -573,7 +586,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 						.activate = false,
 					},
 				};
-				const physics_body_id_t body_id = physics_add_cylinder(state->physics_engine, &config);
+				const physics_body_id_t body_id = physics_add_cylinder(physics_engine, &config);
 
 				const node_instance_physics_t instance_physics = {
 					.instance = instance,
@@ -583,8 +596,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 				const vector3f_t forward = vector3f_normalize(vector3f_sub(camera->target, position));
 				const vector3f_t velocity = vector3f_scale(forward, firepower);
-				physics_body_set_linear_velocity(state->physics_engine, body_id, velocity);
-				physics_body_set_rotation(state->physics_engine, body_id, vector4f_normalize((vector4f_t){
+				physics_body_set_linear_velocity(physics_engine, body_id, velocity);
+				physics_body_set_rotation(physics_engine, body_id, vector4f_normalize((vector4f_t){
 					.x = 0.5F,
 				}), true);
 			}
@@ -593,22 +606,22 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	const vector3f_t min_velocity =
 	{
-		.x = -state->physics_config.max_move_speed,
+		.x = -physics_config->max_move_speed,
 		.y = -1'000.F,
-		.z = -state->physics_config.max_move_speed,
+		.z = -physics_config->max_move_speed,
 	};
 	const vector3f_t max_velocity =
 	{
-		.x = state->physics_config.max_move_speed,
+		.x = physics_config->max_move_speed,
 		.y = 1'000.F,
-		.z = state->physics_config.max_move_speed,
+		.z = physics_config->max_move_speed,
 	};
-	const vector3f_t velocity = physics_body_linear_velocity(state->physics_engine, state->player_body_id);
+	const vector3f_t velocity = physics_body_linear_velocity(physics_engine, state->player_body_id);
 	const vector3f_t clamped_velocity = vector3f_clamp(velocity, min_velocity, max_velocity);
-	physics_body_set_linear_velocity(state->physics_engine, state->player_body_id, clamped_velocity);
+	physics_body_set_linear_velocity(physics_engine, state->player_body_id, clamped_velocity);
 
 	// TODO: There should be a better way to do this, right?
-	const vector3f_t player_position = physics_body_position(state->physics_engine, state->player_body_id);
+	const vector3f_t player_position = physics_body_position(physics_engine, state->player_body_id);
 	camera->target = vector3f_add(camera->target, vector3f_sub(player_position, camera->position));
 	camera->position = player_position;
 
@@ -633,8 +646,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		for (size_t i = 0; i < array_size(state->instance_physics); i++)
 		{
 			node_instance_physics_t *item = array_ptr(state->instance_physics, i);
-			model_instance_set_position(item->instance, physics_body_position(state->physics_engine, item->body_id));
-			const vector4f_t rotation = physics_body_rotation(state->physics_engine, item->body_id);
+			model_instance_set_position(item->instance, physics_body_position(physics_engine, item->body_id));
+			const vector4f_t rotation = physics_body_rotation(physics_engine, item->body_id);
 			model_instance_set_rotation(item->instance, (vector3f_t){
 				.x = rotation.x, .y = rotation.y, .z = rotation.z,
 			});
@@ -763,8 +776,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	}
 
 	assets_destroy(ecs_const_data("chrip.Assets"));
-
-	physics_destroy(state->physics_engine);
+	physics_destroy(ecs_const_data("chirp.PhysicsEngine"));
 	script_engine_destroy();
 
 	cImGui_ImplSDL3_Shutdown();
