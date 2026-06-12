@@ -23,7 +23,6 @@ typedef struct
 
 typedef struct
 {
-	SDL_GPUGraphicsPipeline *pipeline;
 	SDL_GPUTexture *depth_texture;
 
 	camera_t camera;

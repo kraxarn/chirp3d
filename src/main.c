@@ -359,13 +359,17 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error("Failed to load fragment shader");
 	}
 
-	state->pipeline = create_pipeline(gpu_device, window, vert_shader, frag_shader);
-	if (state->pipeline == nullptr)
+	SDL_GPUGraphicsPipeline *pipeline = create_pipeline(gpu_device, window, vert_shader, frag_shader);
+	if (pipeline == nullptr)
 	{
 		SDL_ReleaseGPUShader(gpu_device, vert_shader);
 		SDL_ReleaseGPUShader(gpu_device, frag_shader);
 		return fatal_error("Failed to initialise pipeline");
 	}
+
+	const ecs_entity_t pipeline_id = ecs_lookup(ecs_world(), "chirp.GpuGraphicsPipeline");
+	ecs_set_id(ecs_world(), pipeline_id, pipeline_id,
+		sizeof(SDL_GPUGraphicsPipeline*), (const void*) &pipeline);
 
 	SDL_ReleaseGPUShader(gpu_device, vert_shader);
 	SDL_ReleaseGPUShader(gpu_device, frag_shader);
@@ -659,7 +663,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		);
 		const matrix4x4_t view_proj = matrix4x4_multiply(view, proj);
 
-		SDL_BindGPUGraphicsPipeline(render_pass, state->pipeline);
+		SDL_GPUGraphicsPipeline *pipeline = ecs_mut_data_ptr("chirp.GpuGraphicsPipeline");
+		SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
 
 		// Only draw scene directly as model
 		model_draw(array_at(state->models, 1), render_pass, command_buffer, view_proj);
@@ -754,9 +759,10 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 
 	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
 	SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
+	SDL_GPUGraphicsPipeline *pipeline = ecs_mut_data_ptr("chirp.GpuGraphicsPipeline");
 
 	SDL_ReleaseGPUTexture(gpu_device, state->depth_texture);
-	SDL_ReleaseGPUGraphicsPipeline(gpu_device, state->pipeline);
+	SDL_ReleaseGPUGraphicsPipeline(gpu_device, pipeline);
 	SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
 
 	SDL_DestroyWindow(window);

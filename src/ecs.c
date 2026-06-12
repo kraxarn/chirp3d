@@ -137,6 +137,7 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 		component("WindowConfig", window_config_t);
 		component("Window", SDL_Window*);
 		component("GpuDevice", SDL_GPUDevice*);
+		component("GpuGraphicsPipeline", SDL_GPUGraphicsPipeline*);
 	}
 	ecs_set_scope(world, scope);
 }
