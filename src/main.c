@@ -746,7 +746,6 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	assets_destroy(ecs_const_data("chrip.Assets"));
 
 	physics_destroy(state->physics_engine);
-	ecs_destroy();
 	script_engine_destroy();
 
 	cImGui_ImplSDL3_Shutdown();
@@ -763,5 +762,6 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	SDL_DestroyWindow(window);
 	SDL_DestroyGPUDevice(gpu_device);
 
+	ecs_destroy();
 	SDL_free(appstate);
 }
