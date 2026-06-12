@@ -201,6 +201,17 @@ const void *ecs_const_data(const char *name)
 	return ecs_get_id(world, entity, entity);
 }
 
+void *ecs_mut_data_ptr(const char *name)
+{
+	const void *data = ecs_const_data(name);
+	if (data == nullptr)
+	{
+		return nullptr;
+	}
+
+	return *((void**) data);
+}
+
 void *ecs_mut_data(const char *name)
 {
 	const ecs_entity_t entity = ecs_lookup(world, name);
