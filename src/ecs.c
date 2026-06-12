@@ -2,7 +2,6 @@
 #include "assets.h"
 #include "ecsosapi.h"
 #include "logcategory.h"
-#include "vector.h"
 
 #include "flecs.h"
 
@@ -106,11 +105,11 @@ static void log_debug_info()
 	SDL_LogDebug(LOG_CATEGORY_ECS, "ECS addons: %s", temp);
 }
 
-static void module(ecs_world_t *mod_world)
+static void module([[maybe_unused]] ecs_world_t *w)
 {
-	const ecs_entity_t scope = ecs_get_scope(mod_world);
+	const ecs_entity_t scope = ecs_get_scope(world);
 	{
-		ECS_MODULE(mod_world, Chirp);
+		ECS_MODULE(world, Chirp);
 
 		const ecs_entity_desc_t entity_desc = {
 			.use_low_id = true,
@@ -124,9 +123,9 @@ static void module(ecs_world_t *mod_world)
 				.alignment = ECS_ALIGNOF(assets_t),
 			},
 		};
-		ecs_component_init(mod_world, &component_desc);
+		ecs_component_init(world, &component_desc);
 	}
-	ecs_set_scope(mod_world, scope);
+	ecs_set_scope(world, scope);
 }
 
 void ecs_create()
