@@ -59,10 +59,7 @@ static SDL_AppResult fatal_error(const char *message)
 {
 	SDL_LogCritical(LOG_CATEGORY_CORE, "%s: %s", message, SDL_GetError());
 #ifdef NDEBUG
-	const void *window_data = ecs_const_data("chirp.Window")
-	SDL_Window *window = window_data != nullptr
-		? *((SDL_Window**) window_data)
-		: nullptr;
+	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, message, SDL_GetError(), window);
 #endif
 	return SDL_APP_FAILURE;
@@ -80,7 +77,7 @@ static void log_system_info(SDL_GPUDevice *device)
 		system_info_gpu_name(device), system_info_gpu_driver(device));
 }
 
-static bool init_imgui(const app_state_t *state)
+static bool init_imgui()
 {
 	CIMGUI_CHECKVERSION();
 
@@ -116,14 +113,14 @@ static bool init_imgui(const app_state_t *state)
 	ImGuiStyle_ScaleAllSizes(style, content_scale);
 	style->FontScaleDpi = content_scale;
 
-	SDL_Window *window = *((SDL_Window**) ecs_const_data("chirp.Window"));
+	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
 
 	if (!cImGui_ImplSDL3_InitForSDLGPU(window))
 	{
 		return SDL_SetError("Failed to initialise SDL3 backend");
 	}
 
-	SDL_GPUDevice *gpu_device = *((SDL_GPUDevice**) ecs_const_data("chirp.GpuDevice"));
+	SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
 
 	ImGui_ImplSDLGPU3_InitInfo init_info = {
 		.Device = gpu_device,
@@ -303,7 +300,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		SDL_LogWarn(LOG_CATEGORY_CORE, "VSync not supported: %s", SDL_GetError());
 	}
 
-	if (!init_imgui(state))
+	if (!init_imgui())
 	{
 		return fatal_error("Failed to initialise ImGui");
 	}
@@ -474,7 +471,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		return fatal_error("Failed to update physics");
 	}
 
-	SDL_Window *window = *((SDL_Window**) ecs_const_data("chirp.Window"));
+	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
 
 	if (SDL_GetWindowRelativeMouseMode(window))
 	{
@@ -644,7 +641,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	SDL_GPURenderPass *render_pass = nullptr;
 	vector2f_t size;
 
-	SDL_GPUDevice *gpu_device = *((SDL_GPUDevice**) ecs_const_data("chirp.GpuDevice"));
+	SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
 
 	if (draw_begin(gpu_device, window, clear_color, state->depth_texture,
 		draw_data, &command_buffer, &render_pass, &size))
@@ -692,7 +689,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 	cImGui_ImplSDL3_ProcessEvent(event);
 
 	app_state_t *state = appstate;
-	SDL_Window *window = *((SDL_Window**) ecs_const_data("chirp.Window"));
+	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
 
 	if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN
 		&& event->button.button == SDL_BUTTON_LEFT
@@ -712,8 +709,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 
 	if (event->type == SDL_EVENT_WINDOW_RESIZED)
 	{
-		SDL_GPUDevice *gpu_device = *((SDL_GPUDevice**) ecs_const_data("chirp.GpuDevice"));
-
+		SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
 		SDL_ReleaseGPUTexture(gpu_device, state->depth_texture);
 		const auto size = (vector2i_t){
 			.x = event->window.data1,
@@ -747,8 +743,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 		array_destroy(state->instances);
 	}
 
-	const ecs_entity_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
-	assets_destroy(ecs_get_id(ecs_world(), assets_id, assets_id));
+	assets_destroy(ecs_const_data("chrip.Assets"));
 
 	physics_destroy(state->physics_engine);
 	ecs_destroy();
@@ -758,22 +753,15 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	cImGui_ImplSDLGPU3_Shutdown();
 	ImGui_DestroyContext(nullptr);
 
-	const auto window = (SDL_Window**) ecs_const_data("chirp.Window");
+	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
+	SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
 
-	const auto gpu_device = (SDL_GPUDevice**) ecs_const_data("chirp.GpuDevice");
-	if (gpu_device != nullptr)
-	{
-		SDL_ReleaseGPUTexture(*gpu_device, state->depth_texture);
-		SDL_ReleaseGPUGraphicsPipeline(*gpu_device, state->pipeline);
-		SDL_ReleaseWindowFromGPUDevice(*gpu_device, window != nullptr ? *window : nullptr);
-	}
+	SDL_ReleaseGPUTexture(gpu_device, state->depth_texture);
+	SDL_ReleaseGPUGraphicsPipeline(gpu_device, state->pipeline);
+	SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
 
-	if (window != nullptr)
-	{
-		SDL_DestroyWindow(*window);
-	}
-
-	SDL_DestroyGPUDevice(gpu_device != nullptr ? *gpu_device : nullptr);
+	SDL_DestroyWindow(window);
+	SDL_DestroyGPUDevice(gpu_device);
 
 	SDL_free(appstate);
 }

@@ -13,4 +13,7 @@ ecs_world_t *ecs_world();
 const void *ecs_const_data(const char *name);
 
 [[nodiscard]]
+void *ecs_mut_data_ptr(const char *name);
+
+[[nodiscard]]
 void *ecs_mut_data(const char *name);
