@@ -125,11 +125,13 @@ static void log_debug_info()
 static void module([[maybe_unused]] ecs_world_t *ewt)
 {
 	const ecs_entity_t scope = ecs_get_scope(world);
-	{
-		ECS_MODULE(world, Chirp);
 
-		component("Assets", assets_t);
-	}
+	const ecs_component_desc_t desc = {};
+	const ecs_entity_t mod = ecs_module_init(world, "Chirp", &desc);
+	ecs_set_scope(world, mod);
+
+	component("Assets", assets_t);
+
 	ecs_set_scope(world, scope);
 }
 
