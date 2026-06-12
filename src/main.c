@@ -123,9 +123,11 @@ static bool init_imgui(const app_state_t *state)
 		return SDL_SetError("Failed to initialise SDL3 backend");
 	}
 
+	SDL_GPUDevice *gpu_device = *((SDL_GPUDevice**) ecs_const_data("chirp.GpuDevice"));
+
 	ImGui_ImplSDLGPU3_InitInfo init_info = {
-		.Device = state->device,
-		.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(state->device, window),
+		.Device = gpu_device,
+		.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(gpu_device, window),
 		.MSAASamples = SDL_GPU_SAMPLECOUNT_1,
 		.SwapchainComposition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
 		.PresentMode = SDL_GPU_PRESENTMODE_VSYNC,
@@ -270,28 +272,32 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	ecs_set_id(ecs_world(), window_id, window_id,
 		sizeof(SDL_Window*), (void*) &window);
 
-	state->device = create_device(window);
-	if (state->device == nullptr)
+	SDL_GPUDevice *gpu_device = create_device(window);
+	if (gpu_device == nullptr)
 	{
 		return fatal_error("Failed to initialise GPU context");
 	}
 
-	log_system_info(state->device);
+	const ecs_entity_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
+	ecs_set_id(ecs_world(), gpu_device_id, gpu_device_id,
+		sizeof(SDL_GPUDevice*), (void*) &gpu_device);
+
+	log_system_info(gpu_device);
 
 	if (SDL_GetLogPriority(LOG_CATEGORY_CORE) >= SDL_LOG_PRIORITY_VERBOSE)
 	{
 		char *gpu_drivers = gpu_driver_names();
 		SDL_LogDebug(LOG_CATEGORY_CORE, "Available GPU drivers: %s", gpu_drivers);
 
-		char *shader_formats = shader_format_names(state->device);
+		char *shader_formats = shader_format_names(gpu_device);
 		if (shader_formats != nullptr)
 		{
 			SDL_LogDebug(LOG_CATEGORY_CORE, "Available shader formats for %s: %s",
-				SDL_GetGPUDeviceDriver(state->device), shader_formats);
+				SDL_GetGPUDeviceDriver(gpu_device), shader_formats);
 		}
 	}
 
-	if (!SDL_SetGPUSwapchainParameters(state->device, window,
+	if (!SDL_SetGPUSwapchainParameters(gpu_device, window,
 		SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC))
 	{
 		SDL_LogWarn(LOG_CATEGORY_CORE, "VSync not supported: %s", SDL_GetError());
@@ -308,7 +314,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error("Failed to get window size");
 	}
 
-	state->depth_texture = create_depth_texture(state->device, depth_size);
+	state->depth_texture = create_depth_texture(gpu_device, depth_size);
 	if (state->depth_texture == nullptr)
 	{
 		return fatal_error("Failed to initialise depth texture");
@@ -320,7 +326,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_IOStream *vert_source;
 	SDL_IOStream *frag_source;
 
-	switch (shader_format(state->device))
+	switch (shader_format(gpu_device))
 	{
 		case SDL_GPU_SHADERFORMAT_MSL:
 			vert_source = SDL_IOFromConstMem(shader_default_vert_msl, sizeof(shader_default_vert_msl));
@@ -338,34 +344,34 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 			break;
 
 		default:
-			SDL_SetError("Unknown shader format: %d", shader_format(state->device));
+			SDL_SetError("Unknown shader format: %d", shader_format(gpu_device));
 			return fatal_error("Failed to find valid shaders");
 	}
 
-	SDL_GPUShader *vert_shader = load_shader(state->device, vert_source,
+	SDL_GPUShader *vert_shader = load_shader(gpu_device, vert_source,
 		SDL_GPU_SHADERSTAGE_VERTEX, 0, 1);
 	if (vert_shader == nullptr)
 	{
 		return fatal_error("Failed to load vertex shader");
 	}
 
-	SDL_GPUShader *frag_shader = load_shader(state->device, frag_source,
+	SDL_GPUShader *frag_shader = load_shader(gpu_device, frag_source,
 		SDL_GPU_SHADERSTAGE_FRAGMENT, 1, 0);
 	if (frag_shader == nullptr)
 	{
 		return fatal_error("Failed to load fragment shader");
 	}
 
-	state->pipeline = create_pipeline(state->device, window, vert_shader, frag_shader);
+	state->pipeline = create_pipeline(gpu_device, window, vert_shader, frag_shader);
 	if (state->pipeline == nullptr)
 	{
-		SDL_ReleaseGPUShader(state->device, vert_shader);
-		SDL_ReleaseGPUShader(state->device, frag_shader);
+		SDL_ReleaseGPUShader(gpu_device, vert_shader);
+		SDL_ReleaseGPUShader(gpu_device, frag_shader);
 		return fatal_error("Failed to initialise pipeline");
 	}
 
-	SDL_ReleaseGPUShader(state->device, vert_shader);
-	SDL_ReleaseGPUShader(state->device, frag_shader);
+	SDL_ReleaseGPUShader(gpu_device, vert_shader);
+	SDL_ReleaseGPUShader(gpu_device, frag_shader);
 
 	state->physics_engine = physics_create();
 	if (state->physics_engine == nullptr)
@@ -377,7 +383,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	array_reserve(state->instances, 1);
 
 	{
-		model_t *model = assets_load_model(assets, state->device, "blaster");
+		model_t *model = assets_load_model(assets, gpu_device, "blaster");
 		if (model == nullptr)
 		{
 			return fatal_error("Failed to load model");
@@ -403,7 +409,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		});
 	}
 	{
-		model_t *model = assets_load_model(assets, state->device, "scene");
+		model_t *model = assets_load_model(assets, gpu_device, "scene");
 		if (model == nullptr)
 		{
 			return fatal_error("Failed to load model");
@@ -411,7 +417,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		array_push(state->models, model);
 	}
 	{
-		model_t *model = assets_load_model(assets, state->device, "bullet");
+		model_t *model = assets_load_model(assets, gpu_device, "bullet");
 		if (model == nullptr)
 		{
 			return fatal_error("Failed to load model");
@@ -638,7 +644,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	SDL_GPURenderPass *render_pass = nullptr;
 	vector2f_t size;
 
-	if (draw_begin(state->device, window, clear_color, state->depth_texture,
+	SDL_GPUDevice *gpu_device = *((SDL_GPUDevice**) ecs_const_data("chirp.GpuDevice"));
+
+	if (draw_begin(gpu_device, window, clear_color, state->depth_texture,
 		draw_data, &command_buffer, &render_pass, &size))
 	{
 		const matrix4x4_t proj = matrix4x4_create_perspective(
@@ -704,12 +712,14 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 
 	if (event->type == SDL_EVENT_WINDOW_RESIZED)
 	{
-		SDL_ReleaseGPUTexture(state->device, state->depth_texture);
+		SDL_GPUDevice *gpu_device = *((SDL_GPUDevice**) ecs_const_data("chirp.GpuDevice"));
+
+		SDL_ReleaseGPUTexture(gpu_device, state->depth_texture);
 		const auto size = (vector2i_t){
 			.x = event->window.data1,
 			.y = event->window.data2,
 		};
-		state->depth_texture = create_depth_texture(state->device, size);
+		state->depth_texture = create_depth_texture(gpu_device, size);
 	}
 
 	return SDL_APP_CONTINUE;
@@ -750,16 +760,20 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 
 	const auto window = (SDL_Window**) ecs_const_data("chirp.Window");
 
-	SDL_ReleaseGPUTexture(state->device, state->depth_texture);
-	SDL_ReleaseGPUGraphicsPipeline(state->device, state->pipeline);
-	SDL_ReleaseWindowFromGPUDevice(state->device, window != nullptr ? *window : nullptr);
+	const auto gpu_device = (SDL_GPUDevice**) ecs_const_data("chirp.GpuDevice");
+	if (gpu_device != nullptr)
+	{
+		SDL_ReleaseGPUTexture(*gpu_device, state->depth_texture);
+		SDL_ReleaseGPUGraphicsPipeline(*gpu_device, state->pipeline);
+		SDL_ReleaseWindowFromGPUDevice(*gpu_device, window != nullptr ? *window : nullptr);
+	}
 
 	if (window != nullptr)
 	{
 		SDL_DestroyWindow(*window);
 	}
 
-	SDL_DestroyGPUDevice(state->device);
+	SDL_DestroyGPUDevice(gpu_device != nullptr ? *gpu_device : nullptr);
 
 	SDL_free(appstate);
 }

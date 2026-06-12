@@ -1,6 +1,5 @@
 #pragma once
 
-#include "assets.h"
 #include "camera.h"
 #include "model.h"
 #include "physics.h"
@@ -8,7 +7,6 @@
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_video.h>
 
 typedef struct
 {
@@ -25,7 +23,6 @@ typedef struct
 
 typedef struct
 {
-	SDL_GPUDevice *device;
 	SDL_GPUGraphicsPipeline *pipeline;
 	SDL_GPUTexture *depth_texture;
 

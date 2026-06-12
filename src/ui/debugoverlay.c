@@ -2,6 +2,7 @@
 #include "appstate.h"
 #include "audiodriver.h"
 #include "camera.h"
+#include "ecs.h"
 #include "gpudevicedriver.h"
 #include "physics.h"
 #include "physicsconfig.h"
@@ -219,7 +220,8 @@ void draw_debug_overlay(app_state_t *state)
 
 			if ((elements & DEBUG_OVERLAY_SYSTEM) > 0)
 			{
-				draw_system_info(state->device);
+				SDL_GPUDevice *gpu_device = *((SDL_GPUDevice**) ecs_const_data("chirp.GpuDevice"));
+				draw_system_info(gpu_device);
 			}
 
 			if ((elements & DEBUG_OVERLAY_CAMERA) > 0)

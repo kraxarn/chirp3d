@@ -6,6 +6,7 @@
 
 #include "flecs.h"
 
+#include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_video.h>
@@ -135,6 +136,7 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 		component("Init", SDL_InitFlags);
 		component("WindowConfig", window_config_t);
 		component("Window", SDL_Window*);
+		component("GpuDevice", SDL_GPUDevice*);
 	}
 	ecs_set_scope(world, scope);
 }
