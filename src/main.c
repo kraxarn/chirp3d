@@ -768,7 +768,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 
 	array_destroy(state->instances);
 
-	assets_destroy(ecs_const_data("chrip.Assets"));
+	assets_destroy(ecs_const_data("chirp.Assets"));
 	physics_destroy(ecs_const_data("chirp.PhysicsEngine"));
 	script_engine_destroy();
 
