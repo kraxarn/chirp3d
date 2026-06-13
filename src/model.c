@@ -47,25 +47,6 @@ typedef struct camera_t
 	char *name;
 } camera_t;
 
-typedef struct model_t
-{
-	SDL_GPUDevice *device;
-
-	material_t *materials;
-	size_t material_count;
-
-	node_t *nodes;
-	size_t node_count;
-
-	map_t node_indices;
-
-	camera_t *cameras;
-	size_t camera_count;
-
-	SDL_GPUSampler *sampler;
-	SDL_GPUTexture *texture;
-} model_t;
-
 typedef struct node_instance_t
 {
 	const model_t *model;
@@ -794,19 +775,13 @@ static bool upload_model(const model_t *model)
 	return true;
 }
 
-model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool close_io)
+bool model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool close_io, model_t *model)
 {
 	size_t file_size;
 	void *file_data = SDL_LoadFile_IO(stream, &file_size, close_io);
 	if (file_data == nullptr)
 	{
-		return nullptr;
-	}
-
-	model_t *model = SDL_malloc(sizeof(model_t));
-	if (model == nullptr)
-	{
-		return nullptr;
+		return false;
 	}
 
 	model->device = device;
@@ -820,8 +795,7 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	model->node_indices = map_create();
 	if (model->node_indices == 0)
 	{
-		SDL_free(model);
-		return nullptr;
+		return false;
 	}
 
 	const cgltf_options options = {
@@ -838,8 +812,7 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 		SDL_SetError("%s", cgltf_error_string(result));
 		cgltf_free(gltf_data);
 		SDL_free(file_data);
-		SDL_free(model);
-		return nullptr;
+		return false;
 	}
 
 	const Uint64 parse_end = SDL_GetTicks();
@@ -851,8 +824,7 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 		SDL_SetError("%s", cgltf_error_string(result));
 		cgltf_free(gltf_data);
 		SDL_free(file_data);
-		SDL_free(model);
-		return nullptr;
+		return false;
 	}
 
 	const Uint64 buffer_end = SDL_GetTicks();
@@ -869,7 +841,7 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 		cgltf_free(gltf_data);
 		SDL_free(file_data);
 		model_destroy(model);
-		return nullptr;
+		return false;
 	}
 
 	SDL_free(file_data);
@@ -878,7 +850,7 @@ model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool cl
 	const Uint64 model_end = SDL_GetTicks();
 	SDL_LogDebug(LOG_CATEGORY_MODEL, "Loaded model data in %lu ms", model_end - buffer_end);
 
-	return model;
+	return true;
 }
 
 [[nodiscard]]
@@ -952,8 +924,6 @@ void model_destroy(model_t *model)
 		SDL_free(node->primitives);
 	}
 	SDL_free(model->nodes);
-
-	SDL_free(model);
 }
 
 void model_destroy_instance(node_instance_t *instance)

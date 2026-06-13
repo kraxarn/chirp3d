@@ -762,6 +762,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 		for (size_t i = 0; i < array_size(state->models); i++)
 		{
 			model_destroy(state->models[i]);
+			SDL_free(state->models[i]);
 		}
 		array_destroy(state->models);
 	}

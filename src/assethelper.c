@@ -41,7 +41,13 @@ model_t *assets_load_model(const assets_t *assets, SDL_GPUDevice *device, const 
 		return nullptr;
 	}
 
-	return model_create(device, stream, true);
+	model_t *model = SDL_malloc(sizeof(model_t));
+	if (!model_create(device, stream, true, model))
+	{
+		SDL_free(model);
+		return nullptr;
+	}
+	return model;
 }
 
 SDL_IOStream *assets_load_script(const assets_t *assets, const char *name)

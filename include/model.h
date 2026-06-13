@@ -1,5 +1,6 @@
 #pragma once
 
+#include "map.h"
 #include "matrix.h"
 #include "vector.h"
 
@@ -17,11 +18,32 @@ typedef struct vertex_t
 	vector4f_t color;
 } vertex_t;
 
-typedef struct model_t model_t;
+typedef struct material_t material_t;
+typedef struct node_t node_t;
+typedef struct camera_t camera_t;
+
+typedef struct model_t
+{
+	SDL_GPUDevice *device;
+
+	material_t *materials;
+	size_t material_count;
+
+	node_t *nodes;
+	size_t node_count;
+
+	map_t node_indices;
+
+	camera_t *cameras;
+	size_t camera_count;
+
+	SDL_GPUSampler *sampler;
+	SDL_GPUTexture *texture;
+} model_t;
+
 typedef struct node_instance_t node_instance_t;
 
-[[nodiscard]]
-model_t *model_create(SDL_GPUDevice *device, SDL_IOStream *stream, bool close_io);
+bool model_create(SDL_GPUDevice *device, SDL_IOStream *stream, bool close_io, model_t *model);
 
 [[nodiscard]]
 node_instance_t *model_create_instance(const model_t *model, const char *name);
