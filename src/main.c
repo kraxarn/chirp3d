@@ -411,19 +411,19 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		}
 		array_push(state->models, model);
 
-		node_instance_t *instance = model_create_instance(&model, nullptr);
-		if (instance == nullptr)
+		node_instance_t instance;
+		if (!model_create_instance(&model, nullptr, &instance))
 		{
 			return fatal_error("Failed to create instance");
 		}
 		array_push(state->instances, instance);
 
-		model_instance_set_rotation(instance, (vector3f_t){
+		model_instance_set_rotation(array_ptr(state->instances, 0), (vector3f_t){
 			.x = 0.F,
 			.y = 90.F,
 			.z = 0.F,
 		});
-		model_instance_set_position(instance, (vector3f_t){
+		model_instance_set_position(array_ptr(state->instances, 0), (vector3f_t){
 			.x = 5.F,
 			.y = 1.F,
 			.z = -5.F,
@@ -563,8 +563,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 		if (input_is_pressed("shoot"))
 		{
-			node_instance_t *instance = model_create_instance(array_ptr(state->models, 2), nullptr);
-			if (instance == nullptr)
+			node_instance_t instance;
+			if (!model_create_instance(array_ptr(state->models, 2), nullptr, &instance))
 			{
 				SDL_LogError(LOG_CATEGORY_CORE, "Failed to create bullet instance: %s", SDL_GetError());
 			}
@@ -572,9 +572,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			{
 				static constexpr float firepower = 100.F;
 
-				const vector3f_t position = model_instance_position(state->instances[0]);
+				const vector3f_t position = model_instance_position(array_ptr(state->instances, 0));
 				array_push(state->instances, instance);
-				model_instance_set_position(instance, position);
+				model_instance_set_position(array_ptr(state->instances, array_size(state->instances)-1), position);
 
 				const cylinder_config_t config = {
 					.half_height = 0.1F,
@@ -589,7 +589,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 				const physics_body_id_t body_id = physics_add_cylinder(physics_engine, &config);
 
 				const node_instance_physics_t instance_physics = {
-					.instance = instance,
+					.instance = array_ptr(state->instances, array_size(state->instances)-1),
 					.body_id = body_id,
 				};
 				array_push(state->instance_physics, instance_physics);
@@ -633,9 +633,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(forward_n, 0.2F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(right_n, 0.25F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(up_n, -0.2F));
-	model_instance_set_position(state->instances[0], weapon_position);
+	model_instance_set_position(array_ptr(state->instances, 0), weapon_position);
 
-	model_instance_set_rotation(state->instances[0], (vector3f_t){
+	model_instance_set_rotation(array_ptr(state->instances, 0), (vector3f_t){
 		.x = SDL_asinf(forward_n.y),
 		.y = SDL_atan2f(-forward_n.z, forward_n.x) - (SDL_PI_F * 0.5F),
 		.z = 0.0F,
@@ -696,7 +696,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 		for (size_t i = 0; i < array_size(state->instances); i++)
 		{
-			model_instance_draw(array_at(state->instances, i), render_pass, command_buffer, view_proj);
+			model_instance_draw(array_ptr(state->instances, i), render_pass, command_buffer, view_proj);
 		}
 
 		cImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
@@ -766,14 +766,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 		array_destroy(state->models);
 	}
 
-	if (state->instances != nullptr)
-	{
-		for (size_t i = 0; i < array_size(state->instances); i++)
-		{
-			model_destroy_instance(state->instances[i]);
-		}
-		array_destroy(state->instances);
-	}
+	array_destroy(state->instances);
 
 	assets_destroy(ecs_const_data("chrip.Assets"));
 	physics_destroy(ecs_const_data("chirp.PhysicsEngine"));

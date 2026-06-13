@@ -25,7 +25,7 @@ typedef struct
 	float dt;
 
 	model_t *models;
-	node_instance_t **instances;
+	node_instance_t *instances;
 
 	physics_body_id_t player_body_id;
 	node_instance_physics_t *instance_physics;

@@ -41,16 +41,24 @@ typedef struct model_t
 	SDL_GPUTexture *texture;
 } model_t;
 
-typedef struct node_instance_t node_instance_t;
+typedef struct
+{
+	const model_t *model;
+	const node_t *node;
+
+	vector3f_t rotation;
+	vector3f_t position;
+	vector3f_t scale;
+
+	matrix4x4_t projection;
+	bool rebuild_projection;
+} node_instance_t;
 
 bool model_create(SDL_GPUDevice *device, SDL_IOStream *stream, bool close_io, model_t *model);
 
-[[nodiscard]]
-node_instance_t *model_create_instance(const model_t *model, const char *name);
+bool model_create_instance(const model_t *model, const char *name, node_instance_t *instance);
 
-void model_destroy(model_t *model);
-
-void model_destroy_instance(node_instance_t *instance);
+void model_destroy(const model_t *model);
 
 void model_draw(const model_t *model, SDL_GPURenderPass *render_pass,
 	SDL_GPUCommandBuffer *command_buffer, matrix4x4_t projection);

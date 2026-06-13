@@ -47,19 +47,6 @@ typedef struct camera_t
 	char *name;
 } camera_t;
 
-typedef struct node_instance_t
-{
-	const model_t *model;
-	const node_t *node;
-
-	vector3f_t rotation;
-	vector3f_t position;
-	vector3f_t scale;
-
-	matrix4x4_t projection;
-	bool rebuild_projection;
-} node_instance_t;
-
 [[nodiscard]]
 static const char *cgltf_error_string(const cgltf_result result)
 {
@@ -854,42 +841,40 @@ bool model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool close_
 }
 
 [[nodiscard]]
-static node_instance_t *default_instance(const model_t *model, const node_t *node)
+static node_instance_t default_instance(const model_t *model, const node_t *node)
 {
-	node_instance_t *instance = SDL_malloc(sizeof(node_instance_t));
-
-	instance->model = model;
-	instance->node = node;
-	instance->scale = vector3f_one();
-	instance->rebuild_projection = true;
-
-	return instance;
+	return (node_instance_t){
+		.model = model,
+		.node = node,
+		.scale = vector3f_one(),
+		.rebuild_projection = true,
+	};
 }
 
-node_instance_t *model_create_instance(const model_t *model, const char *name)
+bool model_create_instance(const model_t *model, const char *name, node_instance_t *instance)
 {
 	if (name == nullptr)
 	{
 		if (model->node_count > 1)
 		{
-			SDL_SetError("No node specified");
-			return nullptr;
+			return SDL_SetError("No node specified");
 		}
 
-		return default_instance(model, model->nodes);
+		*instance = default_instance(model, model->nodes);
+		return true;
 	}
 
 	const Sint64 index = map_get(model->node_indices, name, -1);
 	if (index < 0)
 	{
-		SDL_SetError("No such node: %s", name);
-		return nullptr;
+		return SDL_SetError("No such node: %s", name);
 	}
 
-	return default_instance(model, model->nodes + (size_t) index);
+	*instance = default_instance(model, model->nodes + (size_t) index);
+	return true;
 }
 
-void model_destroy(model_t *model)
+void model_destroy(const model_t *model)
 {
 	if (model == nullptr)
 	{
@@ -924,11 +909,6 @@ void model_destroy(model_t *model)
 		SDL_free(node->primitives);
 	}
 	SDL_free(model->nodes);
-}
-
-void model_destroy_instance(node_instance_t *instance)
-{
-	SDL_free(instance);
 }
 
 static void rebuild_projection(node_instance_t *instance)
