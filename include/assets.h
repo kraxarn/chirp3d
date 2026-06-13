@@ -28,7 +28,7 @@ SDL_IOStream *assets_load(const assets_t *assets, const char *name);
 SDL_Surface *assets_load_texture(const assets_t *assets, const char *name);
 
 [[nodiscard]]
-model_t *assets_load_model(const assets_t *assets, SDL_GPUDevice *device, const char *name);
+bool assets_load_model(const assets_t *assets, SDL_GPUDevice *device, const char *name, model_t *model);
 
 [[nodiscard]]
 SDL_IOStream *assets_load_script(const assets_t *assets, const char *name);

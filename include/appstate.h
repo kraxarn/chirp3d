@@ -24,7 +24,7 @@ typedef struct
 	time_info_t time;
 	float dt;
 
-	model_t **models;
+	model_t *models;
 	node_instance_t **instances;
 
 	physics_body_id_t player_body_id;

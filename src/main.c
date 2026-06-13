@@ -404,14 +404,14 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	array_reserve(state->instances, 1);
 
 	{
-		model_t *model = assets_load_model(assets, gpu_device, "blaster");
-		if (model == nullptr)
+		model_t model;
+		if (!assets_load_model(assets, gpu_device, "blaster", &model))
 		{
 			return fatal_error("Failed to load model");
 		}
 		array_push(state->models, model);
 
-		node_instance_t *instance = model_create_instance(model, nullptr);
+		node_instance_t *instance = model_create_instance(&model, nullptr);
 		if (instance == nullptr)
 		{
 			return fatal_error("Failed to create instance");
@@ -430,23 +430,23 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		});
 	}
 	{
-		model_t *model = assets_load_model(assets, gpu_device, "scene");
-		if (model == nullptr)
+		model_t model;
+		if (!assets_load_model(assets, gpu_device, "scene", &model))
 		{
 			return fatal_error("Failed to load model");
 		}
 		array_push(state->models, model);
 	}
 	{
-		model_t *model = assets_load_model(assets, gpu_device, "bullet");
-		if (model == nullptr)
+		model_t model;
+		if (!assets_load_model(assets, gpu_device, "bullet", &model))
 		{
 			return fatal_error("Failed to load model");
 		}
 		array_push(state->models, model);
 	}
 
-	const vector3f_t spawn_position = model_node_position(state->models[1], "Spawn");
+	const vector3f_t spawn_position = model_node_position(array_ptr(state->models, 1), "Spawn");
 	SDL_Log("Spawn: %f %f %f", spawn_position.x, spawn_position.y, spawn_position.z);
 
 	script_engine_create();
@@ -563,7 +563,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 		if (input_is_pressed("shoot"))
 		{
-			node_instance_t *instance = model_create_instance(array_at(state->models, 2), nullptr);
+			node_instance_t *instance = model_create_instance(array_ptr(state->models, 2), nullptr);
 			if (instance == nullptr)
 			{
 				SDL_LogError(LOG_CATEGORY_CORE, "Failed to create bullet instance: %s", SDL_GetError());
@@ -692,7 +692,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
 
 		// Only draw scene directly as model
-		model_draw(array_at(state->models, 1), render_pass, command_buffer, view_proj);
+		model_draw(array_ptr(state->models, 1), render_pass, command_buffer, view_proj);
 
 		for (size_t i = 0; i < array_size(state->instances); i++)
 		{
@@ -761,8 +761,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	{
 		for (size_t i = 0; i < array_size(state->models); i++)
 		{
-			model_destroy(state->models[i]);
-			SDL_free(state->models[i]);
+			model_destroy(array_ptr(state->models, i));
 		}
 		array_destroy(state->models);
 	}
