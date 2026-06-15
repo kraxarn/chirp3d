@@ -498,7 +498,6 @@ static bool load_cameras(model_t *model, const cgltf_data *gltf_data)
 	model->camera_count = gltf_data->cameras_count;
 	if (model->camera_count == 0)
 	{
-		model->cameras = nullptr;
 		return true;
 	}
 
@@ -775,6 +774,9 @@ bool model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool close_
 
 	model->materials = nullptr;
 	model->material_count = 0;
+
+	model->cameras = nullptr;
+	model->camera_count = 0;
 
 	model->sampler = nullptr;
 	model->texture = nullptr;
