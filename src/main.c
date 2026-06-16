@@ -1,5 +1,4 @@
 #include "appstate.h"
-#include "array.h"
 #include "assets.h"
 #include "camera.h"
 #include "ecs.h"
@@ -207,6 +206,85 @@ static bool sdl_supported()
 	return true;
 }
 
+static ecs_entity_t load_model(const char *name)
+{
+	const assets_t *assets = ecs_const_data("chirp.Assets");
+	gpu_device_t *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
+
+	model_t model;
+	if (!assets_load_model(assets, gpu_device, name, &model))
+	{
+		return 0;
+	}
+
+	const ecs_entity_desc_t parent_desc = {
+		.name = "Model",
+	};
+	const ecs_entity_t parent = ecs_entity_init(ecs_world(), &parent_desc);
+
+	const ecs_entity_desc_t entity_desc = {
+		.name = name,
+	};
+	const ecs_entity_t entity = ecs_entity_init(ecs_world(), &entity_desc);
+	ecs_add_pair(ecs_world(), entity, EcsChildOf, parent);
+
+	const ecs_id_t model_id = ecs_lookup(ecs_world(), "chirp.Model");
+	ecs_set_id(ecs_world(), entity, model_id, sizeof(model_t), &model);
+
+	return entity;
+}
+
+static ecs_entity_t create_instance(const ecs_entity_t entity, const size_t node_index)
+{
+	// TODO: Make prefab
+
+	const ecs_entity_t instance = ecs_new(ecs_world());
+
+	char *instance_name = nullptr;
+	SDL_asprintf(&instance_name, "%s#%ld",
+		ecs_get_name(ecs_world(), entity),
+		instance
+	);
+	ecs_set_name(ecs_world(), instance, instance_name);
+	SDL_free(instance_name);
+
+	const ecs_entity_desc_t parent_desc = {
+		.name = "Instance",
+	};
+	const ecs_entity_t parent = ecs_entity_init(ecs_world(), &parent_desc);
+	ecs_add_pair(ecs_world(), instance, EcsChildOf, parent);
+
+	const ecs_id_t instance_of_id = ecs_lookup(ecs_world(), "chirp.InstanceOf");
+	ecs_set_id(ecs_world(), instance, ecs_pair(instance_of_id, entity),
+		sizeof(size_t), &node_index);
+
+	const projection_t projection = {.rebuild = true};
+	const ecs_id_t projection_id = ecs_lookup(ecs_world(), "chirp.Projection");
+	ecs_set_id(ecs_world(), instance, projection_id,
+		sizeof(projection_t), &projection);
+
+	SDL_Log("instance: %ld / %ld", instance, instance_of_id);
+	return instance;
+}
+
+static bool query_cleanup(ecs_query_t *query)
+{
+	ecs_query_fini(query);
+	return false;
+}
+
+#define _query_name__(x, y) x##y
+#define _query_name_(x, y) _query_name__(x, y)
+#define _query_name(x) _query_name_(x, __COUNTER__)
+
+#define _query(e, d, q)										\
+	const ecs_query_desc_t d = {.expr = e};					\
+	ecs_query_t *q = ecs_query_init(ecs_world(), &d); 		\
+	for (ecs_iter_t iter = ecs_query_iter(ecs_world(), q);	\
+		ecs_query_next(&iter) || query_cleanup(q);)
+
+#define query(expr) _query(expr, _query_name(_d), _query_name(_q))
+
 SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 {
 	if (!system_info_cpu_supported())
@@ -400,54 +478,48 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	ecs_set_id(ecs_world(), physics_engine_id, physics_engine_id,
 		sizeof(physics_engine_t), &physics_engine);
 
-	array_reserve(state->models, 2);
-	array_reserve(state->instances, 1);
-
 	{
-		model_t model;
-		if (!assets_load_model(assets, gpu_device, "blaster", &model))
+		const ecs_entity_t blaster = load_model("blaster");
+		if (blaster == 0)
 		{
 			return fatal_error("Failed to load model");
 		}
-		array_push(state->models, model);
 
-		node_instance_t instance;
-		if (!model_create_instance(&model, nullptr, &instance))
-		{
-			return fatal_error("Failed to create instance");
-		}
-		array_push(state->instances, instance);
+		const ecs_entity_t blaster_instance = create_instance(blaster, 0);
 
-		model_instance_set_rotation(array_ptr(state->instances, 0), (vector3f_t){
+		const rotation_t rotation = {
 			.x = 0.F,
 			.y = 90.F,
 			.z = 0.F,
-		});
-		model_instance_set_position(array_ptr(state->instances, 0), (vector3f_t){
+		};
+		const ecs_id_t rotation_id = ecs_lookup(ecs_world(), "chirp.Rotation");
+		ecs_set_id(ecs_world(), blaster_instance, rotation_id, sizeof(rotation_t), &rotation);
+
+		const position_t position = {
 			.x = 5.F,
 			.y = 1.F,
 			.z = -5.F,
-		});
+		};
+		const ecs_id_t position_id = ecs_lookup(ecs_world(), "chirp.Position");
+		ecs_set_id(ecs_world(), blaster_instance, position_id, sizeof(position_t), &position);
 	}
 	{
-		model_t model;
-		if (!assets_load_model(assets, gpu_device, "scene", &model))
+		const ecs_entity_t scene = load_model("scene");
+		if (scene == 0)
 		{
-			return fatal_error("Failed to load model");
+			return fatal_error("Failed to load scene");
 		}
-		array_push(state->models, model);
+
+		const ecs_id_t scene_id = ecs_lookup(ecs_world(), "chirp.Scene");
+		ecs_add_id(ecs_world(), scene, scene_id);
 	}
 	{
-		model_t model;
-		if (!assets_load_model(assets, gpu_device, "bullet", &model))
-		{
-			return fatal_error("Failed to load model");
-		}
-		array_push(state->models, model);
+		load_model("bullet");
 	}
 
-	const vector3f_t spawn_position = model_node_position(array_ptr(state->models, 1), "Spawn");
-	SDL_Log("Spawn: %f %f %f", spawn_position.x, spawn_position.y, spawn_position.z);
+	// TODO
+	// const vector3f_t spawn_position = model_node_position(array_ptr(state->models, 1), "Spawn");
+	// SDL_Log("Spawn: %f %f %f", spawn_position.x, spawn_position.y, spawn_position.z);
 
 	script_engine_create();
 
@@ -563,44 +635,45 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 		if (input_is_pressed("shoot"))
 		{
-			node_instance_t instance;
-			if (!model_create_instance(array_ptr(state->models, 2), nullptr, &instance))
+			static constexpr float firepower = 100.F;
+
+			const ecs_entity_t bullet = ecs_lookup(ecs_world(), "Model.bullet");
+			const ecs_entity_t entity = create_instance(bullet, 0);
+
+			position_t position = {};
+			query("[none] (chirp.InstanceOf, Model.blaster), [in] chirp.Position")
 			{
-				SDL_LogError(LOG_CATEGORY_CORE, "Failed to create bullet instance: %s", SDL_GetError());
+				position = *ecs_field(&iter, position_t, 1);
 			}
-			else
-			{
-				static constexpr float firepower = 100.F;
 
-				const vector3f_t position = model_instance_position(array_ptr(state->instances, 0));
-				array_push(state->instances, instance);
-				model_instance_set_position(array_ptr(state->instances, array_size(state->instances)-1), position);
+			const ecs_id_t position_id = ecs_lookup(ecs_world(), "chirp.Position");
+			ecs_set_id(ecs_world(), entity, position_id, sizeof(position_t), &position);
 
-				const cylinder_config_t config = {
-					.half_height = 0.1F,
-					.radius = 0.5F,
-					.body = (body_config_t){
-						.position = position,
-						.motion_type = MOTION_TYPE_DYNAMIC,
-						.layer = OBJ_LAYER_DYNAMIC,
-						.activate = false,
-					},
-				};
-				const physics_body_id_t body_id = physics_add_cylinder(physics_engine, &config);
+			const rotation_t rotation = vector3f_zero();
+			const ecs_id_t rotation_id = ecs_lookup(ecs_world(), "chirp.Rotation");
+			ecs_set_id(ecs_world(), entity, rotation_id, sizeof(rotation_t), &rotation);
 
-				const node_instance_physics_t instance_physics = {
-					.instance = array_ptr(state->instances, array_size(state->instances)-1),
-					.body_id = body_id,
-				};
-				array_push(state->instance_physics, instance_physics);
+			const cylinder_config_t config = {
+				.half_height = 0.1F,
+				.radius = 0.5F,
+				.body = (body_config_t){
+					.position = position,
+					.motion_type = MOTION_TYPE_DYNAMIC,
+					.layer = OBJ_LAYER_DYNAMIC,
+					.activate = false,
+				},
+			};
+			const physics_body_id_t body_id = physics_add_cylinder(physics_engine, &config);
 
-				const vector3f_t forward = vector3f_normalize(vector3f_sub(camera->target, position));
-				const vector3f_t velocity = vector3f_scale(forward, firepower);
-				physics_body_set_linear_velocity(physics_engine, body_id, velocity);
-				physics_body_set_rotation(physics_engine, body_id, vector4f_normalize((vector4f_t){
-					.x = 0.5F,
-				}), true);
-			}
+			const ecs_id_t physics_body_id = ecs_lookup(ecs_world(), "chirp.PhysicsBody");
+			ecs_set_id(ecs_world(), entity, physics_body_id, sizeof(physics_body_id_t), &body_id);
+
+			const vector3f_t forward = vector3f_normalize(vector3f_sub(camera->target, position));
+			const vector3f_t velocity = vector3f_scale(forward, firepower);
+			physics_body_set_linear_velocity(physics_engine, body_id, velocity);
+			physics_body_set_rotation(physics_engine, body_id, vector4f_normalize((vector4f_t){
+				.x = 0.5F,
+			}), true);
 		}
 	}
 
@@ -633,25 +706,32 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(forward_n, 0.2F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(right_n, 0.25F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(up_n, -0.2F));
-	model_instance_set_position(array_ptr(state->instances, 0), weapon_position);
-
-	model_instance_set_rotation(array_ptr(state->instances, 0), (vector3f_t){
-		.x = SDL_asinf(forward_n.y),
-		.y = SDL_atan2f(-forward_n.z, forward_n.x) - (SDL_PI_F * 0.5F),
-		.z = 0.0F,
-	});
-
-	if (state->instance_physics != nullptr)
+	query("[none] (chirp.InstanceOf, Model.blaster), [out] chirp.Position,"
+		"[out] chirp.Rotation, [out] chirp.Projection")
 	{
-		for (size_t i = 0; i < array_size(state->instance_physics); i++)
-		{
-			node_instance_physics_t *item = array_ptr(state->instance_physics, i);
-			model_instance_set_position(item->instance, physics_body_position(physics_engine, item->body_id));
-			const vector4f_t rotation = physics_body_rotation(physics_engine, item->body_id);
-			model_instance_set_rotation(item->instance, (vector3f_t){
-				.x = rotation.x, .y = rotation.y, .z = rotation.z,
-			});
-		}
+		*ecs_field(&iter, position_t, 1) = weapon_position;
+		*ecs_field(&iter, rotation_t, 2) = (rotation_t){
+			.x = SDL_asinf(forward_n.y),
+			.y = SDL_atan2f(-forward_n.z, forward_n.x) - (SDL_PI_F * 0.5F),
+			.z = 0.0F,
+		};
+		ecs_field(&iter, projection_t, 3)->rebuild = true;
+	}
+
+	query("[in] chirp.PhysicsBody, [out] chirp.Position, [out] chirp.Rotation")
+	{
+		const physics_body_id_t body_id = *ecs_field(&iter, physics_body_id_t, 0);
+		auto position = ecs_field(&iter, position_t, 1);
+		auto rotation = ecs_field(&iter, rotation_t, 2);
+
+		*position = physics_body_position(physics_engine, body_id);
+
+		const vector4f_t jph_rotation = physics_body_rotation(physics_engine, body_id);
+		*rotation = (rotation_t){
+			.x = jph_rotation.x,
+			.y = jph_rotation.y,
+			.z = jph_rotation.z,
+		};
 	}
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
@@ -691,12 +771,63 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		SDL_GPUGraphicsPipeline *pipeline = ecs_mut_data_ptr("chirp.GpuGraphicsPipeline");
 		SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
 
-		// Only draw scene directly as model
-		model_draw(array_ptr(state->models, 1), render_pass, command_buffer, view_proj);
-
-		for (size_t i = 0; i < array_size(state->instances); i++)
+		query("[in] chirp.Model, [none] chirp.Scene")
 		{
-			model_instance_draw(array_ptr(state->instances, i), render_pass, command_buffer, view_proj);
+			const model_t *model = ecs_field(&iter, model_t, 0);
+			model_draw(model, render_pass, command_buffer, view_proj);
+		}
+
+		query("[in] (chirp.InstanceOf, *), [inout] chirp.Projection,"
+			"[in] ?chirp.Scale, [in] ?chirp.Rotation, [in] ?chirp.Position")
+		{
+			const ecs_id_t pair_id = ecs_field_id(&iter, 0);
+			auto projection = ecs_field(&iter, projection_t, 1);
+
+			const ecs_id_t model_id = ecs_lookup(ecs_world(), "chirp.Model");
+			const ecs_entity_t model_entity = ecs_pair_second(ecs_world(), pair_id);
+			const model_t *model = ecs_get_id(ecs_world(), model_entity, model_id);
+			const size_t *index = ecs_field(&iter, size_t, 0);
+
+			if (projection->rebuild)
+			{
+				Uint8 mul = 0;
+				projection->value = matrix4x4_zero();
+
+				const scale_t *scale = ecs_field(&iter, scale_t, 2);
+				if (scale != nullptr)
+				{
+					projection->value = mul++ > 0
+						? matrix4x4_multiply(projection->value, matrix4x4_create_scale(*scale))
+						: matrix4x4_create_scale(*scale);
+				}
+
+				const scale_t *rotation = ecs_field(&iter, rotation_t, 3);
+				if (rotation != nullptr)
+				{
+					const matrix4x4_t transform = matrix4x4_multiply_n((matrix4x4_t[]){
+						matrix4x4_create_rotation_x(rotation->x),
+						matrix4x4_create_rotation_y(rotation->y),
+						matrix4x4_create_rotation_z(rotation->z),
+					}, 3);
+
+					projection->value = mul++ > 0
+						? matrix4x4_multiply(projection->value, transform)
+						: transform;
+				}
+
+				const scale_t *position = ecs_field(&iter, position_t, 4);
+				if (position != nullptr)
+				{
+					projection->value = mul > 0
+						? matrix4x4_multiply(projection->value, matrix4x4_create_translation(*position))
+						: matrix4x4_create_translation(*position);
+				}
+
+				projection->rebuild = false;
+			}
+
+			model_draw_indexed(model, *index, render_pass, command_buffer,
+				matrix4x4_multiply(projection->value, view_proj));
 		}
 
 		cImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
@@ -757,16 +888,17 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 {
 	const app_state_t *state = appstate;
 
-	if (state->models != nullptr)
-	{
-		for (size_t i = 0; i < array_size(state->models); i++)
-		{
-			model_destroy(array_ptr(state->models, i));
-		}
-		array_destroy(state->models);
-	}
-
-	array_destroy(state->instances);
+	// TODO
+	// if (state->models != nullptr)
+	// {
+	// 	for (size_t i = 0; i < array_size(state->models); i++)
+	// 	{
+	// 		model_destroy(array_ptr(state->models, i));
+	// 	}
+	// 	array_destroy(state->models);
+	// }
+	//
+	// array_destroy(state->instances);
 
 	assets_destroy(ecs_const_data("chirp.Assets"));
 	physics_destroy(ecs_const_data("chirp.PhysicsEngine"));

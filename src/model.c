@@ -42,10 +42,10 @@ typedef struct node_t
 	vector3f_t translation;
 } node_t;
 
-typedef struct camera_t
+typedef struct scene_camera_t
 {
 	char *name;
-} camera_t;
+} scene_camera_t;
 
 [[nodiscard]]
 static const char *cgltf_error_string(const cgltf_result result)
@@ -501,7 +501,7 @@ static bool load_cameras(model_t *model, const cgltf_data *gltf_data)
 		return true;
 	}
 
-	model->cameras = SDL_calloc(model->camera_count, sizeof(camera_t));
+	model->cameras = SDL_calloc(model->camera_count, sizeof(scene_camera_t));
 	if (model->cameras == nullptr)
 	{
 		return false;
@@ -512,7 +512,7 @@ static bool load_cameras(model_t *model, const cgltf_data *gltf_data)
 		const cgltf_camera *gltf_camera = gltf_data->cameras + cc;
 		SDL_LogDebug(LOG_CATEGORY_MODEL, "Found camera: %s", gltf_camera->name);
 
-		camera_t *camera = model->cameras + cc;
+		scene_camera_t *camera = model->cameras + cc;
 		camera->name = SDL_strdup(gltf_camera->name);
 	}
 
@@ -842,18 +842,7 @@ bool model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool close_
 	return true;
 }
 
-[[nodiscard]]
-static node_instance_t default_instance(const model_t *model, const node_t *node)
-{
-	return (node_instance_t){
-		.model = model,
-		.node = node,
-		.scale = vector3f_one(),
-		.rebuild_projection = true,
-	};
-}
-
-bool model_create_instance(const model_t *model, const char *name, node_instance_t *instance)
+bool model_find_node(const model_t *model, const char *name, size_t *index)
 {
 	if (name == nullptr)
 	{
@@ -862,17 +851,17 @@ bool model_create_instance(const model_t *model, const char *name, node_instance
 			return SDL_SetError("No node specified");
 		}
 
-		*instance = default_instance(model, model->nodes);
+		*index = 0;
 		return true;
 	}
 
-	const Sint64 index = map_get(model->node_indices, name, -1);
-	if (index < 0)
+	const Sint64 map_index = map_get(model->node_indices, name, -1);
+	if (map_index < 0)
 	{
 		return SDL_SetError("No such node: %s", name);
 	}
 
-	*instance = default_instance(model, model->nodes + (size_t) index);
+	*index = (size_t) map_index;
 	return true;
 }
 
@@ -889,7 +878,7 @@ void model_destroy(const model_t *model)
 
 	for (size_t cc = 0; cc < model->camera_count; cc++)
 	{
-		const camera_t *camera = model->cameras + cc;
+		const scene_camera_t *camera = model->cameras + cc;
 		SDL_free(camera->name);
 	}
 	SDL_free(model->cameras);
@@ -911,20 +900,6 @@ void model_destroy(const model_t *model)
 		SDL_free(node->primitives);
 	}
 	SDL_free(model->nodes);
-}
-
-static void rebuild_projection(node_instance_t *instance)
-{
-	const matrix4x4_t transforms[] = {
-		matrix4x4_create_scale(instance->scale),
-		matrix4x4_create_rotation_x(instance->rotation.x),
-		matrix4x4_create_rotation_y(instance->rotation.y),
-		matrix4x4_create_rotation_z(instance->rotation.z),
-		matrix4x4_create_translation(instance->position),
-	};
-
-	instance->projection = matrix4x4_multiply_n(transforms, SDL_arraysize(transforms));
-	instance->rebuild_projection = false;
 }
 
 static void mesh_draw(const model_t *model, const node_t *node, const mesh_primitive_t *primitive,
@@ -975,49 +950,9 @@ void model_draw(const model_t *model, SDL_GPURenderPass *render_pass,
 	}
 }
 
-void model_instance_draw(node_instance_t *instance,
-	SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffer *command_buffer, matrix4x4_t projection)
+void model_draw_indexed(const model_t *model, const size_t index,
+	SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffer *command_buffer,
+	const matrix4x4_t projection)
 {
-	if (instance->rebuild_projection)
-	{
-		rebuild_projection(instance);
-	}
-
-	node_draw(instance->model, instance->node, render_pass, command_buffer,
-		matrix4x4_multiply(instance->projection, projection));
-}
-
-void model_instance_set_rotation(node_instance_t *instance, const vector3f_t rotation)
-{
-	instance->rotation = rotation;
-	instance->rebuild_projection = true;
-}
-
-vector3f_t model_node_position(const model_t *model, const char *node)
-{
-	const Sint64 index = map_get(model->node_indices, node, -1);
-	if (index < 0)
-	{
-		SDL_LogWarn(LOG_CATEGORY_MODEL, "Invalid node: %s", node);
-		return vector3f_zero();
-	}
-
-	return model->nodes[(size_t) index].translation;
-}
-
-vector3f_t model_instance_position(const node_instance_t *instance)
-{
-	return instance->position;
-}
-
-void model_instance_set_position(node_instance_t *instance, const vector3f_t position)
-{
-	instance->position = position;
-	instance->rebuild_projection = true;
-}
-
-void model_instance_set_scale(node_instance_t *instance, const vector3f_t scale)
-{
-	instance->scale = scale;
-	instance->rebuild_projection = true;
+	node_draw(model, model->nodes + index, render_pass, command_buffer, projection);
 }

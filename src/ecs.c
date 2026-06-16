@@ -10,7 +10,6 @@
 #include "flecs.h"
 
 #include <SDL3/SDL_gpu.h>
-#include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_video.h>
 
@@ -129,6 +128,14 @@ static void log_debug_info()
 		ecs_component_init(world, &c_desc);				\
 	} while (false)
 
+#define tag(n)									\
+	do {										\
+		const ecs_entity_desc_t entity_desc = {	\
+			.name = n,							\
+		};										\
+		ecs_entity_init(world, &entity_desc);	\
+	} while (false)
+
 static void module([[maybe_unused]] ecs_world_t *ewt)
 {
 	const ecs_component_desc_t desc = {};
@@ -136,15 +143,25 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 	const ecs_entity_t scope = ecs_set_scope(world, mod);
 	{
 		component("Assets", assets_t);
-		component("Init", SDL_InitFlags);
+		component("Init", init_flags_t);
 		component("WindowConfig", window_config_t);
-		component("Window", SDL_Window*);
-		component("GpuDevice", SDL_GPUDevice*);
-		component("GpuGraphicsPipeline", SDL_GPUGraphicsPipeline*);
-		component("DepthTexture", SDL_GPUTexture*);
+		component("Window", window_t*);
+		component("GpuDevice", gpu_device_t*);
+		component("GpuGraphicsPipeline", gpu_graphics_pipeline_t*);
+		component("DepthTexture", depth_texture_t*);
 		component("Camera", camera_t);
 		component("PhysicsConfig", physics_config_t);
 		component("PhysicsEngine", physics_engine_t);
+		component("Model", model_t);
+		component("InstanceOf", instance_of_index_t);
+		component("PhysicsBody", physics_body_id_t);
+
+		component("Rotation", rotation_t);
+		component("Position", position_t);
+		component("Scale", scale_t);
+		component("Projection", projection_t);
+
+		tag("Scene");
 	}
 	ecs_set_scope(world, scope);
 }

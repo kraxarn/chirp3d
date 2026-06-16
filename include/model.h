@@ -20,7 +20,7 @@ typedef struct vertex_t
 
 typedef struct material_t material_t;
 typedef struct node_t node_t;
-typedef struct camera_t camera_t;
+typedef struct scene_camera_t scene_camera_t;
 
 typedef struct model_t
 {
@@ -34,46 +34,22 @@ typedef struct model_t
 
 	map_t node_indices;
 
-	camera_t *cameras;
+	scene_camera_t *cameras;
 	size_t camera_count;
 
 	SDL_GPUSampler *sampler;
 	SDL_GPUTexture *texture;
 } model_t;
 
-typedef struct
-{
-	const model_t *model;
-	const node_t *node;
-
-	vector3f_t rotation;
-	vector3f_t position;
-	vector3f_t scale;
-
-	matrix4x4_t projection;
-	bool rebuild_projection;
-} node_instance_t;
-
 bool model_create(SDL_GPUDevice *device, SDL_IOStream *stream, bool close_io, model_t *model);
 
-bool model_create_instance(const model_t *model, const char *name, node_instance_t *instance);
+bool model_find_node(const model_t *model, const char *name, size_t *index);
 
 void model_destroy(const model_t *model);
 
 void model_draw(const model_t *model, SDL_GPURenderPass *render_pass,
 	SDL_GPUCommandBuffer *command_buffer, matrix4x4_t projection);
 
-void model_instance_draw(node_instance_t *instance, SDL_GPURenderPass *render_pass,
-	SDL_GPUCommandBuffer *command_buffer, matrix4x4_t projection);
-
-[[nodiscard]]
-vector3f_t model_node_position(const model_t *model, const char *node);
-
-void model_instance_set_rotation(node_instance_t *instance, vector3f_t rotation);
-
-[[nodiscard]]
-vector3f_t model_instance_position(const node_instance_t *instance);
-
-void model_instance_set_position(node_instance_t *instance, vector3f_t position);
-
-void model_instance_set_scale(node_instance_t *instance, vector3f_t scale);
+void model_draw_indexed(const model_t *model, size_t index,
+	SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffer *command_buffer,
+	matrix4x4_t projection);
