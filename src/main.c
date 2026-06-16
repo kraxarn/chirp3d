@@ -208,6 +208,8 @@ static bool sdl_supported()
 
 static ecs_entity_t load_model(const char *name)
 {
+	// TODO: Make prefab
+
 	const assets_t *assets = ecs_const_data("chirp.Assets");
 	gpu_device_t *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
 
@@ -230,6 +232,19 @@ static ecs_entity_t load_model(const char *name)
 
 	const ecs_id_t model_id = ecs_lookup(ecs_world(), "chirp.Model");
 	ecs_set_id(ecs_world(), entity, model_id, sizeof(model_t), &model);
+
+	for (size_t i = 0; i < model.node_count; i++)
+	{
+		const ecs_entity_desc_t node_desc = {
+			.name = model_node_name(&model, i),
+		};
+		const ecs_entity_t node = ecs_entity_init(ecs_world(), &node_desc);
+		ecs_add_pair(ecs_world(), node, EcsChildOf, entity);
+
+		const ecs_id_t position_id = ecs_lookup(ecs_world(), "chirp.Position");
+		const position_t position = model_node_translation(&model, i);
+		ecs_set_id(ecs_world(), node, position_id, sizeof(position_t), &position);
+	}
 
 	return entity;
 }

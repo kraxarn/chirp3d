@@ -53,3 +53,9 @@ void model_draw(const model_t *model, SDL_GPURenderPass *render_pass,
 void model_draw_indexed(const model_t *model, size_t index,
 	SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffer *command_buffer,
 	matrix4x4_t projection);
+
+[[nodiscard]]
+const char *model_node_name(const model_t *model, size_t index);
+
+[[nodiscard]]
+vector3f_t model_node_translation(const model_t *model, size_t index);
