@@ -263,7 +263,6 @@ static ecs_entity_t create_instance(const ecs_entity_t entity, const size_t node
 	ecs_set_id(ecs_world(), instance, projection_id,
 		sizeof(projection_t), &projection);
 
-	SDL_Log("instance: %ld / %ld", instance, instance_of_id);
 	return instance;
 }
 
