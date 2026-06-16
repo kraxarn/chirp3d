@@ -531,9 +531,11 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		load_model("bullet");
 	}
 
-	// TODO
-	// const vector3f_t spawn_position = model_node_position(array_ptr(state->models, 1), "Spawn");
-	// SDL_Log("Spawn: %f %f %f", spawn_position.x, spawn_position.y, spawn_position.z);
+	query("[in] chirp.Position(Model.scene.Spawn)")
+	{
+		const position_t *position = ecs_field(&iter, position_t, 0);
+		SDL_Log("Spawn: %f %f %f", position->x, position->y, position->z);
+	}
 
 	script_engine_create();
 
