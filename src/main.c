@@ -885,19 +885,14 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 
 void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 {
-	const app_state_t *state = appstate;
-
-	// TODO
-	// if (state->models != nullptr)
-	// {
-	// 	for (size_t i = 0; i < array_size(state->models); i++)
-	// 	{
-	// 		model_destroy(array_ptr(state->models, i));
-	// 	}
-	// 	array_destroy(state->models);
-	// }
-	//
-	// array_destroy(state->instances);
+	query("[in] chirp.Model")
+	{
+		const model_t *models = ecs_field(&iter, model_t, 0);
+		for (Sint32 i = 0; i < iter.count; i++)
+		{
+			model_destroy(models + i);
+		}
+	}
 
 	assets_destroy(ecs_const_data("chirp.Assets"));
 	physics_destroy(ecs_const_data("chirp.PhysicsEngine"));
