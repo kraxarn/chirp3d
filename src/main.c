@@ -840,7 +840,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
+SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 {
 	if (event->type == SDL_EVENT_QUIT)
 	{
@@ -849,7 +849,6 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 
 	cImGui_ImplSDL3_ProcessEvent(event);
 
-	app_state_t *state = appstate;
 	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
 
 	if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN
