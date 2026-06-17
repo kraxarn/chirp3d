@@ -208,8 +208,6 @@ static bool sdl_supported()
 
 static ecs_entity_t load_model(const char *name)
 {
-	// TODO: Make prefab
-
 	const assets_t *assets = ecs_const_data("chirp.Assets");
 	gpu_device_t *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
 
@@ -251,8 +249,6 @@ static ecs_entity_t load_model(const char *name)
 
 static ecs_entity_t create_instance(const ecs_entity_t entity, const size_t node_index)
 {
-	// TODO: Make prefab
-
 	const ecs_entity_t instance = ecs_new(ecs_world());
 
 	char *instance_name = nullptr;
