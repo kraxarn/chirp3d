@@ -34,8 +34,3 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif ()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE flecs_static)
-
-# Prevent automatic shared build of flecs
-if (ANDROID)
-	file(REMOVE "${flecs_SOURCE_DIR}/CMakePresets.json")
-endif ()
