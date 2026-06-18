@@ -9,11 +9,13 @@
 
 #include "flecs.h"
 
+#include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_video.h>
 
 static ecs_world_t *world = nullptr;
+static ecs_entity_t phases[PHASE_COUNT];
 
 static void log_debug_info()
 {
@@ -111,6 +113,51 @@ static void log_debug_info()
 	SDL_LogDebug(LOG_CATEGORY_ECS, "ECS addons: %s", temp);
 }
 
+static ecs_entity_t phase(const char *name)
+{
+	const ecs_entity_desc_t entity_desc = {
+		.name = name,
+		.add = ecs_ids(EcsPhase),
+	};
+	return ecs_entity_init(world, &entity_desc);
+}
+
+static void phase_depend(const phase_t source, const phase_t target)
+{
+	ecs_add_pair(world, phases[source], EcsDependsOn, phases[target]);
+}
+
+static void create_pipeline()
+{
+	const ecs_pipeline_desc_t pipeline_desc = {
+		.query.terms = {
+			(ecs_term_t){
+				.id = EcsSystem,
+			},
+			(ecs_term_t){
+				.id = EcsPhase,
+				.src.id = EcsCascade,
+				.trav = EcsDependsOn,
+			},
+		},
+	};
+	const ecs_entity_t pipeline = ecs_pipeline_init(world, &pipeline_desc);
+	ecs_set_pipeline(world, pipeline);
+
+	phases[PHASE_UPDATE] = phase("Update");
+	phases[PHASE_PHYSICS_UPDATE] = phase("PhysicsUpdate");
+	phases[PHASE_PHYSICS_SYNC] = phase("PhysicsSync");
+	phases[PHASE_RENDER_BEGIN] = phase("RenderBegin");
+	phases[PHASE_RENDER] = phase("Render");
+	phases[PHASE_RENDER_END] = phase("RenderEnd");
+
+	phase_depend(PHASE_PHYSICS_UPDATE, PHASE_UPDATE);
+	phase_depend(PHASE_PHYSICS_SYNC, PHASE_PHYSICS_UPDATE);
+	phase_depend(PHASE_RENDER_BEGIN, PHASE_PHYSICS_SYNC);
+	phase_depend(PHASE_RENDER, PHASE_RENDER_BEGIN);
+	phase_depend(PHASE_RENDER_END, PHASE_RENDER);
+}
+
 #define component(n,s)									\
 	do {												\
 		const ecs_entity_desc_t e_desc = {				\
@@ -162,6 +209,8 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 		component("Projection", projection_t);
 
 		tag("Scene");
+
+		create_pipeline();
 	}
 	ecs_set_scope(world, scope);
 }
@@ -213,6 +262,13 @@ void ecs_destroy()
 ecs_world_t *ecs_world()
 {
 	return world;
+}
+
+ecs_entity_t ecs_phase(const phase_t phase)
+{
+	const ecs_entity_t entity = phases[phase];
+	SDL_assert(entity != 0);
+	return entity;
 }
 
 const void *ecs_const_data(const char *name)
