@@ -565,18 +565,18 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	state->dt = (float) (current_update - state->last_update) / ns_s;
 	state->last_update = current_update;
 
-	if (state->time.fps == 0)
+	if (state->fps == 0)
 	{
-		state->time.fps = 1.F / state->dt;
+		state->fps = 1.F / state->dt;
 	}
 
-	state->time.count++;
-	state->time.duration += state->dt;
-	if (state->time.duration >= 1.F)
+	state->count++;
+	state->duration += state->dt;
+	if (state->duration >= 1.F)
 	{
-		state->time.fps = state->time.count;
-		state->time.count = 0;
-		state->time.duration = 0;
+		state->fps = state->count;
+		state->count = 0;
+		state->duration = 0;
 	}
 
 	ecs_progress(ecs_world(), state->dt);

@@ -4,14 +4,9 @@
 
 typedef struct
 {
+	Uint64 last_update;
 	Uint16 fps;
 	Uint16 count;
 	float duration;
-} time_info_t;
-
-typedef struct
-{
-	Uint64 last_update;
-	time_info_t time;
 	float dt;
 } app_state_t;

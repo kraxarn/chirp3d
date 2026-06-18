@@ -213,7 +213,7 @@ void draw_debug_overlay(app_state_t *state)
 			ImGui_TableNextColumn();
 			ImGui_Text("FPS");
 			ImGui_TableNextColumn();
-			ImGui_Text("%u", state->time.fps);
+			ImGui_Text("%u", state->fps);
 
 			if ((elements & DEBUG_OVERLAY_DELTA) > 0)
 			{
