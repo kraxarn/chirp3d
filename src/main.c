@@ -437,18 +437,18 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	switch (shader_format(gpu_device))
 	{
 		case SDL_GPU_SHADERFORMAT_MSL:
-			vert_source = SDL_IOFromConstMem(shader_default_vert_msl, sizeof(shader_default_vert_msl));
-			frag_source = SDL_IOFromConstMem(shader_default_frag_msl, sizeof(shader_default_frag_msl));
+			vert_source = res_shader_default_vert_msl();
+			frag_source = res_shader_default_frag_msl();
 			break;
 
 		case SDL_GPU_SHADERFORMAT_SPIRV:
-			vert_source = SDL_IOFromConstMem(shader_default_vert_spv, sizeof(shader_default_vert_spv));
-			frag_source = SDL_IOFromConstMem(shader_default_frag_spv, sizeof(shader_default_frag_spv));
+			vert_source = res_shader_default_vert_spv();
+			frag_source = res_shader_default_frag_spv();
 			break;
 
 		case SDL_GPU_SHADERFORMAT_DXIL:
-			vert_source = SDL_IOFromConstMem(shader_default_vert_dxil, sizeof(shader_default_vert_dxil));
-			frag_source = SDL_IOFromConstMem(shader_default_frag_dxil, sizeof(shader_default_frag_dxil));
+			vert_source = res_shader_default_vert_dxil();
+			frag_source = res_shader_default_frag_dxil();
 			break;
 
 		default:
