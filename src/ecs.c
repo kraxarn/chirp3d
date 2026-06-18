@@ -10,6 +10,7 @@
 #include "flecs.h"
 
 #include <SDL3/SDL_assert.h>
+#include <SDL3/SDL_cpuinfo.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_video.h>
@@ -219,6 +220,10 @@ static void on_init_set([[maybe_unused]] ecs_iter_t *iter)
 {
 	ecs_os_api_t os_api = ecs_os_api_create();
 	ecs_os_set_api(&os_api);
+
+	const int cores = SDL_GetNumLogicalCPUCores();
+	ecs_set_threads(world, cores);
+	SDL_LogDebug(LOG_CATEGORY_ECS, "Using %d ECS threads", cores);
 
 #ifdef FLECS_REST
 	ecs_singleton_set(world, EcsRest, {0});
