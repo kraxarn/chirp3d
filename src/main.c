@@ -304,8 +304,10 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 	ecs_create();
 
-	system_register_assets();
+	system_register_gpu();
+	system_register_window();
 	system_register_imgui();
+	system_register_assets();
 
 	const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
 	const ecs_id_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
