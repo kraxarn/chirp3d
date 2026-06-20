@@ -3,6 +3,8 @@
 #include "matrix.h"
 #include "vector.h"
 
+#include "dcimgui.h"
+
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_stdinc.h>
@@ -20,6 +22,7 @@ typedef size_t instance_of_index_t;
 typedef vector3f_t rotation_t;
 typedef vector3f_t position_t;
 typedef vector3f_t scale_t;
+typedef ImGuiContext imgui_context_t;
 
 typedef struct
 {

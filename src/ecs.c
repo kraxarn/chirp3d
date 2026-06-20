@@ -205,11 +205,11 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 		component("Model", model_t);
 		component("InstanceOf", instance_of_index_t);
 		component("PhysicsBody", physics_body_id_t);
-
 		component("Rotation", rotation_t);
 		component("Position", position_t);
 		component("Scale", scale_t);
 		component("Projection", projection_t);
+		component("ImGuiContext", imgui_context_t*);
 
 		tag("Scene");
 

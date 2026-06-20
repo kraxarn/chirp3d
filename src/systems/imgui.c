@@ -17,7 +17,8 @@ static void on_window_gpu_set(ecs_iter_t *iter)
 
 	CIMGUI_CHECKVERSION();
 
-	if (ImGui_CreateContext(nullptr) == nullptr)
+	ImGuiContext *context = ImGui_CreateContext(nullptr);
+	if (context == nullptr)
 	{
 		SDL_LogError(LOG_CATEGORY_UI, "Failed to initialise ImGui context");
 		return;
@@ -70,6 +71,12 @@ static void on_window_gpu_set(ecs_iter_t *iter)
 	{
 		SDL_LogError(LOG_CATEGORY_UI, "Failed to initialise SDL3 GPU backend");
 	}
+
+	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
+	const ecs_id_t context_id = ecs_lookup(ecs_world(), "chirp.ImGuiContext");
+
+	ecs_set_id(ecs_world(), engine, context_id,
+		sizeof(ImGuiContext*), (void*) &context);
 }
 
 void system_register_imgui()
