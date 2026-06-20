@@ -190,6 +190,8 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 	const ecs_entity_t mod = ecs_module_init(world, "Chirp", &desc);
 	const ecs_entity_t scope = ecs_set_scope(world, mod);
 	{
+		tag("Engine");
+
 		component("Assets", assets_t);
 		component("Init", init_flags_t);
 		component("WindowConfig", window_config_t);
@@ -278,13 +280,16 @@ ecs_entity_t ecs_phase(const phase_t phase)
 
 const void *ecs_const_data(const char *name)
 {
-	const ecs_entity_t entity = ecs_lookup(world, name);
-	if (entity == 0)
+	const ecs_entity_t entity = ecs_lookup(world, "chirp.Engine");
+	const ecs_id_t component = ecs_lookup(world, name);
+
+	if (entity == 0 || component == 0)
 	{
+		SDL_LogWarn(LOG_CATEGORY_ECS, "Unknown component: %s", name);
 		return nullptr;
 	}
 
-	return ecs_get_id(world, entity, entity);
+	return ecs_get_id(world, entity, component);
 }
 
 void *ecs_mut_data_ptr(const char *name)
@@ -300,11 +305,14 @@ void *ecs_mut_data_ptr(const char *name)
 
 void *ecs_mut_data(const char *name)
 {
-	const ecs_entity_t entity = ecs_lookup(world, name);
-	if (entity == 0)
+	const ecs_entity_t entity = ecs_lookup(world, "chirp.Engine");
+	const ecs_id_t component = ecs_lookup(world, name);
+
+	if (entity == 0 || component == 0)
 	{
+		SDL_LogWarn(LOG_CATEGORY_ECS, "Unknown component: %s", name);
 		return nullptr;
 	}
 
-	return ecs_get_mut_id(world, entity, entity);
+	return ecs_get_mut_id(world, entity, component);
 }

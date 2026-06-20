@@ -18,8 +18,9 @@ static void on_file_opened([[maybe_unused]] void *userdata,
 	assets_t assets;
 	if (assets_create(filelist[0], &assets))
 	{
-		const ecs_entity_t entity = ecs_lookup(ecs_world(), "chirp.Assets");
-		ecs_set_id(ecs_world(), entity, entity,
+		const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
+		const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
+		ecs_set_id(ecs_world(), engine, assets_id,
 			sizeof(assets_t), &assets);
 	}
 }
@@ -37,8 +38,9 @@ void system_register_assets()
 	{
 		SDL_free(path);
 
-		const ecs_entity_t entity = ecs_lookup(ecs_world(), "chirp.Assets");
-		ecs_set_id(ecs_world(), entity, entity,
+		const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
+		const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
+		ecs_set_id(ecs_world(), engine, assets_id,
 			sizeof(assets_t), &assets);
 
 		return;

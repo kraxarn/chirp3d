@@ -271,8 +271,9 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	system_register_assets();
 	system_register_imgui();
 
-	const ecs_entity_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
-	const assets_t *assets = ecs_get_id(ecs_world(), assets_id, assets_id);
+	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
+	const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
+	const assets_t *assets = ecs_get_id(ecs_world(), engine, assets_id);
 
 #ifdef FORCE_X11
 	if (!SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11"))
@@ -287,14 +288,14 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error("Initialisation failed");
 	}
 
-	const ecs_entity_t init_id = ecs_lookup(ecs_world(), "chirp.Init");
-	ecs_set_id(ecs_world(), init_id, init_id, sizeof(SDL_InitFlags), &init_flags);
+	const ecs_id_t init_id = ecs_lookup(ecs_world(), "chirp.Init");
+	ecs_set_id(ecs_world(), engine, init_id, sizeof(SDL_InitFlags), &init_flags);
 
 	state->last_update = SDL_GetTicks();
 
-	const ecs_entity_t window_config_id = ecs_lookup(ecs_world(), "chirp.WindowConfig");
+	const ecs_id_t window_config_id = ecs_lookup(ecs_world(), "chirp.WindowConfig");
 	const window_config_t window_config = assets_window_config(assets);
-	ecs_set_id(ecs_world(), window_config_id, window_config_id,
+	ecs_set_id(ecs_world(), engine, window_config_id,
 		sizeof(window_config_t), &window_config);
 
 	SDL_Window *window = SDL_CreateWindow(window_config.title,
@@ -307,7 +308,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 
 	const ecs_entity_t window_id = ecs_lookup(ecs_world(), "chirp.Window");
-	ecs_set_id(ecs_world(), window_id, window_id,
+	ecs_set_id(ecs_world(), engine, window_id,
 		sizeof(SDL_Window*), (void*) &window);
 
 	SDL_GPUDevice *gpu_device = create_device(window);
@@ -317,7 +318,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 
 	const ecs_entity_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
-	ecs_set_id(ecs_world(), gpu_device_id, gpu_device_id,
+	ecs_set_id(ecs_world(), engine, gpu_device_id,
 		sizeof(SDL_GPUDevice*), (void*) &gpu_device);
 
 	log_system_info(gpu_device);
@@ -354,17 +355,17 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 
 	const ecs_entity_t depth_texture_id = ecs_lookup(ecs_world(), "chirp.DepthTexture");
-	ecs_set_id(ecs_world(), depth_texture_id, depth_texture_id,
+	ecs_set_id(ecs_world(), engine, depth_texture_id,
 		sizeof(SDL_GPUTexture*), (const void*) &depth_texture);
 
 	const ecs_entity_t camera_id = ecs_lookup(ecs_world(), "chirp.Camera");
 	const camera_t camera = camera_create_default();
-	ecs_set_id(ecs_world(), camera_id, camera_id,
+	ecs_set_id(ecs_world(), engine, camera_id,
 		sizeof(camera_t), &camera);
 
 	const ecs_entity_t physics_config_id = ecs_lookup(ecs_world(), "chirp.PhysicsConfig");
 	const physics_config_t physics_config = physics_config_create_default();
-	ecs_set_id(ecs_world(), physics_config_id, physics_config_id,
+	ecs_set_id(ecs_world(), engine, physics_config_id,
 		sizeof(physics_config_t), &physics_config);
 
 	SDL_IOStream *vert_source;
@@ -415,7 +416,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 
 	const ecs_entity_t pipeline_id = ecs_lookup(ecs_world(), "chirp.GpuGraphicsPipeline");
-	ecs_set_id(ecs_world(), pipeline_id, pipeline_id,
+	ecs_set_id(ecs_world(), engine, pipeline_id,
 		sizeof(SDL_GPUGraphicsPipeline*), (const void*) &pipeline);
 
 	SDL_ReleaseGPUShader(gpu_device, vert_shader);
@@ -428,7 +429,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	}
 
 	const ecs_entity_t physics_engine_id = ecs_lookup(ecs_world(), "chirp.PhysicsEngine");
-	ecs_set_id(ecs_world(), physics_engine_id, physics_engine_id,
+	ecs_set_id(ecs_world(), engine, physics_engine_id,
 		sizeof(physics_engine_t), &physics_engine);
 
 	{

@@ -8,6 +8,7 @@
 #include <SDL3/SDL_stdinc.h>
 
 typedef struct ecs_world_t ecs_world_t;
+typedef Uint64 ecs_id_t;
 typedef Uint64 ecs_entity_t;
 
 typedef SDL_InitFlags init_flags_t;
