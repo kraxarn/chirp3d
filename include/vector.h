@@ -19,8 +19,8 @@ typedef struct vector2f_aligned_t
 
 typedef struct vector2i_t
 {
-	int x;
-	int y;
+	Sint32 x;
+	Sint32 y;
 } vector2i_t;
 
 typedef struct vector3f_t
