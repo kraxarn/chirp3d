@@ -23,6 +23,8 @@ typedef vector3f_t rotation_t;
 typedef vector3f_t position_t;
 typedef vector3f_t scale_t;
 typedef ImGuiContext imgui_context_t;
+typedef SDL_GPUShader vertex_shader_t;
+typedef SDL_GPUShader fragment_shader_t;
 
 typedef struct
 {
@@ -59,3 +61,9 @@ void *ecs_mut_data_ptr(const char *name);
 
 [[nodiscard]]
 void *ecs_mut_data(const char *name);
+
+#define ecs_observer_init_all(o)					\
+	do {											\
+	for (size_t i = 0; i < SDL_arraysize(o); i++)	\
+		ecs_observer_init(ecs_world(), o + i);		\
+	} while (false)

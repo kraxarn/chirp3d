@@ -230,6 +230,8 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		component("Scale", scale_t);
 		component("Projection", projection_t);
 		component("ImGuiContext", imgui_context_t*);
+		component("VertexShader", vertex_shader_t*);
+		component("FragmentShader", fragment_shader_t*);
 
 #ifndef NDEBUG
 		reflect("chirp.Init",

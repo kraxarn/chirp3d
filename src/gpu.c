@@ -7,16 +7,8 @@
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
-#include <SDL3/SDL_properties.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
-
-static constexpr auto debug_mode =
-#ifdef NDEBUG
-	false;
-#else
-	true;
-#endif
 
 static SDL_GPUCommandBuffer *current_command_buffer = nullptr;
 static SDL_GPURenderPass *current_render_pass = nullptr;
@@ -24,134 +16,6 @@ static SDL_GPURenderPass *current_render_pass = nullptr;
 static SDL_GPUTexture *swapchain_texture = nullptr;
 static Uint32 swapchain_texture_width = 0;
 static Uint32 swapchain_texture_height = 0;
-
-SDL_GPUDevice *create_device(SDL_Window *window)
-{
-	const SDL_PropertiesID props = SDL_CreateProperties();
-	if (props == 0)
-	{
-		return nullptr;
-	}
-
-	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, debug_mode);
-	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_VERBOSE_BOOLEAN, debug_mode);
-
-	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_SPIRV_BOOLEAN, true);
-	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXIL_BOOLEAN, true);
-	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN, true);
-
-	// Disable unused features for higher compatibility
-	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_FEATURE_CLIP_DISTANCE_BOOLEAN, false);
-	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_FEATURE_DEPTH_CLAMPING_BOOLEAN, true);
-	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_FEATURE_INDIRECT_DRAW_FIRST_INSTANCE_BOOLEAN, false);
-	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_FEATURE_ANISOTROPY_BOOLEAN, false);
-
-	SDL_GPUDevice *device = SDL_CreateGPUDeviceWithProperties(props);
-	if (device == nullptr)
-	{
-		return nullptr;
-	}
-
-	if (!SDL_ClaimWindowForGPUDevice(device, window))
-	{
-		SDL_DestroyGPUDevice(device);
-		return nullptr;
-	}
-
-	return device;
-}
-
-SDL_GPUGraphicsPipeline *create_pipeline(SDL_GPUDevice *device, SDL_Window *window,
-	SDL_GPUShader *vertex_shader, SDL_GPUShader *fragment_shader)
-{
-	const SDL_GPUGraphicsPipelineCreateInfo create_info = {
-		.target_info = (SDL_GPUGraphicsPipelineTargetInfo){
-			.num_color_targets = 1,
-			.color_target_descriptions = (SDL_GPUColorTargetDescription[]){
-				(SDL_GPUColorTargetDescription){
-					.format = SDL_GetGPUSwapchainTextureFormat(device, window),
-					.blend_state = (SDL_GPUColorTargetBlendState){
-						.enable_blend = true,
-						.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-						.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-						.color_blend_op = SDL_GPU_BLENDOP_ADD,
-						.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-						.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-						.alpha_blend_op = SDL_GPU_BLENDOP_ADD,
-					},
-				}
-			},
-			.has_depth_stencil_target = true,
-			.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
-		},
-		.depth_stencil_state = (SDL_GPUDepthStencilState){
-			.enable_depth_test = true,
-			.enable_depth_write = true,
-			.compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
-		},
-		.vertex_input_state = (SDL_GPUVertexInputState){
-			.num_vertex_buffers = 1,
-			.vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]){
-				(SDL_GPUVertexBufferDescription){
-					.slot = 0,
-					.pitch = sizeof(vertex_t),
-					.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-				},
-			},
-			.num_vertex_attributes = 4,
-			.vertex_attributes = (SDL_GPUVertexAttribute[]){
-				// Position
-				(SDL_GPUVertexAttribute){
-					.location = 0,
-					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-					.offset = offsetof(vertex_t, position),
-				},
-				// Normal
-				(SDL_GPUVertexAttribute){
-					.location = 1,
-					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-					.offset = offsetof(vertex_t, normal),
-				},
-				// Texture coordinate
-				(SDL_GPUVertexAttribute){
-					.location = 2,
-					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-					.offset = offsetof(vertex_t, tex_coord),
-				},
-				// Colour
-				(SDL_GPUVertexAttribute){
-					.location = 3,
-					.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
-					.offset = offsetof(vertex_t, color),
-				},
-			},
-		},
-		.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-		.rasterizer_state = (SDL_GPURasterizerState){
-			.cull_mode = SDL_GPU_CULLMODE_BACK,
-		},
-		.vertex_shader = vertex_shader,
-		.fragment_shader = fragment_shader,
-	};
-
-	return SDL_CreateGPUGraphicsPipeline(device, &create_info);
-}
-
-SDL_GPUTexture *create_depth_texture(SDL_GPUDevice *device, const vector2i_t size)
-{
-	const SDL_GPUTextureCreateInfo create_info = {
-		.type = SDL_GPU_TEXTURETYPE_2D,
-		.width = size.x,
-		.height = size.y,
-		.layer_count_or_depth = 1,
-		.num_levels = 1,
-		.sample_count = SDL_GPU_SAMPLECOUNT_1,
-		.format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
-		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET
-	};
-
-	return SDL_CreateGPUTexture(device, &create_info);
-}
 
 bool draw_begin(SDL_GPUDevice *device, SDL_Window *window, const SDL_FColor clear_color,
 	SDL_GPUTexture *depth_texture, ImDrawData *draw_data,

@@ -64,18 +64,6 @@ static SDL_AppResult fatal_error(const char *message)
 	return SDL_APP_FAILURE;
 }
 
-static void log_system_info(SDL_GPUDevice *device)
-{
-	SDL_LogDebug(LOG_CATEGORY_CORE, "Platform: %s",
-		system_info_platform());
-
-	SDL_LogDebug(LOG_CATEGORY_CORE, "CPU: %s",
-		system_info_cpu_name());
-
-	SDL_LogDebug(LOG_CATEGORY_CORE, "GPU: %s (%s)",
-		system_info_gpu_name(device), system_info_gpu_driver(device));
-}
-
 static SDL_AppResult build_scene()
 {
 	const auto floor_size = (vector3f_t){.x = 100.F, .y = 0.F, .z = 100.F};
@@ -294,71 +282,6 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 	state->last_update = SDL_GetTicks();
 
-	const ecs_id_t window_config_id = ecs_lookup(ecs_world(), "chirp.WindowConfig");
-	const window_config_t window_config = assets_window_config(assets);
-	ecs_set_id(ecs_world(), engine, window_config_id,
-		sizeof(window_config_t), &window_config);
-
-	SDL_Window *window = SDL_CreateWindow(window_config.title,
-		window_config.size.x, window_config.size.y,
-		window_config_flags(window_config)
-	);
-	if (window == nullptr)
-	{
-		return fatal_error("Failed to create window");
-	}
-
-	const ecs_entity_t window_id = ecs_lookup(ecs_world(), "chirp.Window");
-	ecs_set_id(ecs_world(), engine, window_id,
-		sizeof(SDL_Window*), (void*) &window);
-
-	SDL_GPUDevice *gpu_device = create_device(window);
-	if (gpu_device == nullptr)
-	{
-		return fatal_error("Failed to initialise GPU context");
-	}
-
-	const ecs_entity_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
-	ecs_set_id(ecs_world(), engine, gpu_device_id,
-		sizeof(SDL_GPUDevice*), (void*) &gpu_device);
-
-	log_system_info(gpu_device);
-
-	if (SDL_GetLogPriority(LOG_CATEGORY_CORE) >= SDL_LOG_PRIORITY_VERBOSE)
-	{
-		char *gpu_drivers = gpu_driver_names();
-		SDL_LogDebug(LOG_CATEGORY_CORE, "Available GPU drivers: %s", gpu_drivers);
-
-		char *shader_formats = shader_format_names(gpu_device);
-		if (shader_formats != nullptr)
-		{
-			SDL_LogDebug(LOG_CATEGORY_CORE, "Available shader formats for %s: %s",
-				SDL_GetGPUDeviceDriver(gpu_device), shader_formats);
-		}
-	}
-
-	if (!SDL_SetGPUSwapchainParameters(gpu_device, window,
-		SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC))
-	{
-		SDL_LogWarn(LOG_CATEGORY_CORE, "VSync not supported: %s", SDL_GetError());
-	}
-
-	vector2i_t depth_size;
-	if (!SDL_GetWindowSize(window, &depth_size.x, &depth_size.y))
-	{
-		return fatal_error("Failed to get window size");
-	}
-
-	SDL_GPUTexture *depth_texture = create_depth_texture(gpu_device, depth_size);
-	if (depth_texture == nullptr)
-	{
-		return fatal_error("Failed to initialise depth texture");
-	}
-
-	const ecs_entity_t depth_texture_id = ecs_lookup(ecs_world(), "chirp.DepthTexture");
-	ecs_set_id(ecs_world(), engine, depth_texture_id,
-		sizeof(SDL_GPUTexture*), (const void*) &depth_texture);
-
 	const ecs_entity_t camera_id = ecs_lookup(ecs_world(), "chirp.Camera");
 	const camera_t camera = camera_create_default();
 	ecs_set_id(ecs_world(), engine, camera_id,
@@ -368,60 +291,6 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	const physics_config_t physics_config = physics_config_create_default();
 	ecs_set_id(ecs_world(), engine, physics_config_id,
 		sizeof(physics_config_t), &physics_config);
-
-	SDL_IOStream *vert_source;
-	SDL_IOStream *frag_source;
-
-	switch (shader_format(gpu_device))
-	{
-		case SDL_GPU_SHADERFORMAT_MSL:
-			vert_source = res_shader_default_vert_msl();
-			frag_source = res_shader_default_frag_msl();
-			break;
-
-		case SDL_GPU_SHADERFORMAT_SPIRV:
-			vert_source = res_shader_default_vert_spv();
-			frag_source = res_shader_default_frag_spv();
-			break;
-
-		case SDL_GPU_SHADERFORMAT_DXIL:
-			vert_source = res_shader_default_vert_dxil();
-			frag_source = res_shader_default_frag_dxil();
-			break;
-
-		default:
-			SDL_SetError("Unknown shader format: %d", shader_format(gpu_device));
-			return fatal_error("Failed to find valid shaders");
-	}
-
-	SDL_GPUShader *vert_shader = load_shader(gpu_device, vert_source,
-		SDL_GPU_SHADERSTAGE_VERTEX, 0, 1);
-	if (vert_shader == nullptr)
-	{
-		return fatal_error("Failed to load vertex shader");
-	}
-
-	SDL_GPUShader *frag_shader = load_shader(gpu_device, frag_source,
-		SDL_GPU_SHADERSTAGE_FRAGMENT, 1, 0);
-	if (frag_shader == nullptr)
-	{
-		return fatal_error("Failed to load fragment shader");
-	}
-
-	SDL_GPUGraphicsPipeline *pipeline = create_pipeline(gpu_device, window, vert_shader, frag_shader);
-	if (pipeline == nullptr)
-	{
-		SDL_ReleaseGPUShader(gpu_device, vert_shader);
-		SDL_ReleaseGPUShader(gpu_device, frag_shader);
-		return fatal_error("Failed to initialise pipeline");
-	}
-
-	const ecs_entity_t pipeline_id = ecs_lookup(ecs_world(), "chirp.GpuGraphicsPipeline");
-	ecs_set_id(ecs_world(), engine, pipeline_id,
-		sizeof(SDL_GPUGraphicsPipeline*), (const void*) &pipeline);
-
-	SDL_ReleaseGPUShader(gpu_device, vert_shader);
-	SDL_ReleaseGPUShader(gpu_device, frag_shader);
 
 	physics_engine_t physics_engine;
 	if (!physics_create(&physics_engine))
