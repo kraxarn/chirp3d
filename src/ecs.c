@@ -184,6 +184,16 @@ static void create_pipeline()
 		ecs_entity_init(world, &entity_desc);	\
 	} while (false)
 
+#define reflect(n, ...)							\
+	do {										\
+		const ecs_struct_desc_t struct_desc = {	\
+			.entity = ecs_lookup(world, n),		\
+			.members = {__VA_ARGS__},			\
+		};										\
+		ecs_struct_init(world, &struct_desc);	\
+	}											\
+	while (false)
+
 static void module([[maybe_unused]] ecs_world_t *ewt)
 {
 	const ecs_component_desc_t desc = {};
@@ -210,6 +220,61 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 		component("Scale", scale_t);
 		component("Projection", projection_t);
 		component("ImGuiContext", imgui_context_t*);
+
+#ifndef NDEBUG
+		reflect("chirp.WindowConfig",
+			(ecs_member_t){.name = "title", .type = ecs_id(ecs_string_t)},
+			(ecs_member_t){.name = "size", .type = ecs_id(ecs_i32_t), .count = 2},
+			(ecs_member_t){.name = "fullscreen", .type = ecs_id(ecs_bool_t)},
+		);
+
+		reflect("chirp.Camera",
+			(ecs_member_t){.name = "position", .type = ecs_id(ecs_f32_t), .count = 3},
+			(ecs_member_t){.name = "target", .type = ecs_id(ecs_f32_t), .count = 3},
+			(ecs_member_t){.name = "up", .type = ecs_id(ecs_f32_t), .count = 3},
+			(ecs_member_t){.name = "fov_y", .type = ecs_id(ecs_f32_t)},
+			(ecs_member_t){.name = "near_plane", .type = ecs_id(ecs_f32_t)},
+			(ecs_member_t){.name = "far_plane", .type = ecs_id(ecs_f32_t)},
+		);
+
+		reflect("chirp.PhysicsConfig",
+			(ecs_member_t){.name = "move_speed", .type = ecs_id(ecs_f32_t)},
+			(ecs_member_t){.name = "max_move_speed", .type = ecs_id(ecs_f32_t)},
+			(ecs_member_t){.name = "gravity_y", .type = ecs_id(ecs_f32_t)},
+			(ecs_member_t){.name = "jump_speed", .type = ecs_id(ecs_f32_t)},
+		);
+
+		reflect("chirp.InstanceOf",
+			(ecs_member_t){.name = "index", .type = ecs_id(ecs_uptr_t)},
+		);
+
+		reflect("chirp.PhysicsBody",
+			(ecs_member_t){.name = "id", .type = ecs_id(ecs_u32_t)},
+		);
+
+		reflect("chirp.Rotation",
+			(ecs_member_t){.name = "x", .type = ecs_id(ecs_f32_t)},
+			(ecs_member_t){.name = "y", .type = ecs_id(ecs_f32_t)},
+			(ecs_member_t){.name = "z", .type = ecs_id(ecs_f32_t)},
+		);
+
+		reflect("chirp.Position",
+			(ecs_member_t){.name = "x", .type = ecs_id(ecs_f32_t)},
+			(ecs_member_t){.name = "y", .type = ecs_id(ecs_f32_t)},
+			(ecs_member_t){.name = "z", .type = ecs_id(ecs_f32_t)},
+		);
+
+		reflect("chirp.Scale",
+			(ecs_member_t){.name = "x", .type = ecs_id(ecs_f32_t)},
+			(ecs_member_t){.name = "y", .type = ecs_id(ecs_f32_t)},
+			(ecs_member_t){.name = "z", .type = ecs_id(ecs_f32_t)},
+		);
+
+		reflect("chirp.Projection",
+			(ecs_member_t){.name = "rebuild", .type = ecs_id(ecs_bool_t)},
+			(ecs_member_t){.name = "value", .type = ecs_id(ecs_f32_t), .count = 16},
+		);
+#endif
 
 		tag("Scene");
 
