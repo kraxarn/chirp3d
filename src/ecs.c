@@ -159,30 +159,41 @@ static void create_pipeline()
 	phase_depend(PHASE_RENDER_END, PHASE_RENDER);
 }
 
-#define component(n,s)									\
-	do {												\
-		const ecs_entity_desc_t e_desc = {				\
-			.use_low_id = true,							\
-			.name = n,									\
-			.symbol = #s,								\
-		};												\
-		const ecs_component_desc_t c_desc = {			\
-			.entity = ecs_entity_init(world, &e_desc),	\
-			.type = (ecs_type_info_t){					\
-				.size = ECS_SIZEOF(s),					\
-				.alignment = ECS_ALIGNOF(s),			\
-			},											\
-		};												\
-		ecs_component_init(world, &c_desc);				\
-	} while (false)
+static ecs_entity_t component_impl(const char *name, const char *symbol,
+	const ecs_size_t size, const ecs_size_t alignment)
+{
+	const ecs_entity_desc_t entity_desc = {
+		.use_low_id = true,
+		.name = name,
+		.symbol = symbol,
+	};
 
-#define tag(n)									\
-	do {										\
-		const ecs_entity_desc_t entity_desc = {	\
-			.name = n,							\
-		};										\
-		ecs_entity_init(world, &entity_desc);	\
-	} while (false)
+	const ecs_component_desc_t component_desc = {
+		.entity = ecs_entity_init(world, &entity_desc),
+		.type = (ecs_type_info_t){
+			.size = size,
+			.alignment = alignment,
+		},
+	};
+
+	const ecs_entity_t entity = ecs_component_init(world, &component_desc);
+	SDL_assert(entity != 0);
+	return entity;
+}
+
+#define component(name, symbol)	\
+	component_impl(name, #symbol, ECS_SIZEOF(symbol), ECS_ALIGNOF(symbol))
+
+static ecs_entity_t tag(const char *name)
+{
+	const ecs_entity_desc_t entity_desc = {
+		.name = name,
+	};
+
+	const ecs_entity_t entity = ecs_entity_init(world, &entity_desc);
+	SDL_assert(entity != 0);
+	return entity;
+}
 
 #define reflect(n, ...)							\
 	do {										\
@@ -191,10 +202,9 @@ static void create_pipeline()
 			.members = {__VA_ARGS__},			\
 		};										\
 		ecs_struct_init(world, &struct_desc);	\
-	}											\
-	while (false)
+	} while (false)
 
-static void module([[maybe_unused]] ecs_world_t *ewt)
+static void module([[maybe_unused]] ecs_world_t *unused)
 {
 	const ecs_component_desc_t desc = {};
 	const ecs_entity_t mod = ecs_module_init(world, "Chirp", &desc);
