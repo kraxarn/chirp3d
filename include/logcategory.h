@@ -1,7 +1,7 @@
 #pragma once
 #include <SDL3/SDL_log.h>
 
-typedef enum log_category_t
+typedef enum log_category_t: int
 {
 	LOG_CATEGORY_CORE = SDL_LOG_CATEGORY_CUSTOM,
 	LOG_CATEGORY_RENDER,
@@ -12,4 +12,5 @@ typedef enum log_category_t
 	LOG_CATEGORY_MODEL,
 	LOG_CATEGORY_ECS,
 	LOG_CATEGORY_SCRIPT,
+	LOG_CATEGORY_UI,
 } log_category_t;

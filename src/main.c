@@ -76,67 +76,6 @@ static void log_system_info(SDL_GPUDevice *device)
 		system_info_gpu_name(device), system_info_gpu_driver(device));
 }
 
-static bool init_imgui()
-{
-	CIMGUI_CHECKVERSION();
-
-	if (ImGui_CreateContext(nullptr) == nullptr)
-	{
-		return SDL_SetError("Failed to initialise ImGui context");
-	}
-
-	ImGuiIO *im_io = ImGui_GetIO();
-	im_io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
-
-	// ImGui wants to own and free the data
-	void *font_data = CIM_ALLOC(sizeof(font_maple_mono_nl_regular_ttf));
-	SDL_memcpy(font_data, font_maple_mono_nl_regular_ttf, sizeof(font_maple_mono_nl_regular_ttf));
-
-	if (ImFontAtlas_AddFontFromMemoryTTF(im_io->Fonts, font_data, sizeof(font_maple_mono_nl_regular_ttf),
-		16.F, nullptr, nullptr) == nullptr)
-	{
-		return SDL_SetError("Failed to add font");
-	}
-
-	if (SDL_GetSystemTheme() == SDL_SYSTEM_THEME_LIGHT)
-	{
-		ImGui_StyleColorsLight(nullptr);
-	}
-	else
-	{
-		ImGui_StyleColorsDark(nullptr);
-	}
-
-	const float content_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
-	ImGuiStyle *style = ImGui_GetStyle();
-	ImGuiStyle_ScaleAllSizes(style, content_scale);
-	style->FontScaleDpi = content_scale;
-
-	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
-
-	if (!cImGui_ImplSDL3_InitForSDLGPU(window))
-	{
-		return SDL_SetError("Failed to initialise SDL3 backend");
-	}
-
-	SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
-
-	ImGui_ImplSDLGPU3_InitInfo init_info = {
-		.Device = gpu_device,
-		.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(gpu_device, window),
-		.MSAASamples = SDL_GPU_SAMPLECOUNT_1,
-		.SwapchainComposition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
-		.PresentMode = SDL_GPU_PRESENTMODE_VSYNC,
-	};
-
-	if (!cImGui_ImplSDLGPU3_Init(&init_info))
-	{
-		return SDL_SetError("Failed to initialise SDL3 GPU backend");
-	}
-
-	return true;
-}
-
 static SDL_AppResult build_scene()
 {
 	const auto floor_size = (vector3f_t){.x = 100.F, .y = 0.F, .z = 100.F};
@@ -329,8 +268,10 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 	ecs_create();
 
-	const ecs_entity_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
 	system_register_assets();
+	system_register_imgui();
+
+	const ecs_entity_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
 	const assets_t *assets = ecs_get_id(ecs_world(), assets_id, assets_id);
 
 #ifdef FORCE_X11
@@ -398,11 +339,6 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC))
 	{
 		SDL_LogWarn(LOG_CATEGORY_CORE, "VSync not supported: %s", SDL_GetError());
-	}
-
-	if (!init_imgui())
-	{
-		return fatal_error("Failed to initialise ImGui");
 	}
 
 	vector2i_t depth_size;
