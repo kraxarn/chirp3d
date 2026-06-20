@@ -241,7 +241,8 @@ static bool query_cleanup(ecs_query_t *query)
 
 #define query(expr) _query(expr, _query_name(_d), _query_name(_q))
 
-SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
+SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
+	[[maybe_unused]] char **argv)
 {
 	if (!system_info_cpu_supported())
 	{
