@@ -3,8 +3,6 @@
 #include "camera.h"
 #include "ecs.h"
 #include "gpu.h"
-#include "gpudriver.h"
-#include "gpushaderformat.h"
 #include "input.h"
 #include "logcategory.h"
 #include "math.h"
@@ -12,13 +10,10 @@
 #include "model.h"
 #include "physics.h"
 #include "physicsconfig.h"
-#include "resources.h"
 #include "scriptengine.h"
-#include "shader.h"
 #include "systeminfo.h"
 #include "systems.h"
 #include "vector.h"
-#include "windowconfig.h"
 #include "ui/debugoverlay.h"
 
 #include "dcimgui.h"
@@ -64,56 +59,6 @@ static SDL_AppResult fatal_error(const char *message)
 	return SDL_APP_FAILURE;
 }
 
-static SDL_AppResult build_scene()
-{
-	const auto floor_size = (vector3f_t){.x = 100.F, .y = 0.F, .z = 100.F};
-
-	physics_engine_t *physics_engine = ecs_mut_data("chirp.PhysicsEngine");
-	const physics_config_t *physics_config = ecs_const_data("chirp.PhysicsConfig");
-
-	const box_config_t floor_config = {
-		.half_extents = floor_size,
-		.friction = 15.F,
-		.body = (body_config_t){
-			.motion_type = MOTION_TYPE_STATIC,
-			.layer = OBJ_LAYER_STATIC,
-			.position = vector3f_zero(),
-			.activate = false,
-		},
-	};
-	physics_add_box(physics_engine, &floor_config);
-
-	const camera_t *camera = ecs_const_data("chirp.Camera");
-
-	const capsule_config_t player_config = {
-		.half_height = 0.5F,
-		.radius = 1.F,
-		.allowed_dof = DOF_TRANSLATION_3D,
-		.body = (body_config_t){
-			.position = vector3f_zero(),
-			.motion_type = MOTION_TYPE_DYNAMIC,
-			.layer = OBJ_LAYER_DYNAMIC,
-			.activate = false,
-		},
-	};
-	const physics_body_id_t player_physics_id = physics_add_capsule(physics_engine, &player_config);
-	physics_body_set_position(physics_engine, player_physics_id, camera->position, true);
-
-	const ecs_entity_desc_t entity_desc = {
-		.name = "Player",
-	};
-	const ecs_entity_t player_entity = ecs_entity_init(ecs_world(), &entity_desc);
-	const ecs_id_t physics_body_id = ecs_lookup(ecs_world(), "chirp.PhysicsBody");
-	ecs_set_id(ecs_world(), player_entity, physics_body_id, sizeof(physics_body_id_t), &player_physics_id);
-
-	const vector3f_t gravity = {.y = -physics_config->gravity_y};
-	physics_set_gravity(physics_engine, gravity);
-
-	physics_optimize(physics_engine);
-
-	return SDL_APP_CONTINUE;
-}
-
 [[nodiscard]]
 static bool sdl_supported()
 {
@@ -140,11 +85,26 @@ static bool sdl_supported()
 	return true;
 }
 
-static ecs_entity_t load_model(const char *name)
+static bool query_cleanup(ecs_query_t *query)
 {
-	const assets_t *assets = ecs_const_data("chirp.Assets");
-	gpu_device_t *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
+	ecs_query_fini(query);
+	return false;
+}
 
+#define _query_name__(x, y) x##y
+#define _query_name_(x, y) _query_name__(x, y)
+#define _query_name(x) _query_name_(x, __COUNTER__)
+
+#define _query(e, d, q)										\
+const ecs_query_desc_t d = {.expr = e};					\
+ecs_query_t *q = ecs_query_init(ecs_world(), &d); 		\
+for (ecs_iter_t iter = ecs_query_iter(ecs_world(), q);	\
+ecs_query_next(&iter) || query_cleanup(q);)
+
+#define query(expr) _query(expr, _query_name(_d), _query_name(_q))
+
+static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device, const char *name)
+{
 	model_t model;
 	if (!assets_load_model(assets, gpu_device, name, &model))
 	{
@@ -211,23 +171,110 @@ static ecs_entity_t create_instance(const ecs_entity_t entity, const size_t node
 	return instance;
 }
 
-static bool query_cleanup(ecs_query_t *query)
+static void register_scene_components()
 {
-	ecs_query_fini(query);
-	return false;
+	ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){.name = "Model.blaster"});
 }
 
-#define _query_name__(x, y) x##y
-#define _query_name_(x, y) _query_name__(x, y)
-#define _query_name(x) _query_name_(x, __COUNTER__)
+static void build_scene(ecs_iter_t *iter)
+{
+	const assets_t *assets = ecs_field(iter, assets_t, 0);
+	SDL_GPUDevice *gpu_device = *ecs_field(iter, gpu_device_t*, 1);
+	physics_engine_t *physics_engine = ecs_field(iter, physics_engine_t, 2);
+	const physics_config_t *physics_config = ecs_field(iter, physics_config_t, 3);
+	const camera_t *camera = ecs_field(iter, camera_t, 4);
 
-#define _query(e, d, q)										\
-	const ecs_query_desc_t d = {.expr = e};					\
-	ecs_query_t *q = ecs_query_init(ecs_world(), &d); 		\
-	for (ecs_iter_t iter = ecs_query_iter(ecs_world(), q);	\
-		ecs_query_next(&iter) || query_cleanup(q);)
+	// Blaster
 
-#define query(expr) _query(expr, _query_name(_d), _query_name(_q))
+	const ecs_entity_t blaster = load_model(assets, gpu_device, "blaster");
+	if (blaster == 0)
+	{
+		SDL_LogError(LOG_CATEGORY_CORE, "Failed to load model: %s", SDL_GetError());
+		return;
+	}
+
+	const ecs_entity_t blaster_instance = create_instance(blaster, 0);
+
+	const rotation_t rotation = {
+		.x = 0.F,
+		.y = 90.F,
+		.z = 0.F,
+	};
+	const ecs_id_t rotation_id = ecs_lookup(ecs_world(), "chirp.Rotation");
+	ecs_set_id(ecs_world(), blaster_instance, rotation_id, sizeof(rotation_t), &rotation);
+
+	const position_t position = {
+		.x = 5.F,
+		.y = 1.F,
+		.z = -5.F,
+	};
+	const ecs_id_t position_id = ecs_lookup(ecs_world(), "chirp.Position");
+	ecs_set_id(ecs_world(), blaster_instance, position_id, sizeof(position_t), &position);
+
+	// Bullet
+
+	load_model(assets, gpu_device, "bullet");
+
+	// Scene
+
+	const ecs_entity_t scene = load_model(assets, gpu_device, "scene");
+	if (scene == 0)
+	{
+		SDL_LogError(LOG_CATEGORY_CORE, "Failed to load scene");
+		return;
+	}
+
+	const ecs_id_t scene_id = ecs_lookup(ecs_world(), "chirp.Scene");
+	ecs_add_id(ecs_world(), scene, scene_id);
+
+	// Physics
+
+	const auto floor_size = (vector3f_t){.x = 100.F, .y = 0.F, .z = 100.F};
+
+	const box_config_t floor_config = {
+		.half_extents = floor_size,
+		.friction = 15.F,
+		.body = (body_config_t){
+			.motion_type = MOTION_TYPE_STATIC,
+			.layer = OBJ_LAYER_STATIC,
+			.position = vector3f_zero(),
+			.activate = false,
+		},
+	};
+	physics_add_box(physics_engine, &floor_config);
+
+	const capsule_config_t player_config = {
+		.half_height = 0.5F,
+		.radius = 1.F,
+		.allowed_dof = DOF_TRANSLATION_3D,
+		.body = (body_config_t){
+			.position = vector3f_zero(),
+			.motion_type = MOTION_TYPE_DYNAMIC,
+			.layer = OBJ_LAYER_DYNAMIC,
+			.activate = false,
+		},
+	};
+	const physics_body_id_t player_physics_id = physics_add_capsule(physics_engine, &player_config);
+	physics_body_set_position(physics_engine, player_physics_id, camera->position, true);
+
+	const ecs_entity_desc_t entity_desc = {
+		.name = "Player",
+	};
+	const ecs_entity_t player_entity = ecs_entity_init(ecs_world(), &entity_desc);
+	const ecs_id_t physics_body_id = ecs_lookup(ecs_world(), "chirp.PhysicsBody");
+	ecs_set_id(ecs_world(), player_entity, physics_body_id, sizeof(physics_body_id_t), &player_physics_id);
+
+	const vector3f_t gravity = {.y = -physics_config->gravity_y};
+	physics_set_gravity(physics_engine, gravity);
+
+	physics_optimize(physics_engine);
+
+	query("[in] chirp.Position(Model.scene.Spawn)")
+	{
+		const position_t *spawn_position = ecs_field(&iter, position_t, 0);
+		SDL_Log("Spawn: %f %f %f", spawn_position->x, spawn_position->y, spawn_position->z);
+	}
+}
 
 SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	[[maybe_unused]] char **argv)
@@ -260,8 +307,26 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	system_register_assets();
 	system_register_imgui();
 
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
 	const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
+	const ecs_id_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
+	const ecs_id_t physics_engine_id = ecs_lookup(ecs_world(), "chirp.PhysicsEngine");
+	const ecs_id_t physics_config_id = ecs_lookup(ecs_world(), "chirp.PhysicsConfig");
+	const ecs_id_t camera_id = ecs_lookup(ecs_world(), "chirp.Camera");
+
+	register_scene_components();
+	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
+		.query.terms = {
+			(ecs_term_t){.id = assets_id},
+			(ecs_term_t){.id = gpu_device_id},
+			(ecs_term_t){.id = physics_engine_id},
+			(ecs_term_t){.id = physics_config_id},
+			(ecs_term_t){.id = camera_id},
+		},
+		.events = {EcsOnSet},
+		.callback = build_scene,
+	});
+
+	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
 	const assets_t *assets = ecs_get_id(ecs_world(), engine, assets_id);
 
 #ifdef FORCE_X11
@@ -282,12 +347,10 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 	state->last_update = SDL_GetTicks();
 
-	const ecs_entity_t camera_id = ecs_lookup(ecs_world(), "chirp.Camera");
 	const camera_t camera = camera_create_default();
 	ecs_set_id(ecs_world(), engine, camera_id,
 		sizeof(camera_t), &camera);
 
-	const ecs_entity_t physics_config_id = ecs_lookup(ecs_world(), "chirp.PhysicsConfig");
 	const physics_config_t physics_config = physics_config_create_default();
 	ecs_set_id(ecs_world(), engine, physics_config_id,
 		sizeof(physics_config_t), &physics_config);
@@ -298,54 +361,8 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		return fatal_error("Failed to initialise physics engine");
 	}
 
-	const ecs_entity_t physics_engine_id = ecs_lookup(ecs_world(), "chirp.PhysicsEngine");
 	ecs_set_id(ecs_world(), engine, physics_engine_id,
 		sizeof(physics_engine_t), &physics_engine);
-
-	{
-		const ecs_entity_t blaster = load_model("blaster");
-		if (blaster == 0)
-		{
-			return fatal_error("Failed to load model");
-		}
-
-		const ecs_entity_t blaster_instance = create_instance(blaster, 0);
-
-		const rotation_t rotation = {
-			.x = 0.F,
-			.y = 90.F,
-			.z = 0.F,
-		};
-		const ecs_id_t rotation_id = ecs_lookup(ecs_world(), "chirp.Rotation");
-		ecs_set_id(ecs_world(), blaster_instance, rotation_id, sizeof(rotation_t), &rotation);
-
-		const position_t position = {
-			.x = 5.F,
-			.y = 1.F,
-			.z = -5.F,
-		};
-		const ecs_id_t position_id = ecs_lookup(ecs_world(), "chirp.Position");
-		ecs_set_id(ecs_world(), blaster_instance, position_id, sizeof(position_t), &position);
-	}
-	{
-		const ecs_entity_t scene = load_model("scene");
-		if (scene == 0)
-		{
-			return fatal_error("Failed to load scene");
-		}
-
-		const ecs_id_t scene_id = ecs_lookup(ecs_world(), "chirp.Scene");
-		ecs_add_id(ecs_world(), scene, scene_id);
-	}
-	{
-		load_model("bullet");
-	}
-
-	query("[in] chirp.Position(Model.scene.Spawn)")
-	{
-		const position_t *position = ecs_field(&iter, position_t, 0);
-		SDL_Log("Spawn: %f %f %f", position->x, position->y, position->z);
-	}
 
 	script_engine_create();
 
@@ -360,7 +377,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		return fatal_error("Failed to execute script");
 	}
 
-	return build_scene();
+	return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate)
@@ -393,8 +410,9 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	const ecs_entity_t player_entity = ecs_lookup(ecs_world(), "Player");
 	const ecs_id_t physics_body_id = ecs_lookup(ecs_world(), "chirp.PhysicsBody");
-	const physics_body_id_t player_body_id = *((physics_body_id_t*) ecs_get_id(ecs_world(),
-		player_entity, physics_body_id));
+	const physics_body_id_t player_body_id = player_entity != 0
+		? *((physics_body_id_t*) ecs_get_id(ecs_world(), player_entity, physics_body_id))
+		: 0;
 
 	if (!physics_update(physics_engine, state->dt))
 	{
@@ -535,6 +553,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(forward_n, 0.2F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(right_n, 0.25F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(up_n, -0.2F));
+
 	query("[none] (chirp.InstanceOf, Model.blaster), [out] chirp.Position,"
 		"[out] chirp.Rotation, [out] chirp.Projection")
 	{
@@ -565,14 +584,18 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 
-	cImGui_ImplSDLGPU3_NewFrame();
-	cImGui_ImplSDL3_NewFrame();
-	ImGui_NewFrame();
+	ImDrawData *draw_data = nullptr;
+	query("[none] chirp.ImGuiContext")
 	{
-		draw_debug_overlay(state);
+		cImGui_ImplSDLGPU3_NewFrame();
+		cImGui_ImplSDL3_NewFrame();
+		ImGui_NewFrame();
+		{
+			draw_debug_overlay(state);
+		}
+		ImGui_Render();
+		draw_data = ImGui_GetDrawData();
 	}
-	ImGui_Render();
-	ImDrawData *draw_data = ImGui_GetDrawData();
 
 	SDL_GPUCommandBuffer *command_buffer = nullptr;
 	SDL_GPURenderPass *render_pass = nullptr;
@@ -580,6 +603,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
 	SDL_GPUTexture *depth_texture = ecs_mut_data_ptr("chirp.DepthTexture");
+
+	if (gpu_device == nullptr)
+	{
+		return SDL_APP_CONTINUE;
+	}
 
 	if (draw_begin(gpu_device, window, clear_color, depth_texture,
 		draw_data, &command_buffer, &render_pass, &size))
@@ -676,7 +704,10 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 		return SDL_APP_SUCCESS;
 	}
 
-	cImGui_ImplSDL3_ProcessEvent(event);
+	query("[none] chirp.ImGuiContext")
+	{
+		cImGui_ImplSDL3_ProcessEvent(event);
+	}
 
 	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
 
@@ -698,15 +729,16 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 
 	if (event->type == SDL_EVENT_WINDOW_RESIZED)
 	{
-		SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
-		const auto depth_texture = (SDL_GPUTexture**) ecs_const_data("chirp.DepthTexture");
-
-		SDL_ReleaseGPUTexture(gpu_device, *depth_texture);
-		const auto size = (vector2i_t){
-			.x = event->window.data1,
-			.y = event->window.data2,
-		};
-		*depth_texture = create_depth_texture(gpu_device, size);
+		// TODO
+		// SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
+		// const auto depth_texture = (SDL_GPUTexture**) ecs_const_data("chirp.DepthTexture");
+		//
+		// SDL_ReleaseGPUTexture(gpu_device, *depth_texture);
+		// const auto size = (vector2i_t){
+		// 	.x = event->window.data1,
+		// 	.y = event->window.data2,
+		// };
+		// *depth_texture = create_depth_texture(gpu_device, size);
 	}
 
 	return SDL_APP_CONTINUE;
