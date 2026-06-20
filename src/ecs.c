@@ -222,6 +222,10 @@ static void module([[maybe_unused]] ecs_world_t *ewt)
 		component("ImGuiContext", imgui_context_t*);
 
 #ifndef NDEBUG
+		reflect("chirp.Init",
+			(ecs_member_t){.name = "flags", .type = ecs_id(ecs_u32_t)},
+		);
+
 		reflect("chirp.WindowConfig",
 			(ecs_member_t){.name = "title", .type = ecs_id(ecs_string_t)},
 			(ecs_member_t){.name = "size", .type = ecs_id(ecs_i32_t), .count = 2},
