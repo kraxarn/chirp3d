@@ -624,8 +624,6 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 				},
 			};
 			const physics_body_id_t body_id = physics_add_cylinder(physics_engine, &config);
-
-			const ecs_id_t physics_body_id = ecs_lookup(ecs_world(), "chirp.PhysicsBody");
 			ecs_set_id(ecs_world(), entity, physics_body_id, sizeof(physics_body_id_t), &body_id);
 
 			const vector3f_t forward = vector3f_normalize(vector3f_sub(camera->target, position));
