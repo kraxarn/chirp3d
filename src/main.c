@@ -111,16 +111,10 @@ static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device,
 		return 0;
 	}
 
-	const ecs_entity_desc_t parent_desc = {
-		.name = "Model",
-	};
-	const ecs_entity_t parent = ecs_entity_init(ecs_world(), &parent_desc);
-
-	const ecs_entity_desc_t entity_desc = {
-		.name = name,
-	};
-	const ecs_entity_t entity = ecs_entity_init(ecs_world(), &entity_desc);
-	ecs_add_pair(ecs_world(), entity, EcsChildOf, parent);
+	char *path = nullptr;
+	SDL_asprintf(&path, "Model.%s", name);
+	const ecs_entity_t entity = ecs_lookup(ecs_world(), path);
+	SDL_free(path);
 
 	const ecs_id_t model_id = ecs_lookup(ecs_world(), "chirp.Model");
 	ecs_set_id(ecs_world(), entity, model_id, sizeof(model_t), &model);
@@ -173,7 +167,16 @@ static ecs_entity_t create_instance(const ecs_entity_t entity, const size_t node
 
 static void register_scene_components()
 {
-	ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){.name = "Model.blaster"});
+	const ecs_entity_t model_entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){.name = "Model"});
+
+	const ecs_entity_t blaster = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){.name = "blaster"});
+	ecs_add_pair(ecs_world(), blaster, EcsChildOf, model_entity);
+
+	const ecs_entity_t bullet = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){.name = "bullet"});
+	ecs_add_pair(ecs_world(), bullet, EcsChildOf, model_entity);
+
+	const ecs_entity_t scene = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){.name = "scene"});
+	ecs_add_pair(ecs_world(), scene, EcsChildOf, model_entity);
 }
 
 static void build_scene(ecs_iter_t *iter)
