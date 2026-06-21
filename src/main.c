@@ -309,6 +309,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	system_register_window();
 	system_register_imgui();
 	system_register_assets();
+	system_register_physics();
 
 	const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
 	const ecs_id_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
@@ -415,11 +416,6 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	const physics_body_id_t player_body_id = player_entity != 0
 		? *((physics_body_id_t*) ecs_get_id(ecs_world(), player_entity, physics_body_id))
 		: 0;
-
-	if (!physics_update(physics_engine, state->dt))
-	{
-		return fatal_error("Failed to update physics");
-	}
 
 	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
 	camera_t *camera = ecs_mut_data("chirp.Camera");
