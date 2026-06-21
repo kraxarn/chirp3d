@@ -564,22 +564,6 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		ecs_field(&iter, projection_t, 3)->rebuild = true;
 	}
 
-	query("[in] chirp.PhysicsBody, [out] chirp.Position, [out] chirp.Rotation")
-	{
-		const physics_body_id_t body_id = *ecs_field(&iter, physics_body_id_t, 0);
-		auto position = ecs_field(&iter, position_t, 1);
-		auto rotation = ecs_field(&iter, rotation_t, 2);
-
-		*position = physics_body_position(physics_engine, body_id);
-
-		const vector4f_t jph_rotation = physics_body_rotation(physics_engine, body_id);
-		*rotation = (rotation_t){
-			.x = jph_rotation.x,
-			.y = jph_rotation.y,
-			.z = jph_rotation.z,
-		};
-	}
-
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 
 	ImDrawData *draw_data = nullptr;
