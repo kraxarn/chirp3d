@@ -204,11 +204,59 @@ static ecs_entity_t tag(const char *name)
 		ecs_struct_init(world, &struct_desc);	\
 	} while (false)
 
+#define scope(name)	\
+	for (const ecs_entity_t mod = ecs_module_init(world, name, &(ecs_component_desc_t){}),	\
+		scope = ecs_set_scope(world, mod);													\
+		ecs_get_scope(world) == mod;														\
+		ecs_set_scope(world, scope))
+
+static void add_events()
+{
+#define add_event(event) component(#event, SDL_##event)
+	// See SDL3/SDL_events.h
+	add_event(DisplayEvent);
+	add_event(WindowEvent);
+	add_event(KeyboardDeviceEvent);
+	add_event(KeyboardEvent);
+	add_event(TextEditingEvent);
+	add_event(TextEditingCandidatesEvent);
+	add_event(TextInputEvent);
+	add_event(MouseDeviceEvent);
+	add_event(MouseMotionEvent);
+	add_event(MouseButtonEvent);
+	add_event(MouseWheelEvent);
+	add_event(JoyDeviceEvent);
+	add_event(JoyAxisEvent);
+	add_event(JoyBallEvent);
+	add_event(JoyHatEvent);
+	add_event(JoyButtonEvent);
+	add_event(JoyBatteryEvent);
+	add_event(GamepadDeviceEvent);
+	add_event(GamepadAxisEvent);
+	add_event(GamepadButtonEvent);
+	add_event(GamepadTouchpadEvent);
+	add_event(GamepadSensorEvent);
+	add_event(AudioDeviceEvent);
+	add_event(CameraDeviceEvent);
+	add_event(SensorEvent);
+	add_event(QuitEvent);
+	add_event(UserEvent);
+	add_event(TouchFingerEvent);
+	add_event(PinchFingerEvent);
+	add_event(PenProximityEvent);
+	add_event(PenTouchEvent);
+	add_event(PenMotionEvent);
+	add_event(PenButtonEvent);
+	add_event(PenAxisEvent);
+	add_event(RenderEvent);
+	add_event(DropEvent);
+	add_event(ClipboardEvent);
+#undef add_event
+}
+
 static void module([[maybe_unused]] ecs_world_t *unused)
 {
-	const ecs_component_desc_t desc = {};
-	const ecs_entity_t mod = ecs_module_init(world, "Chirp", &desc);
-	const ecs_entity_t scope = ecs_set_scope(world, mod);
+	scope("Chirp")
 	{
 		tag("Engine");
 
@@ -296,7 +344,11 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 
 		create_pipeline();
 	}
-	ecs_set_scope(world, scope);
+
+	scope("ChirpEvents")
+	{
+		add_events();
+	}
 }
 
 static void on_init_set([[maybe_unused]] ecs_iter_t *iter)
