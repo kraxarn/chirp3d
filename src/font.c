@@ -1,5 +1,4 @@
 #include "font.h"
-#include "gpu.h"
 #include "logcategory.h"
 #include "matrix.h"
 #include "model.h"

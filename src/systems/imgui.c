@@ -79,6 +79,15 @@ static void on_window_gpu_set(ecs_iter_t *iter)
 		sizeof(ImGuiContext*), (void*) &context);
 }
 
+static void render(ecs_iter_t *iter)
+{
+	SDL_GPUCommandBuffer *command_buffer = *ecs_field(iter, gpu_command_buffer_t*, 0);
+	SDL_GPURenderPass *render_pass = *ecs_field(iter, gpu_render_pass_t*, 1);
+	ImDrawData *draw_data = ecs_field(iter, imgui_draw_data_t, 2);
+
+	cImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
+}
+
 void system_register_imgui()
 {
 	const ecs_observer_desc_t observer_desc = {
@@ -94,4 +103,13 @@ void system_register_imgui()
 		.callback = on_window_gpu_set,
 	};
 	ecs_observer_init(ecs_world(), &observer_desc);
+
+	ecs_system_init(ecs_world(), &(ecs_system_desc_t){
+		.entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
+			.name = "RenderScene",
+			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_RENDER))),
+		}),
+		.query.expr = "[in] chirp.GpuCommandBuffer, [in] chirp.GpuRenderPass, [in] chirp.ImGuiDrawData",
+		.callback = render,
+	});
 }

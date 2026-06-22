@@ -17,14 +17,21 @@ typedef SDL_InitFlags init_flags_t;
 typedef SDL_Window window_t;
 typedef SDL_GPUDevice gpu_device_t;
 typedef SDL_GPUGraphicsPipeline gpu_graphics_pipeline_t;
+typedef SDL_GPUCommandBuffer gpu_command_buffer_t;
+typedef SDL_GPURenderPass gpu_render_pass_t;
 typedef SDL_GPUTexture depth_texture_t;
+typedef SDL_GPUTexture swapchain_texture_t;
+typedef vector2f_t swapchain_texture_size_t;
 typedef size_t instance_of_index_t;
 typedef vector3f_t rotation_t;
 typedef vector3f_t position_t;
 typedef vector3f_t scale_t;
 typedef ImGuiContext imgui_context_t;
+typedef ImDrawData imgui_draw_data_t;
 typedef SDL_GPUShader vertex_shader_t;
 typedef SDL_GPUShader fragment_shader_t;
+typedef SDL_FColor clear_color_t;
+typedef matrix4x4_t view_projection_t;
 
 typedef struct
 {

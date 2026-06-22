@@ -2,11 +2,8 @@
 #include "assets.h"
 #include "camera.h"
 #include "ecs.h"
-#include "gpu.h"
 #include "input.h"
 #include "logcategory.h"
-#include "math.h"
-#include "matrix.h"
 #include "model.h"
 #include "physics.h"
 #include "physicsconfig.h"
@@ -310,6 +307,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	system_register_imgui();
 	system_register_assets();
 	system_register_physics();
+	system_register_render();
 
 	const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
 	const ecs_id_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
@@ -379,6 +377,10 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	{
 		return fatal_error("Failed to execute script");
 	}
+
+	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
+	ecs_set_id(ecs_world(), engine, ecs_lookup(ecs_world(), "chirp.ClearColor"),
+		sizeof(clear_color_t), &clear_color);
 
 	return SDL_APP_CONTINUE;
 }
@@ -564,8 +566,6 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		ecs_field(&iter, projection_t, 3)->rebuild = true;
 	}
 
-	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
-
 	ImDrawData *draw_data = nullptr;
 	query("[none] chirp.ImGuiContext")
 	{
@@ -577,103 +577,6 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		}
 		ImGui_Render();
 		draw_data = ImGui_GetDrawData();
-	}
-
-	SDL_GPUCommandBuffer *command_buffer = nullptr;
-	SDL_GPURenderPass *render_pass = nullptr;
-	vector2f_t size;
-
-	SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
-	SDL_GPUTexture *depth_texture = ecs_mut_data_ptr("chirp.DepthTexture");
-
-	if (gpu_device == nullptr)
-	{
-		return SDL_APP_CONTINUE;
-	}
-
-	if (draw_begin(gpu_device, window, clear_color, depth_texture,
-		draw_data, &command_buffer, &render_pass, &size))
-	{
-		const matrix4x4_t proj = matrix4x4_create_perspective(
-			deg2rad(camera->fov_y),
-			size.x / size.y,
-			camera->near_plane,
-			camera->far_plane
-		);
-		const matrix4x4_t view = matrix4x4_create_look_at(
-			camera->position,
-			camera->target,
-			camera->up
-		);
-		const matrix4x4_t view_proj = matrix4x4_multiply(view, proj);
-
-		SDL_GPUGraphicsPipeline *pipeline = ecs_mut_data_ptr("chirp.GpuGraphicsPipeline");
-		SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
-
-		query("[in] chirp.Model, [none] chirp.Scene")
-		{
-			const model_t *model = ecs_field(&iter, model_t, 0);
-			model_draw(model, render_pass, command_buffer, view_proj);
-		}
-
-		query("[in] (chirp.InstanceOf, *), [inout] chirp.Projection,"
-			"[in] ?chirp.Scale, [in] ?chirp.Rotation, [in] ?chirp.Position")
-		{
-			const ecs_id_t pair_id = ecs_field_id(&iter, 0);
-			auto projection = ecs_field(&iter, projection_t, 1);
-
-			const ecs_id_t model_id = ecs_lookup(ecs_world(), "chirp.Model");
-			const ecs_entity_t model_entity = ecs_pair_second(ecs_world(), pair_id);
-			const model_t *model = ecs_get_id(ecs_world(), model_entity, model_id);
-			const size_t *index = ecs_field(&iter, size_t, 0);
-
-			if (projection->rebuild)
-			{
-				Uint8 mul = 0;
-				projection->value = matrix4x4_zero();
-
-				const scale_t *scale = ecs_field(&iter, scale_t, 2);
-				if (scale != nullptr)
-				{
-					projection->value = mul++ > 0
-						? matrix4x4_multiply(projection->value, matrix4x4_create_scale(*scale))
-						: matrix4x4_create_scale(*scale);
-				}
-
-				const scale_t *rotation = ecs_field(&iter, rotation_t, 3);
-				if (rotation != nullptr)
-				{
-					const matrix4x4_t transform = matrix4x4_multiply_n((matrix4x4_t[]){
-						matrix4x4_create_rotation_x(rotation->x),
-						matrix4x4_create_rotation_y(rotation->y),
-						matrix4x4_create_rotation_z(rotation->z),
-					}, 3);
-
-					projection->value = mul++ > 0
-						? matrix4x4_multiply(projection->value, transform)
-						: transform;
-				}
-
-				const scale_t *position = ecs_field(&iter, position_t, 4);
-				if (position != nullptr)
-				{
-					projection->value = mul > 0
-						? matrix4x4_multiply(projection->value, matrix4x4_create_translation(*position))
-						: matrix4x4_create_translation(*position);
-				}
-
-				projection->rebuild = false;
-			}
-
-			model_draw_indexed(model, *index, render_pass, command_buffer,
-				matrix4x4_multiply(projection->value, view_proj));
-		}
-
-		cImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
-	}
-	if (!draw_end())
-	{
-		return fatal_error("Rendering failed");
 	}
 
 	return SDL_APP_CONTINUE;

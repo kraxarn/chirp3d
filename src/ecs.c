@@ -267,6 +267,10 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		component("GpuDevice", gpu_device_t*);
 		component("GpuGraphicsPipeline", gpu_graphics_pipeline_t*);
 		component("DepthTexture", depth_texture_t*);
+		component("GpuCommandBuffer", gpu_command_buffer_t*);
+		component("GpuRenderPass", gpu_render_pass_t*);
+		component("SwapchainTexture", swapchain_texture_t*);
+		component("SwapchainTextureSize", swapchain_texture_size_t);
 		component("Camera", camera_t);
 		component("PhysicsConfig", physics_config_t);
 		component("PhysicsEngine", physics_engine_t);
@@ -278,8 +282,11 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		component("Scale", scale_t);
 		component("Projection", projection_t);
 		component("ImGuiContext", imgui_context_t*);
+		component("ImGuiDrawData", imgui_draw_data_t);
 		component("VertexShader", vertex_shader_t*);
 		component("FragmentShader", fragment_shader_t*);
+		component("ClearColor", clear_color_t);
+		component("ViewProjection", view_projection_t);
 
 #ifndef NDEBUG
 		reflect("chirp.Init",
