@@ -159,6 +159,11 @@ static void create_pipeline()
 	phase_depend(PHASE_RENDER_END, PHASE_RENDER);
 }
 
+static void ctor_zero(void *ptr, const Sint32 count, const ecs_type_info_t *type_info)
+{
+	SDL_memset(ptr, 0, (size_t) count * type_info->size);
+}
+
 static ecs_entity_t component_impl(const char *name, const char *symbol,
 	const ecs_size_t size, const ecs_size_t alignment)
 {
@@ -176,9 +181,15 @@ static ecs_entity_t component_impl(const char *name, const char *symbol,
 		},
 	};
 
-	const ecs_entity_t entity = ecs_component_init(world, &component_desc);
-	SDL_assert(entity != 0);
-	return entity;
+	const ecs_entity_t component = ecs_component_init(world, &component_desc);
+	SDL_assert(component != 0);
+
+	const ecs_type_hooks_t hooks = {
+		.ctor = ctor_zero,
+	};
+	ecs_set_hooks_id(world, component, &hooks);
+
+	return component;
 }
 
 #define component(name, symbol)	\
