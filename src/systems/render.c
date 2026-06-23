@@ -32,7 +32,7 @@ static void begin_render(ecs_iter_t *iter)
 	*command_buffer = SDL_AcquireGPUCommandBuffer(device);
 	if (*command_buffer == nullptr)
 	{
-		SDL_LogWarn(LOG_CATEGORY_RENDER, "Failed to acquire command buffer: %s", SDL_GetError());
+		ecs_set_error("Command buffer error", SDL_GetError());
 		return;
 	}
 
@@ -42,7 +42,7 @@ static void begin_render(ecs_iter_t *iter)
 	if (!SDL_WaitAndAcquireGPUSwapchainTexture(*command_buffer, window,
 		swapchain_texture, &swapchain_texture_width, &swapchain_texture_height))
 	{
-		SDL_LogWarn(LOG_CATEGORY_RENDER, "Failed to acquire swapchain texture: %s", SDL_GetError());
+		ecs_set_error("Swapchain texture error", SDL_GetError());
 		SDL_CancelGPUCommandBuffer(*command_buffer);
 		return;
 	}
