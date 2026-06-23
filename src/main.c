@@ -311,7 +311,6 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 	system_register_gpu();
 	system_register_window();
-	system_register_imgui();
 	system_register_assets();
 	system_register_physics();
 	system_register_render();
@@ -572,19 +571,6 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		ecs_field(&iter, projection_t, 3)->rebuild = true;
 	}
 
-	ImDrawData *draw_data = nullptr;
-	query("[none] chirp.ImGuiContext")
-	{
-		cImGui_ImplSDLGPU3_NewFrame();
-		cImGui_ImplSDL3_NewFrame();
-		ImGui_NewFrame();
-		{
-			draw_debug_overlay(state);
-		}
-		ImGui_Render();
-		draw_data = ImGui_GetDrawData();
-	}
-
 	ecs_iter_t iter = ecs_query_iter(ecs_world(), state->status_query);
 	if (ecs_query_next(&iter))
 	{
@@ -617,7 +603,7 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 
 	if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN
 		&& event->button.button == SDL_BUTTON_LEFT
-		&& !ImGui_GetIO()->WantCaptureMouse)
+		/* && !ImGui_GetIO()->WantCaptureMouse */)
 	{
 		SDL_SetWindowRelativeMouseMode(window, true);
 	}
@@ -663,9 +649,9 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	physics_destroy(ecs_const_data("chirp.PhysicsEngine"));
 	script_engine_destroy();
 
-	cImGui_ImplSDL3_Shutdown();
-	cImGui_ImplSDLGPU3_Shutdown();
-	ImGui_DestroyContext(nullptr);
+	// cImGui_ImplSDL3_Shutdown();
+	// cImGui_ImplSDLGPU3_Shutdown();
+	// ImGui_DestroyContext(nullptr);
 
 	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
 	SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
