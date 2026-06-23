@@ -441,9 +441,7 @@ ecs_entity_t ecs_set_error(const char *title, const char *message)
 
 	const error_t error = {
 		.title = SDL_strdup(title),
-		.message = SDL_strdup(message != nullptr
-			? message
-			: SDL_GetError()),
+		.message = SDL_strdup(message),
 	};
 
 	const ecs_id_t error_id = ecs_lookup(world, "chirp.Error");
