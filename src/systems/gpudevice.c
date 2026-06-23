@@ -297,8 +297,6 @@ void system_register_gpu()
 {
 	const ecs_id_t window_id = ecs_lookup(ecs_world(), "chirp.Window");
 	const ecs_id_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
-	const ecs_id_t vertex_shader_id = ecs_lookup(ecs_world(), "chirp.VertexShader");
-	const ecs_id_t fragment_shader_id = ecs_lookup(ecs_world(), "chirp.FragmentShader");
 
 	const ecs_observer_desc_t observer_desc[] = {
 		(ecs_observer_desc_t){
@@ -339,12 +337,9 @@ void system_register_gpu()
 			.callback = load_default_shaders,
 		},
 		(ecs_observer_desc_t){
-			.query.terms = {
-				(ecs_term_t){.id = window_id},
-				(ecs_term_t){.id = gpu_device_id},
-				(ecs_term_t){.id = vertex_shader_id},
-				(ecs_term_t){.id = fragment_shader_id},
-			},
+			.query.expr =
+			"[in] chirp.Window($engine), [in] chirp.GpuDevice($engine),"
+			"[in] chirp.VertexShader($this), [in] chirp.FragmentShader($this)",
 			.events = {EcsOnSet},
 			.callback = create_default_pipeline,
 		},
