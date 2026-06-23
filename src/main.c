@@ -288,6 +288,13 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
 #endif
 
+#ifdef FORCE_X11
+	if (!SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11"))
+	{
+		return fatal_error("Failed to set X11 hint");
+	}
+#endif
+
 	if (!sdl_supported())
 	{
 		return fatal_error("Unsupported SDL version");
@@ -329,13 +336,6 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
 	const assets_t *assets = ecs_get_id(ecs_world(), engine, assets_id);
-
-#ifdef FORCE_X11
-	if (!SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11"))
-	{
-		return fatal_error(nullptr, "Failed to set X11 hint");
-	}
-#endif
 
 	constexpr SDL_InitFlags init_flags = SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD;
 	if (!SDL_Init(init_flags))
