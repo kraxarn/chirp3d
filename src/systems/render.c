@@ -1,6 +1,5 @@
 #include "camera.h"
 #include "ecs.h"
-#include "logcategory.h"
 #include "math.h"
 #include "model.h"
 #include "systems.h"
@@ -12,7 +11,6 @@
 
 #include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_gpu.h>
-#include <SDL3/SDL_log.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
 
@@ -251,8 +249,8 @@ void system_register_render()
 		}),
 		.query.expr =
 		"[in] chirp.GpuRenderPass, [in] chirp.GpuCommandBuffer, [in] chirp.ViewProjection,"
-		"[in] (chirp.InstanceOf, *), [inout] chirp.Projection, [in] ?chirp.Scale,"
-		"[in] ?chirp.Rotation, [in] ?chirp.Position",
+		"[in] chirp.InstanceOf($model, *), [inout] chirp.Projection($model),"
+		"[in] ?chirp.Scale($model), [in] ?chirp.Rotation($model), [in] ?chirp.Position($model)",
 		.callback = render_model,
 	});
 
