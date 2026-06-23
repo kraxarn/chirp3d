@@ -240,7 +240,7 @@ void system_register_render()
 		}),
 		.query.expr =
 		"[in] chirp.GpuRenderPass, [in] chirp.GpuCommandBuffer,"
-		"[in] chirp.ViewProjection, [in] chirp.Model, [none] chirp.Scene",
+		"[in] chirp.ViewProjection, [in] chirp.Model($model), [none] chirp.Scene($model)",
 		.callback = render_scene,
 	});
 
