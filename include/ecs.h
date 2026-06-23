@@ -39,6 +39,12 @@ typedef struct
 	matrix4x4_t value;
 } projection_t;
 
+typedef struct
+{
+	char *title;
+	char *message;
+} error_t;
+
 typedef enum : Uint8
 {
 	PHASE_UPDATE,         // Update game logic
@@ -59,6 +65,8 @@ ecs_world_t *ecs_world();
 
 [[nodiscard]]
 ecs_entity_t ecs_phase(phase_t phase);
+
+ecs_entity_t ecs_set_error(const char *title, const char *message);
 
 [[nodiscard]]
 const void *ecs_const_data(const char *name);

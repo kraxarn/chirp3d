@@ -382,6 +382,12 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	ecs_set_id(ecs_world(), engine, ecs_lookup(ecs_world(), "chirp.ClearColor"),
 		sizeof(clear_color_t), &clear_color);
 
+	state->status_query = ecs_query_init(ecs_world(), &(ecs_query_desc_t){
+		.terms = {
+			(ecs_term_t){.id = ecs_lookup(ecs_world(), "chirp.Error")},
+		},
+	});
+
 	return SDL_APP_CONTINUE;
 }
 
@@ -577,6 +583,19 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		}
 		ImGui_Render();
 		draw_data = ImGui_GetDrawData();
+	}
+
+	ecs_iter_t iter = ecs_query_iter(ecs_world(), state->status_query);
+	if (ecs_query_next(&iter))
+	{
+		const error_t *error = ecs_field(&iter, error_t, 0);
+		SDL_LogCritical(LOG_CATEGORY_CORE, "%s: %s", error->title, error->message);
+#ifdef NDEBUG
+		SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, error->title, error->message, window);
+#endif
+		ecs_iter_fini(&iter);
+		return SDL_APP_FAILURE;
 	}
 
 	return SDL_APP_CONTINUE;

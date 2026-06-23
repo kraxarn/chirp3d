@@ -298,6 +298,7 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		component("FragmentShader", fragment_shader_t*);
 		component("ClearColor", clear_color_t);
 		component("ViewProjection", view_projection_t);
+		component("Error", error_t);
 
 #ifndef NDEBUG
 		reflect("chirp.Init",
@@ -355,6 +356,11 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		reflect("chirp.Projection",
 			(ecs_member_t){.name = "rebuild", .type = ecs_id(ecs_bool_t)},
 			(ecs_member_t){.name = "value", .type = ecs_id(ecs_f32_t), .count = 16},
+		);
+
+		reflect("chirp.Error",
+			(ecs_member_t){.name = "title", .type = ecs_id(ecs_string_t)},
+			(ecs_member_t){.name = "message", .type = ecs_id(ecs_string_t)},
 		);
 #endif
 
@@ -426,6 +432,23 @@ ecs_entity_t ecs_phase(const phase_t phase)
 {
 	const ecs_entity_t entity = phases[phase];
 	SDL_assert(entity != 0);
+	return entity;
+}
+
+ecs_entity_t ecs_set_error(const char *title, const char *message)
+{
+	const ecs_entity_t entity = ecs_new(world);
+
+	const error_t error = {
+		.title = SDL_strdup(title),
+		.message = SDL_strdup(message != nullptr
+			? message
+			: SDL_GetError()),
+	};
+
+	const ecs_id_t error_id = ecs_lookup(world, "chirp.Error");
+	ecs_set_id(world, entity, error_id, sizeof(error_t), &error);
+
 	return entity;
 }
 
