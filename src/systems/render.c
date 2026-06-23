@@ -188,7 +188,7 @@ static void end_render(ecs_iter_t *iter)
 
 	if (command_buffer == nullptr)
 	{
-		SDL_LogError(LOG_CATEGORY_RENDER, "Can't end rendering before starting it");
+		ecs_set_error("Render error", "Can't end rendering before starting it");
 		return;
 	}
 
@@ -199,7 +199,7 @@ static void end_render(ecs_iter_t *iter)
 
 	if (!SDL_SubmitGPUCommandBuffer(command_buffer))
 	{
-		SDL_LogError(LOG_CATEGORY_RENDER, "Failed to render: %s", SDL_GetError());
+		ecs_set_error("Render error", SDL_GetError());
 	}
 }
 

@@ -24,12 +24,10 @@ static void create_gpu_device(ecs_iter_t *iter)
 {
 	SDL_Window *window = *ecs_field(iter, window_t*, 0);
 
-#define log_error() SDL_LogError(LOG_CATEGORY_CORE, "Failed to initialise GPU: %s", SDL_GetError())
-
 	const SDL_PropertiesID props = SDL_CreateProperties();
 	if (props == 0)
 	{
-		log_error();
+		ecs_set_error("Memory error", SDL_GetError());
 		return;
 	}
 
@@ -49,13 +47,13 @@ static void create_gpu_device(ecs_iter_t *iter)
 	SDL_GPUDevice *device = SDL_CreateGPUDeviceWithProperties(props);
 	if (device == nullptr)
 	{
-		log_error();
+		ecs_set_error("GPU error", SDL_GetError());
 		return;
 	}
 
 	if (!SDL_ClaimWindowForGPUDevice(device, window))
 	{
-		log_error();
+		ecs_set_error("Window error", SDL_GetError());
 		SDL_DestroyGPUDevice(device);
 		return;
 	}
@@ -65,8 +63,6 @@ static void create_gpu_device(ecs_iter_t *iter)
 
 	ecs_set_id(ecs_world(), engine, gpu_device_id,
 		sizeof(SDL_GPUDevice*), (const void*) &device);
-
-#undef log_error
 }
 
 static void log_gpu_info(ecs_iter_t *iter)
@@ -113,7 +109,7 @@ static void create_depth_texture(ecs_iter_t *iter)
 	vector2i_t depth_size;
 	if (!SDL_GetWindowSize(window, &depth_size.x, &depth_size.y))
 	{
-		SDL_LogError(LOG_CATEGORY_CORE, "Failed to get window size: %s", SDL_GetError());
+		ecs_set_error("Window error", SDL_GetError());
 		return;
 	}
 
@@ -131,7 +127,7 @@ static void create_depth_texture(ecs_iter_t *iter)
 	SDL_GPUTexture *depth_texture = SDL_CreateGPUTexture(device, &create_info);
 	if (depth_texture == nullptr)
 	{
-		SDL_LogError(LOG_CATEGORY_CORE, "Failed to create depth texture: %s", SDL_GetError());
+		ecs_set_error("Depth texture error", SDL_GetError());
 		return;
 	}
 
@@ -167,7 +163,7 @@ static void load_default_shaders(ecs_iter_t *iter)
 			break;
 
 		default:
-			SDL_LogError(LOG_CATEGORY_CORE, "Unknown shader format: %d", shader_format(device));
+			ecs_set_error("Shader error", SDL_GetError());
 			return;
 	}
 
@@ -176,7 +172,7 @@ static void load_default_shaders(ecs_iter_t *iter)
 
 	if (vertex_shader == nullptr)
 	{
-		SDL_LogError(LOG_CATEGORY_CORE, "Failed to load vertex shader: %s", SDL_GetError());
+		ecs_set_error("Shader error", SDL_GetError());
 		return;
 	}
 
@@ -185,7 +181,8 @@ static void load_default_shaders(ecs_iter_t *iter)
 
 	if (fragment_shader == nullptr)
 	{
-		return SDL_LogError(LOG_CATEGORY_CORE, "Failed to load fragment shader: %s", SDL_GetError());
+		ecs_set_error("Shader error", SDL_GetError());
+		return;
 	}
 
 	const ecs_id_t vertex_shader_id = ecs_lookup(ecs_world(), "chirp.VertexShader");
@@ -285,7 +282,7 @@ static void create_default_pipeline(ecs_iter_t *iter)
 
 	if (pipeline == nullptr)
 	{
-		SDL_LogError(LOG_CATEGORY_CORE, "Failed to initialise pipeline: %s", SDL_GetError());
+		ecs_set_error("Pipeline error", SDL_GetError());
 		return;
 	}
 

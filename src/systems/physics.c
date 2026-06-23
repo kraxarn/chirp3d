@@ -1,18 +1,15 @@
 #include "physics.h"
 #include "ecs.h"
 #include "systems.h"
-#include "logcategory.h"
 
 #include "flecs.h"
-
-#include <SDL3/SDL_log.h>
 
 static void update_physics(ecs_iter_t *iter)
 {
 	const physics_engine_t *physics_engine = ecs_field(iter, physics_engine_t, 0);
 	if (!physics_update(physics_engine, iter->delta_time))
 	{
-		SDL_LogError(LOG_CATEGORY_PHYSICS, "Failed to update physics: %s", SDL_GetError());
+		ecs_set_error("Physics error", SDL_GetError());
 	}
 }
 

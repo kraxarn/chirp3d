@@ -1,11 +1,8 @@
 #include "assets.h"
 #include "ecs.h"
 #include "systems.h"
-#include "logcategory.h"
 
 #include "flecs.h"
-
-#include <SDL3/SDL_log.h>
 
 static void on_assets_set(ecs_iter_t *iter)
 {
@@ -30,7 +27,7 @@ static void on_window_config_set(ecs_iter_t *iter)
 
 	if (window == nullptr)
 	{
-		SDL_LogError(LOG_CATEGORY_CORE, "Failed to create window: %s", SDL_GetError());
+		ecs_set_error("Window error", SDL_GetError());
 		return;
 	}
 

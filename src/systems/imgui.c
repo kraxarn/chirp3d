@@ -1,5 +1,4 @@
 #include "ecs.h"
-#include "logcategory.h"
 #include "resources.h"
 #include "systems.h"
 
@@ -7,8 +6,6 @@
 #include "flecs.h"
 #include "backends/dcimgui_impl_sdl3.h"
 #include "backends/dcimgui_impl_sdlgpu3.h"
-
-#include <SDL3/SDL_log.h>
 
 static void on_window_gpu_set(ecs_iter_t *iter)
 {
@@ -20,7 +17,7 @@ static void on_window_gpu_set(ecs_iter_t *iter)
 	ImGuiContext *context = ImGui_CreateContext(nullptr);
 	if (context == nullptr)
 	{
-		SDL_LogError(LOG_CATEGORY_UI, "Failed to initialise ImGui context");
+		ecs_set_error("ImGui error", "Failed to initialise context");
 		return;
 	}
 
@@ -35,7 +32,7 @@ static void on_window_gpu_set(ecs_iter_t *iter)
 	if (ImFontAtlas_AddFontFromMemoryTTF(im_io->Fonts, font_data, (int) font_size,
 		16.F, nullptr, nullptr) == nullptr)
 	{
-		SDL_LogError(LOG_CATEGORY_UI, "Failed to add font");
+		ecs_set_error("ImGui error", "Failed to load font");
 		return;
 	}
 
@@ -55,7 +52,7 @@ static void on_window_gpu_set(ecs_iter_t *iter)
 
 	if (!cImGui_ImplSDL3_InitForSDLGPU(window))
 	{
-		SDL_LogError(LOG_CATEGORY_UI, "Failed to initialise SDL3 backend");
+		ecs_set_error("ImGui error", "Failed to initialise SDL3 backend");
 		return;
 	}
 
@@ -69,7 +66,8 @@ static void on_window_gpu_set(ecs_iter_t *iter)
 
 	if (!cImGui_ImplSDLGPU3_Init(&init_info))
 	{
-		SDL_LogError(LOG_CATEGORY_UI, "Failed to initialise SDL3 GPU backend");
+		ecs_set_error("ImGui error", "Failed to initialise SDL3 GPU backend");
+		return;
 	}
 
 	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
