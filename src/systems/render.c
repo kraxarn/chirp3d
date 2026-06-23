@@ -186,6 +186,12 @@ static void end_render(ecs_iter_t *iter)
 	SDL_GPUCommandBuffer *command_buffer = *ecs_field(iter, gpu_command_buffer_t*, 1);
 	SDL_GPUTexture *swapchain_texture = *ecs_field(iter, swapchain_texture_t*, 2);
 
+	if (command_buffer == nullptr)
+	{
+		SDL_LogError(LOG_CATEGORY_RENDER, "Can't end rendering before starting it");
+		return;
+	}
+
 	if (swapchain_texture != nullptr)
 	{
 		SDL_EndGPURenderPass(render_pass);
