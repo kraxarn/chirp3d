@@ -17,8 +17,9 @@ static void sync_physics(ecs_iter_t *iter)
 {
 	const physics_engine_t *physics_engine = ecs_field(iter, physics_engine_t, 0);
 	const physics_body_id_t *body_ids = ecs_field(iter, physics_body_id_t, 1);
-	position_t *positions = ecs_field(iter, position_t, 2);
-	rotation_t *rotations = ecs_field(iter, rotation_t, 3);
+	projection_t *projections = ecs_field(iter, projection_t, 2);
+	position_t *positions = ecs_field(iter, position_t, 3);
+	rotation_t *rotations = ecs_field(iter, rotation_t, 4);
 
 	for (Sint32 i = 0; i < iter->count; i++)
 	{
@@ -30,6 +31,8 @@ static void sync_physics(ecs_iter_t *iter)
 			.y = jph_rotation.y,
 			.z = jph_rotation.z,
 		};
+
+		projections[i].rebuild = true;
 	}
 }
 
@@ -51,7 +54,7 @@ void system_register_physics()
 		}),
 		.query.expr =
 		"[in] chirp.PhysicsEngine(chirp.Engine), [in] chirp.PhysicsBody,"
-		"[out] chirp.Position, [out] chirp.Rotation",
+		"[inout] chirp.Projection, [out] chirp.Position, [out] chirp.Rotation",
 		.callback = sync_physics,
 	});
 }
