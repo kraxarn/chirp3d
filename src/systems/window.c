@@ -4,7 +4,7 @@
 
 #include "flecs.h"
 
-static void on_assets_set(ecs_iter_t *iter)
+static void load_window_config(ecs_iter_t *iter)
 {
 	const assets_t *assets = ecs_field(iter, assets_t, 0);
 
@@ -16,7 +16,7 @@ static void on_assets_set(ecs_iter_t *iter)
 		sizeof(window_config_t), &window_config);
 }
 
-static void on_window_config_set(ecs_iter_t *iter)
+static void create_window(ecs_iter_t *iter)
 {
 	const window_config_t *config = ecs_field(iter, window_config_t, 0);
 
@@ -48,7 +48,7 @@ void system_register_window()
 				},
 			},
 			.events = {EcsOnSet},
-			.callback = on_assets_set,
+			.callback = load_window_config,
 		},
 		(ecs_observer_desc_t){
 			.query.terms = {
@@ -57,10 +57,9 @@ void system_register_window()
 				},
 			},
 			.events = {EcsOnSet},
-			.callback = on_window_config_set,
+			.callback = create_window,
 		},
 	};
 
-	ecs_observer_init(ecs_world(), observer_desc + 0);
-	ecs_observer_init(ecs_world(), observer_desc + 1);
+	ecs_observer_init_all(observer_desc);
 }

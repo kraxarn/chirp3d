@@ -31,78 +31,63 @@ typedef struct
 	};
 } input_map_t;
 
-// key name -> input state
-static map_t key_map = 0;
-
-// mouse button name -> input state
-static map_t button_map = 0;
-
-// input name -> input map
-static map_t input_map = 0;
-
-static void update_keyboard_event(const SDL_KeyboardEvent event)
+static void update_keyboard_event(const input_t *input, const SDL_KeyboardEvent event)
 {
 	const char *key_name = SDL_GetKeyName(event.key);
 
 	// Events get repeatedly triggered when key is held down
-	const input_state_t state = map_get(key_map, key_name, STATE_UP);
+	const input_state_t state = map_get(input->key_map, key_name, STATE_UP);
 	if (state != STATE_UP && event.down)
 	{
 		return;
 	}
 
-	map_set(key_map, key_name, event.down ? STATE_PRESSED : STATE_UP);
+	map_set(input->key_map, key_name, event.down ? STATE_PRESSED : STATE_UP);
 }
 
-static void update_mouse_button_event(const SDL_MouseButtonEvent event)
+static void update_mouse_button_event(const input_t *input, const SDL_MouseButtonEvent event)
 {
 	const char *button_name = mouse_button_name(event.button);
-	map_set(button_map, button_name, event.down ? STATE_PRESSED : STATE_UP);
+	map_set(input->button_map, button_name, event.down ? STATE_PRESSED : STATE_UP);
 }
 
-static bool init()
+bool input_create(input_t *input)
 {
-	if (key_map == 0)
+	if (input->key_map == 0)
 	{
-		key_map = map_create();
+		input->key_map = map_create();
 	}
 
-	if (button_map == 0)
+	if (input->button_map == 0)
 	{
-		button_map = map_create();
+		input->button_map = map_create();
 	}
 
-	if (input_map == 0)
+	if (input->name_map == 0)
 	{
-		input_map = map_create();
+		input->name_map = map_create();
 	}
 
-	if (key_map != 0 && button_map != 0 && input_map != 0)
+	if (input->key_map == 0 || input->button_map == 0 || input->name_map == 0)
 	{
-		return true;
+		return false;
 	}
 
-	SDL_LogError(LOG_CATEGORY_INPUT, "Property error: %s", SDL_GetError());
-	return false;
+	return true;
 }
 
-void input_update(const SDL_Event *event)
+void input_update(const input_t *input, const SDL_Event *event)
 {
-	if (!init())
-	{
-		return;
-	}
-
 	switch (event->type)
 	{
 		case SDL_EVENT_KEY_DOWN:
 		case SDL_EVENT_KEY_UP:
-			update_keyboard_event(event->key);
+			update_keyboard_event(input, event->key);
 			break;
 
 		case SDL_EVENT_MOUSE_BUTTON_DOWN:
 		case SDL_EVENT_MOUSE_BUTTON_UP:
-			update_mouse_button_event(event->button);
+			update_mouse_button_event(input, event->button);
 			break;
 
 		default:
@@ -115,21 +100,16 @@ static void input_map_cleanup([[maybe_unused]] void *userdata, void *value)
 	SDL_free(value);
 }
 
-bool input_add(const char *name, const input_config_t config)
+bool input_add(const input_t *input, const char *name, const input_config_t config)
 {
-	if (!init())
-	{
-		return false;
-	}
-
-	if (map_contains(input_map, name))
+	if (map_contains(input->name_map, name))
 	{
 		return SDL_SetError("Property already exists");
 	}
 
 	input_map_t *map = SDL_malloc(sizeof(input_map_t));
 
-	if (!SDL_SetPointerPropertyWithCleanup(input_map, name, map,
+	if (!SDL_SetPointerPropertyWithCleanup(input->name_map, name, map,
 		input_map_cleanup, nullptr))
 	{
 		SDL_free(map);
@@ -148,7 +128,7 @@ bool input_add(const char *name, const input_config_t config)
 	}
 	else
 	{
-		SDL_ClearProperty(input_map, name);
+		SDL_ClearProperty(input->name_map, name);
 		return SDL_SetError("Unknown input mapping");
 	}
 
@@ -156,10 +136,10 @@ bool input_add(const char *name, const input_config_t config)
 }
 
 [[nodiscard]]
-static input_state_t input_state(const char *name)
+static input_state_t input_state(const input_t *input, const char *name)
 {
-	const input_map_t *input = map_get(input_map, name, nullptr);
-	if (input == nullptr)
+	const input_map_t *input_map = map_get(input->name_map, name, nullptr);
+	if (input_map == nullptr)
 	{
 		SDL_LogWarn(LOG_CATEGORY_INPUT, "Unmapped input: %s", name);
 		return STATE_UP;
@@ -168,16 +148,16 @@ static input_state_t input_state(const char *name)
 	map_t map;
 	const char *key;
 
-	switch (input->type)
+	switch (input_map->type)
 	{
 		case TYPE_KEYBOARD:
-			map = key_map;
-			key = SDL_GetKeyName(input->keycode);
+			map = input->key_map;
+			key = SDL_GetKeyName(input_map->keycode);
 			break;
 
 		case TYPE_MOUSE_BUTTON:
-			map = button_map;
-			key = mouse_button_name(input->mouse_button);
+			map = input->button_map;
+			key = mouse_button_name(input_map->mouse_button);
 			break;
 
 		default:
@@ -193,12 +173,12 @@ static input_state_t input_state(const char *name)
 	return state;
 }
 
-bool input_is_pressed(const char *name)
+bool input_is_pressed(const input_t *input, const char *name)
 {
-	return input_state(name) == STATE_PRESSED;
+	return input_state(input, name) == STATE_PRESSED;
 }
 
-bool input_is_down(const char *name)
+bool input_is_down(const input_t *input, const char *name)
 {
-	return input_state(name) != STATE_UP;
+	return input_state(input, name) != STATE_UP;
 }

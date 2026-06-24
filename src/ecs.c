@@ -2,6 +2,7 @@
 #include "assets.h"
 #include "camera.h"
 #include "ecsosapi.h"
+#include "input.h"
 #include "logcategory.h"
 #include "physics.h"
 #include "physicsconfig.h"
@@ -299,6 +300,7 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		component("ClearColor", clear_color_t);
 		component("ViewProjection", view_projection_t);
 		component("Error", error_t);
+		component("Input", input_t);
 
 #ifndef NDEBUG
 		reflect("chirp.Init",
@@ -361,6 +363,12 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		reflect("chirp.Error",
 			(ecs_member_t){.name = "title", .type = ecs_id(ecs_string_t)},
 			(ecs_member_t){.name = "message", .type = ecs_id(ecs_string_t)},
+		);
+
+		reflect("chirp.Input",
+			(ecs_member_t){.name = "key_map", .type = ecs_id(ecs_u32_t)},
+			(ecs_member_t){.name = "button_map", .type = ecs_id(ecs_u32_t)},
+			(ecs_member_t){.name = "name_map", .type = ecs_id(ecs_u32_t)},
 		);
 #endif
 

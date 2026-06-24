@@ -1,5 +1,6 @@
 #pragma once
 
+#include "input.h"
 #include "map.h"
 #include "model.h"
 #include "windowconfig.h"
@@ -14,7 +15,7 @@ typedef struct
 	map_t desc;
 } assets_t;
 
-bool assets_create(const char *path, assets_t *assets);
+bool assets_create(const char *path, const input_t *input, assets_t *assets);
 
 void assets_destroy(const assets_t *assets);
 

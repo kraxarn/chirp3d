@@ -34,7 +34,6 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_init.h>
-#include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_mouse.h>
@@ -314,6 +313,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	system_register_assets();
 	system_register_physics();
 	system_register_render();
+	system_register_input();
 
 	const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
 	const ecs_id_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
@@ -437,43 +437,47 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		const float move_speed = physics_config->move_speed;
 		const float jump_speed = physics_config->jump_speed;
 
-		if (input_is_down("move_forward"))
+		const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
+		const ecs_id_t input_id = ecs_lookup(ecs_world(), "chirp.Input");
+		const input_t *input = ecs_get_id(ecs_world(), engine, input_id);
+
+		if (input_is_down(input, "move_forward"))
 		{
 			const vector3f_t velocity = camera_to_z(camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_down("move_backward"))
+		if (input_is_down(input, "move_backward"))
 		{
 			const vector3f_t velocity = camera_to_z(camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_down("move_left"))
+		if (input_is_down(input, "move_left"))
 		{
 			const vector3f_t velocity = camera_to_x(camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_down("move_right"))
+		if (input_is_down(input, "move_right"))
 		{
 			const vector3f_t velocity = camera_to_x(camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_down("move_up"))
+		if (input_is_down(input, "move_up"))
 		{
 			const vector3f_t velocity = camera_to_y(camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_down("move_down"))
+		if (input_is_down(input, "move_down"))
 		{
 			const vector3f_t velocity = camera_to_y(camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_pressed("jump"))
+		if (input_is_pressed(input, "jump"))
 		{
 			const vector3f_t velocity = physics_body_linear_velocity(physics_engine, player_body_id);
 			if (velocity.y > -0.1F && velocity.y < 0.1F)
@@ -487,7 +491,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			}
 		}
 
-		if (input_is_pressed("shoot"))
+		if (input_is_pressed(input, "shoot"))
 		{
 			static constexpr float firepower = 100.F;
 
@@ -559,16 +563,16 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(right_n, 0.25F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(up_n, -0.2F));
 
-	query("[none] (chirp.InstanceOf, Model.blaster), [out] chirp.Position,"
-		"[out] chirp.Rotation, [out] chirp.Projection")
+	query("[none] chirp.InstanceOf(*, $model), $model == \"Model.blaster\","
+		"[out] chirp.Position, [out] chirp.Rotation, [out] chirp.Projection")
 	{
-		*ecs_field(&iter, position_t, 1) = weapon_position;
-		*ecs_field(&iter, rotation_t, 2) = (rotation_t){
+		*ecs_field(&iter, position_t, 2) = weapon_position;
+		*ecs_field(&iter, rotation_t, 3) = (rotation_t){
 			.x = SDL_asinf(forward_n.y),
 			.y = SDL_atan2f(-forward_n.z, forward_n.x) - (SDL_PI_F * 0.5F),
 			.z = 0.0F,
 		};
-		ecs_field(&iter, projection_t, 3)->rebuild = true;
+		ecs_field(&iter, projection_t, 4)->rebuild = true;
 	}
 
 	ecs_iter_t iter = ecs_query_iter(ecs_world(), state->status_query);
@@ -614,7 +618,10 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 
 	if (SDL_GetWindowRelativeMouseMode(window))
 	{
-		input_update(event);
+		const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
+		const ecs_id_t input_id = ecs_lookup(ecs_world(), "chirp.Input");
+		const input_t *input = ecs_get_id(ecs_world(), engine, input_id);
+		input_update(input, event);
 	}
 
 	if (event->type == SDL_EVENT_WINDOW_RESIZED)
