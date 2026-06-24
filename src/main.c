@@ -313,25 +313,13 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	ecs_add_input();
 	ecs_add_script_engine();
 
-	const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
-	const ecs_id_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
-	const ecs_id_t physics_engine_id = ecs_lookup(ecs_world(), "chirp.PhysicsEngine");
-	const ecs_id_t physics_config_id = ecs_lookup(ecs_world(), "chirp.PhysicsConfig");
-	const ecs_id_t camera_id = ecs_lookup(ecs_world(), "chirp.Camera");
-
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
-		.query.terms = {
-			(ecs_term_t){.id = assets_id},
-			(ecs_term_t){.id = gpu_device_id},
-			(ecs_term_t){.id = physics_engine_id},
-			(ecs_term_t){.id = physics_config_id},
-			(ecs_term_t){.id = camera_id},
-		},
+		.query.expr =
+		"[in] chirp.Assets, [in] chirp.GpuDevice, [in] chirp.PhysicsEngine,"
+		"[in] chirp.PhysicsConfig, [in] chirp.Camera",
 		.events = {EcsOnSet},
 		.callback = build_scene,
 	});
-
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
 
 	constexpr SDL_InitFlags init_flags = SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD;
 	if (!SDL_Init(init_flags))
@@ -339,15 +327,18 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		return fatal_error("Initialisation failed");
 	}
 
+	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
 	const ecs_id_t init_id = ecs_lookup(ecs_world(), "chirp.Init");
 	ecs_set_id(ecs_world(), engine, init_id, sizeof(SDL_InitFlags), &init_flags);
 
 	state->last_update = SDL_GetTicks();
 
+	const ecs_id_t camera_id = ecs_lookup(ecs_world(), "chirp.Camera");
 	const camera_t camera = camera_create_default();
 	ecs_set_id(ecs_world(), engine, camera_id,
 		sizeof(camera_t), &camera);
 
+	const ecs_id_t physics_config_id = ecs_lookup(ecs_world(), "chirp.PhysicsConfig");
 	const physics_config_t physics_config = physics_config_create_default();
 	ecs_set_id(ecs_world(), engine, physics_config_id,
 		sizeof(physics_config_t), &physics_config);
@@ -358,6 +349,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		return fatal_error("Failed to initialise physics engine");
 	}
 
+	const ecs_id_t physics_engine_id = ecs_lookup(ecs_world(), "chirp.PhysicsEngine");
 	ecs_set_id(ecs_world(), engine, physics_engine_id,
 		sizeof(physics_engine_t), &physics_engine);
 
