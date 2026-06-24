@@ -25,7 +25,7 @@ jobs:
             compiler: clang
             arch: arm64
             build-sdl: true
-            compiler-flags: '-mfloat-abi=hard -mfpu=neon'
+            compile-flags: '-mfloat-abi=hard -mfpu=neon'
 
           - os: ubuntu-latest
             container: ubuntu:rolling
