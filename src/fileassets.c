@@ -73,7 +73,6 @@ static bool parse_project_metadata(char *json, const json_token_t *token)
 		else
 		{
 			SDL_SetError("Unknown metadata key: %.*s", token_str(key));
-			SDL_free(json);
 			return false;
 		}
 
@@ -127,7 +126,6 @@ static bool parse_project_window(char *json, window_config_t *window_config,
 		else
 		{
 			SDL_SetError("Unknown window key: %.*s", token_str(key));
-			SDL_free(json);
 			return false;
 		}
 
@@ -166,7 +164,6 @@ static bool parse_project_input(const input_t *input, char *json,
 			json[prev_parent->end] = '\0';
 			if (!input_add(input, json + prev_parent->start, input_config))
 			{
-				SDL_free(json);
 				return false;
 			}
 			SDL_zero(input_config);
@@ -180,7 +177,6 @@ static bool parse_project_input(const input_t *input, char *json,
 			{
 				SDL_SetError("Unknown keycode for %.*s: %s",
 					token_str(key), json + value->start);
-				SDL_free(json);
 				return false;
 			}
 		}
@@ -192,7 +188,6 @@ static bool parse_project_input(const input_t *input, char *json,
 			{
 				SDL_SetError("Unknown mouse button for %.*s: %s",
 					token_str(key), json + value->start);
-				SDL_free(json);
 				return false;
 			}
 		}
@@ -207,7 +202,6 @@ static bool parse_project_input(const input_t *input, char *json,
 		else
 		{
 			SDL_SetError("Unknown input key: %.*s", token_str(key));
-			SDL_free(json);
 			return false;
 		}
 
@@ -220,7 +214,6 @@ static bool parse_project_input(const input_t *input, char *json,
 		json[prev_parent->end] = '\0';
 		if (!input_add(input, json + prev_parent->start, input_config))
 		{
-			SDL_free(json);
 			return false;
 		}
 	}
