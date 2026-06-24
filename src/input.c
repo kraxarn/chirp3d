@@ -53,27 +53,13 @@ static void update_mouse_button_event(const input_t *input, const SDL_MouseButto
 
 bool input_create(input_t *input)
 {
-	if (input->key_map == 0)
-	{
-		input->key_map = map_create();
-	}
+	input->key_map = map_create();
+	input->button_map = map_create();
+	input->name_map = map_create();
 
-	if (input->button_map == 0)
-	{
-		input->button_map = map_create();
-	}
-
-	if (input->name_map == 0)
-	{
-		input->name_map = map_create();
-	}
-
-	if (input->key_map == 0 || input->button_map == 0 || input->name_map == 0)
-	{
-		return false;
-	}
-
-	return true;
+	return (bool) (input->key_map != 0
+		&& input->button_map != 0
+		&& input->name_map != 0);
 }
 
 void input_update(const input_t *input, const SDL_Event *event)
