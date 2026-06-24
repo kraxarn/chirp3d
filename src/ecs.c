@@ -301,6 +301,7 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		component("ViewProjection", view_projection_t);
 		component("Error", error_t);
 		component("Input", input_t);
+		component("ScriptEngine", py_vm_index_t);
 
 #ifndef NDEBUG
 		reflect("chirp.Init",
@@ -369,6 +370,10 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 			(ecs_member_t){.name = "key_map", .type = ecs_id(ecs_u32_t)},
 			(ecs_member_t){.name = "button_map", .type = ecs_id(ecs_u32_t)},
 			(ecs_member_t){.name = "name_map", .type = ecs_id(ecs_u32_t)},
+		);
+
+		reflect("chirp.ScriptEngine",
+			(ecs_member_t){.name = "vm_index", .type = ecs_id(ecs_i32_t)},
 		);
 #endif
 

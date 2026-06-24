@@ -32,6 +32,7 @@ typedef SDL_GPUShader vertex_shader_t;
 typedef SDL_GPUShader fragment_shader_t;
 typedef SDL_FColor clear_color_t;
 typedef matrix4x4_t view_projection_t;
+typedef Sint32 py_vm_index_t;
 
 typedef struct
 {
@@ -90,3 +91,4 @@ void ecs_add_gpu();
 void ecs_add_physics();
 void ecs_add_render();
 void ecs_add_input();
+void ecs_add_script_engine();

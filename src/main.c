@@ -331,7 +331,6 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	});
 
 	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	const assets_t *assets = ecs_get_id(ecs_world(), engine, assets_id);
 
 	constexpr SDL_InitFlags init_flags = SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD;
 	if (!SDL_Init(init_flags))
@@ -360,19 +359,6 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 	ecs_set_id(ecs_world(), engine, physics_engine_id,
 		sizeof(physics_engine_t), &physics_engine);
-
-	script_engine_create();
-
-	SDL_IOStream *script_stream = assets_load_script(assets, "main");
-	if (script_stream == nullptr)
-	{
-		return fatal_error("Failed to load script");
-	}
-
-	if (!script_engine_exec("main", script_stream, true))
-	{
-		return fatal_error("Failed to execute script");
-	}
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 	ecs_set_id(ecs_world(), engine, ecs_lookup(ecs_world(), "chirp.ClearColor"),

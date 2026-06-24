@@ -56,7 +56,7 @@ static void gc_mark(void (*func)(py_Ref val, void *ctx), void *ctx)
 	// We probably want to do stuff here later
 }
 
-void script_engine_create()
+int script_engine_create()
 {
 	py_initialize();
 
@@ -70,6 +70,8 @@ void script_engine_create()
 
 	py_add_ecs();
 	py_add_math();
+
+	return py_currentvm();
 }
 
 bool script_engine_exec(const char *filename, SDL_IOStream *stream, const bool close_io)
