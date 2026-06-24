@@ -563,7 +563,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(right_n, 0.25F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(up_n, -0.2F));
 
-	query("[none] chirp.InstanceOf(*, $model), $model == \"Model.blaster\","
+	query("[none] chirp.InstanceOf($this, $model), $model == \"Model.blaster\","
 		"[out] chirp.Position, [out] chirp.Rotation, [out] chirp.Projection")
 	{
 		*ecs_field(&iter, position_t, 2) = weapon_position;
