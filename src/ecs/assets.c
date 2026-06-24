@@ -1,6 +1,5 @@
 #include "assets.h"
 #include "ecs.h"
-#include "systems.h"
 
 #include "flecs.h"
 
@@ -60,7 +59,7 @@ static void create_assets(ecs_iter_t *iter)
 		filters, SDL_arraysize(filters), nullptr, false);
 }
 
-void system_register_assets()
+void ecs_add_assets()
 {
 	const ecs_observer_desc_t observer_desc = {
 		.query.terms = {

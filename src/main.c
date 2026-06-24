@@ -9,14 +9,11 @@
 #include "physicsconfig.h"
 #include "scriptengine.h"
 #include "systeminfo.h"
-#include "systems.h"
 #include "vector.h"
-#include "ui/debugoverlay.h"
 
 #include "dcimgui.h"
 #include "flecs.h"
 #include "backends/dcimgui_impl_sdl3.h"
-#include "backends/dcimgui_impl_sdlgpu3.h"
 
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -308,12 +305,12 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 	ecs_create();
 
-	system_register_gpu();
-	system_register_window();
-	system_register_assets();
-	system_register_physics();
-	system_register_render();
-	system_register_input();
+	ecs_add_gpu();
+	ecs_add_window();
+	ecs_add_assets();
+	ecs_add_physics();
+	ecs_add_render();
+	ecs_add_input();
 
 	const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
 	const ecs_id_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");

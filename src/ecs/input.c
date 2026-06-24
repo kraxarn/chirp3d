@@ -1,6 +1,5 @@
 #include "input.h"
 #include "ecs.h"
-#include "systems.h"
 
 #include "flecs.h"
 
@@ -19,7 +18,7 @@ static void create_input([[maybe_unused]] ecs_iter_t *iter)
 		sizeof(input_t), &input);
 }
 
-void system_register_input()
+void ecs_add_input()
 {
 	const ecs_observer_desc_t observer_desc = {
 		.query.terms = {

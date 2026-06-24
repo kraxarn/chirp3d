@@ -1,6 +1,5 @@
 #include "ecs.h"
 #include "resources.h"
-#include "systems.h"
 
 #include "dcimgui.h"
 #include "flecs.h"
@@ -86,7 +85,7 @@ static void render(ecs_iter_t *iter)
 	cImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer, render_pass);
 }
 
-void system_register_imgui()
+void ecs_add_imgui()
 {
 	const ecs_observer_desc_t observer_desc = {
 		.query.terms = {

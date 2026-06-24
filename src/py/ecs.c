@@ -1,6 +1,6 @@
 #include "ecs.h"
 #include "logcategory.h"
-#include "modules.h"
+#include "py.h"
 
 #include "flecs.h"
 #include "pocketpy.h"
@@ -241,7 +241,7 @@ static void add_iterator(py_TValue *mod)
 	py_bindproperty(type, "count", iterator_count, nullptr);
 }
 
-void add_module_ecs()
+void py_add_ecs()
 {
 	py_TValue *mod = py_newmodule("ecs");
 

@@ -82,3 +82,11 @@ void *ecs_mut_data(const char *name);
 	for (size_t i = 0; i < SDL_arraysize(o); i++)	\
 		ecs_observer_init(ecs_world(), o + i);		\
 	} while (false)
+
+void ecs_add_assets();
+void ecs_add_imgui();
+void ecs_add_window();
+void ecs_add_gpu();
+void ecs_add_physics();
+void ecs_add_render();
+void ecs_add_input();

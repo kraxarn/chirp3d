@@ -1,12 +1,11 @@
 #include "ecs.h"
-#include "logcategory.h"
-#include "systems.h"
-#include "systeminfo.h"
 #include "gpudriver.h"
 #include "gpushaderformat.h"
-#include "shader.h"
-#include "resources.h"
+#include "logcategory.h"
 #include "model.h"
+#include "resources.h"
+#include "shader.h"
+#include "systeminfo.h"
 
 #include "flecs.h"
 
@@ -293,7 +292,7 @@ static void create_default_pipeline(ecs_iter_t *iter)
 		sizeof(SDL_GPUGraphicsPipeline*), (const void*) &pipeline);
 }
 
-void system_register_gpu()
+void ecs_add_gpu()
 {
 	const ecs_id_t window_id = ecs_lookup(ecs_world(), "chirp.Window");
 	const ecs_id_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");

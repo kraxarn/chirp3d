@@ -1,6 +1,5 @@
 #include "physics.h"
 #include "ecs.h"
-#include "systems.h"
 
 #include "flecs.h"
 
@@ -36,7 +35,7 @@ static void sync_physics(ecs_iter_t *iter)
 	}
 }
 
-void system_register_physics()
+void ecs_add_physics()
 {
 	ecs_system_init(ecs_world(), &(ecs_system_desc_t){
 		.entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){

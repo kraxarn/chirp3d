@@ -1,4 +1,4 @@
-#include "modules.h"
+#include "py.h"
 #include "vector.h"
 
 #include "pocketpy.h"
@@ -73,7 +73,7 @@ static void add_vector2(py_TValue *mod)
 	py_bindmagic(type, py_name("__add__"), vector2_add);
 }
 
-void add_module_math()
+void py_add_math()
 {
 	py_TValue *mod = py_getmodule("math");
 

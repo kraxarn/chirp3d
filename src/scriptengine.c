@@ -1,6 +1,6 @@
 #include "scriptengine.h"
 #include "logcategory.h"
-#include "modules.h"
+#include "py.h"
 
 #include "pocketpy.h"
 
@@ -68,8 +68,8 @@ void script_engine_create()
 	callbacks->getchr = get_chr;
 	callbacks->gc_mark = gc_mark;
 
-	add_module_ecs();
-	add_module_math();
+	py_add_ecs();
+	py_add_math();
 }
 
 bool script_engine_exec(const char *filename, SDL_IOStream *stream, const bool close_io)

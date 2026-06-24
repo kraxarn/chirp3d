@@ -1,6 +1,5 @@
 #include "assets.h"
 #include "ecs.h"
-#include "systems.h"
 
 #include "flecs.h"
 
@@ -38,7 +37,7 @@ static void create_window(ecs_iter_t *iter)
 		sizeof(SDL_Window*), (void*) &window);
 }
 
-void system_register_window()
+void ecs_add_window()
 {
 	const ecs_observer_desc_t observer_desc[] = {
 		(ecs_observer_desc_t){

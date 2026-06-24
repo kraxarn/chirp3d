@@ -2,7 +2,6 @@
 #include "ecs.h"
 #include "math.h"
 #include "model.h"
-#include "systems.h"
 
 #include "dcimgui.h"
 #include "backends/dcimgui_impl_sdlgpu3.h"
@@ -201,7 +200,7 @@ static void end_render(ecs_iter_t *iter)
 	}
 }
 
-void system_register_render()
+void ecs_add_render()
 {
 	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
 	ecs_add_id(ecs_world(), engine, ecs_lookup(ecs_world(), "chirp.GpuCommandBuffer"));
