@@ -112,7 +112,6 @@ bool input_add(const input_t *input, const char *name, const input_config_t conf
 	if (!SDL_SetPointerPropertyWithCleanup(input->name_map, name, map,
 		input_map_cleanup, nullptr))
 	{
-		SDL_free(map);
 		return false;
 	}
 
