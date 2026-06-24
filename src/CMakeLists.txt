@@ -1,5 +1,5 @@
-add_subdirectory(modules)
-add_subdirectory(systems)
+add_subdirectory(ecs)
+add_subdirectory(py)
 add_subdirectory(ui)
 
 target_sources(${PROJECT_NAME} PRIVATE
