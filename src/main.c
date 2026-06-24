@@ -311,6 +311,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	ecs_add_physics();
 	ecs_add_render();
 	ecs_add_input();
+	ecs_add_script_engine();
 
 	const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
 	const ecs_id_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
