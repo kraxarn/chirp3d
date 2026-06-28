@@ -440,15 +440,10 @@ ecs_entity_t ecs_set_error(const char *title, const char *message)
 	return entity;
 }
 
-void *ecs_mut_data_ptr(const char *name)
+void *ecs_get_id_ptr(const ecs_id_t component)
 {
-	const void *data = ecs_get_id(world, EcsEngine, ecs_lookup(world, name));
-	if (data == nullptr)
-	{
-		return nullptr;
-	}
-
-	return *((void**) data);
+	const void *data = ecs_get_id(world, EcsEngine, component);
+	return data == nullptr ? nullptr : *(void**) data;
 }
 
 void *ecs_mut_data(const char *name)

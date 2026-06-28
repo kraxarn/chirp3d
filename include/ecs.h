@@ -70,7 +70,7 @@ ecs_entity_t ecs_phase(phase_t phase);
 ecs_entity_t ecs_set_error(const char *title, const char *message);
 
 [[nodiscard]]
-void *ecs_mut_data_ptr(const char *name);
+void *ecs_get_id_ptr(ecs_id_t component);
 
 [[nodiscard]]
 void *ecs_mut_data(const char *name);

@@ -224,7 +224,7 @@ void draw_debug_overlay(app_state_t *state)
 
 			if ((elements & DEBUG_OVERLAY_SYSTEM) > 0)
 			{
-				SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
+				SDL_GPUDevice *gpu_device = ecs_get_id_ptr(EcsGpuDevice);
 				draw_system_info(gpu_device);
 			}
 

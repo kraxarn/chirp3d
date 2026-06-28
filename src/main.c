@@ -451,7 +451,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		? *((physics_body_id_t*) ecs_get_id(ecs_world(), player_entity, EcsPhysicsBody))
 		: 0;
 
-	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
+	SDL_Window *window = ecs_get_id_ptr(EcsWindow);
 	camera_t *camera = ecs_mut_data("chirp.Camera");
 
 	if (SDL_GetWindowRelativeMouseMode(window))
@@ -690,10 +690,10 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	// cImGui_ImplSDLGPU3_Shutdown();
 	// ImGui_DestroyContext(nullptr);
 
-	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
-	SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
-	SDL_GPUGraphicsPipeline *pipeline = ecs_mut_data_ptr("chirp.GpuGraphicsPipeline");
-	SDL_GPUTexture *depth_texture = ecs_mut_data_ptr("chirp.DepthTexture");
+	SDL_Window *window = ecs_get_id_ptr(EcsWindow);
+	SDL_GPUDevice *gpu_device = ecs_get_id_ptr(EcsGpuDevice);
+	SDL_GPUGraphicsPipeline *pipeline = ecs_get_id_ptr(EcsGpuGraphicsPipeline);
+	SDL_GPUTexture *depth_texture = ecs_get_id_ptr(EcsDepthTexture);
 
 	SDL_ReleaseGPUTexture(gpu_device, depth_texture);
 	SDL_ReleaseGPUGraphicsPipeline(gpu_device, pipeline);
