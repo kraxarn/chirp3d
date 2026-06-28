@@ -72,9 +72,6 @@ ecs_entity_t ecs_set_error(const char *title, const char *message);
 [[nodiscard]]
 void *ecs_get_id_ptr(ecs_id_t component);
 
-[[nodiscard]]
-void *ecs_mut_data(const char *name);
-
 #define ecs_observer_init_all(o)					\
 	do {											\
 	for (size_t i = 0; i < SDL_arraysize(o); i++)	\

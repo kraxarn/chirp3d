@@ -445,15 +445,3 @@ void *ecs_get_id_ptr(const ecs_id_t component)
 	const void *data = ecs_get_id(world, EcsEngine, component);
 	return data == nullptr ? nullptr : *(void**) data;
 }
-
-void *ecs_mut_data(const char *name)
-{
-	const ecs_id_t component = ecs_lookup(world, name);
-	if (component == 0)
-	{
-		SDL_LogWarn(LOG_CATEGORY_ECS, "Unknown component: %s", name);
-		return nullptr;
-	}
-
-	return ecs_get_mut_id(world, EcsEngine, component);
-}

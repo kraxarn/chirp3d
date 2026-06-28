@@ -443,7 +443,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	ecs_progress(ecs_world(), state->dt);
 
-	physics_engine_t *physics_engine = ecs_mut_data("chirp.PhysicsEngine");
+	physics_engine_t *physics_engine = ecs_get_mut_id(ecs_world(), EcsEngine, EcsPhysicsEngine);
 	const physics_config_t *physics_config = ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsConfig);
 
 	const ecs_entity_t player_entity = ecs_lookup(ecs_world(), "Player");
@@ -452,7 +452,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		: 0;
 
 	SDL_Window *window = ecs_get_id_ptr(EcsWindow);
-	camera_t *camera = ecs_mut_data("chirp.Camera");
+	camera_t *camera = ecs_get_mut_id(ecs_world(), EcsEngine, EcsCamera);
 
 	if (SDL_GetWindowRelativeMouseMode(window))
 	{

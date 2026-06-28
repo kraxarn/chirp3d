@@ -177,7 +177,7 @@ void draw_debug_overlay(app_state_t *state)
 	if (physics_open)
 	{
 		const physics_engine_t *physics_engine = ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsEngine);
-		physics_config_t *physics_config = ecs_mut_data("chirp.PhysicsConfig");
+		physics_config_t *physics_config = ecs_get_mut_id(ecs_world(), EcsEngine, EcsPhysicsConfig);
 		show_physics_properties(&physics_open, physics_engine, physics_config);
 	}
 
