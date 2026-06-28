@@ -400,9 +400,7 @@ void ecs_create()
 	// SDL has to initialise before we set up OS-specific stuff
 	ecs_observer_init(world, &(ecs_observer_desc_t){
 		.query.terms = {
-			(ecs_term_t){
-				.id = ecs_lookup(world, "chirp.Init"),
-			}
+			(ecs_term_t){.id = EcsInit}
 		},
 		.events = {EcsOnSet},
 		.callback = on_init_set,
@@ -436,24 +434,22 @@ ecs_entity_t ecs_set_error(const char *title, const char *message)
 		.message = SDL_strdup(message),
 	};
 
-	const ecs_id_t error_id = ecs_lookup(world, "chirp.Error");
-	ecs_set_id(world, entity, error_id, sizeof(error_t), &error);
+	ecs_set_id(world, entity, EcsError,
+		sizeof(error_t), &error);
 
 	return entity;
 }
 
 const void *ecs_const_data(const char *name)
 {
-	const ecs_entity_t entity = ecs_lookup(world, "chirp.Engine");
 	const ecs_id_t component = ecs_lookup(world, name);
-
-	if (entity == 0 || component == 0)
+	if (component == 0)
 	{
 		SDL_LogWarn(LOG_CATEGORY_ECS, "Unknown component: %s", name);
 		return nullptr;
 	}
 
-	return ecs_get_id(world, entity, component);
+	return ecs_get_id(world, EcsEngine, component);
 }
 
 void *ecs_mut_data_ptr(const char *name)
@@ -469,14 +465,12 @@ void *ecs_mut_data_ptr(const char *name)
 
 void *ecs_mut_data(const char *name)
 {
-	const ecs_entity_t entity = ecs_lookup(world, "chirp.Engine");
 	const ecs_id_t component = ecs_lookup(world, name);
-
-	if (entity == 0 || component == 0)
+	if (component == 0)
 	{
 		SDL_LogWarn(LOG_CATEGORY_ECS, "Unknown component: %s", name);
 		return nullptr;
 	}
 
-	return ecs_get_mut_id(world, entity, component);
+	return ecs_get_mut_id(world, EcsEngine, component);
 }

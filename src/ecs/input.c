@@ -1,5 +1,7 @@
 #include "input.h"
 #include "ecs.h"
+#include "ecs/components.h"
+#include "ecs/tags.h"
 
 #include "flecs.h"
 
@@ -12,9 +14,7 @@ static void create_input([[maybe_unused]] ecs_iter_t *iter)
 		return;
 	}
 
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	const ecs_id_t input_id = ecs_lookup(ecs_world(), "chirp.Input");
-	ecs_set_id(ecs_world(), engine, input_id,
+	ecs_set_id(ecs_world(), EcsEngine, EcsInput,
 		sizeof(input_t), &input);
 }
 
@@ -22,10 +22,7 @@ void ecs_add_input()
 {
 	const ecs_observer_desc_t observer_desc = {
 		.query.terms = {
-			(ecs_term_t){
-				.id = ecs_lookup(ecs_world(), "chirp.Init"),
-				.inout = EcsInOutNone,
-			},
+			(ecs_term_t){.id = EcsInit, .inout = EcsInOutNone},
 		},
 		.events = {EcsOnSet},
 		.callback = create_input,

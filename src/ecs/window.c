@@ -1,5 +1,7 @@
 #include "assets.h"
 #include "ecs.h"
+#include "ecs/components.h"
+#include "ecs/tags.h"
 
 #include "flecs.h"
 
@@ -7,11 +9,8 @@ static void load_window_config(ecs_iter_t *iter)
 {
 	const assets_t *assets = ecs_field(iter, assets_t, 0);
 
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	const ecs_id_t window_config_id = ecs_lookup(ecs_world(), "chirp.WindowConfig");
-
 	const window_config_t window_config = assets_window_config(assets);
-	ecs_set_id(ecs_world(), engine, window_config_id,
+	ecs_set_id(ecs_world(), EcsEngine, EcsWindowConfig,
 		sizeof(window_config_t), &window_config);
 }
 
@@ -30,11 +29,8 @@ static void create_window(ecs_iter_t *iter)
 		return;
 	}
 
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	const ecs_id_t window_id = ecs_lookup(ecs_world(), "chirp.Window");
-
-	ecs_set_id(ecs_world(), engine, window_id,
-		sizeof(SDL_Window*), (void*) &window);
+	ecs_set_id(ecs_world(), EcsEngine, EcsWindow,
+		sizeof(SDL_Window*), (const void*) &window);
 }
 
 void ecs_add_window()
@@ -42,18 +38,14 @@ void ecs_add_window()
 	const ecs_observer_desc_t observer_desc[] = {
 		(ecs_observer_desc_t){
 			.query.terms = {
-				(ecs_term_t){
-					.id = ecs_lookup(ecs_world(), "chirp.Assets"),
-				},
+				(ecs_term_t){.id = EcsAssets},
 			},
 			.events = {EcsOnSet},
 			.callback = load_window_config,
 		},
 		(ecs_observer_desc_t){
 			.query.terms = {
-				(ecs_term_t){
-					.id = ecs_lookup(ecs_world(), "chirp.WindowConfig"),
-				},
+				(ecs_term_t){.id = EcsWindowConfig},
 			},
 			.events = {EcsOnSet},
 			.callback = create_window,

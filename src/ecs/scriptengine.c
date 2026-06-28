@@ -1,6 +1,8 @@
 #include "scriptengine.h"
 #include "assets.h"
 #include "ecs.h"
+#include "ecs/components.h"
+#include "ecs/tags.h"
 
 #include "flecs.h"
 
@@ -8,10 +10,7 @@ static void create_script_engine([[maybe_unused]] ecs_iter_t *iter)
 {
 	const py_vm_index_t vm_index = script_engine_create();
 
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	const ecs_id_t script_engine_id = ecs_lookup(ecs_world(), "chirp.ScriptEngine");
-
-	ecs_set_id(ecs_world(), engine, script_engine_id,
+	ecs_set_id(ecs_world(), EcsEngine, EcsScriptEngine,
 		sizeof(py_vm_index_t), &vm_index);
 }
 
@@ -37,24 +36,15 @@ void ecs_add_script_engine()
 	const ecs_observer_desc_t observer_desc[] = {
 		(ecs_observer_desc_t){
 			.query.terms = {
-				(ecs_term_t){
-					.id = ecs_lookup(ecs_world(), "chirp.Init"),
-					.inout = EcsInOutNone,
-				},
+				(ecs_term_t){.id = EcsInit, .inout = EcsInOutNone},
 			},
 			.events = {EcsOnSet},
 			.callback = create_script_engine,
 		},
 		(ecs_observer_desc_t){
 			.query.terms = {
-				(ecs_term_t){
-					.id = ecs_lookup(ecs_world(), "chirp.Assets"),
-					.inout = EcsIn,
-				},
-				(ecs_term_t){
-					.id = ecs_lookup(ecs_world(), "chirp.ScriptEngine"),
-					.inout = EcsInOutNone,
-				},
+				(ecs_term_t){.id = EcsAssets, .inout = EcsIn},
+				(ecs_term_t){.id = EcsScriptEngine, .inout = EcsInOutNone},
 			},
 			.events = {EcsOnSet},
 			.callback = load_main_script,

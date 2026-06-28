@@ -1,5 +1,7 @@
 #include "ecs.h"
 #include "resources.h"
+#include "ecs/components.h"
+#include "ecs/tags.h"
 
 #include "dcimgui.h"
 #include "flecs.h"
@@ -69,10 +71,7 @@ static void on_window_gpu_set(ecs_iter_t *iter)
 		return;
 	}
 
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	const ecs_id_t context_id = ecs_lookup(ecs_world(), "chirp.ImGuiContext");
-
-	ecs_set_id(ecs_world(), engine, context_id,
+	ecs_set_id(ecs_world(), EcsEngine, EcsImGuiContext,
 		sizeof(ImGuiContext*), (void*) &context);
 }
 
@@ -89,12 +88,8 @@ void ecs_add_imgui()
 {
 	const ecs_observer_desc_t observer_desc = {
 		.query.terms = {
-			(ecs_term_t){
-				.id = ecs_lookup(ecs_world(), "chirp.Window"),
-			},
-			(ecs_term_t){
-				.id = ecs_lookup(ecs_world(), "chirp.GpuDevice"),
-			},
+			(ecs_term_t){.id = EcsWindow},
+			(ecs_term_t){.id = EcsGpuDevice},
 		},
 		.events = {EcsOnSet},
 		.callback = on_window_gpu_set,

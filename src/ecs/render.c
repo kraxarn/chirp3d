@@ -2,6 +2,8 @@
 #include "ecs.h"
 #include "math.h"
 #include "model.h"
+#include "ecs/components.h"
+#include "ecs/tags.h"
 
 #include "dcimgui.h"
 #include "backends/dcimgui_impl_sdlgpu3.h"
@@ -159,9 +161,8 @@ static void render_model(ecs_iter_t *iter)
 	const ecs_id_t pair_id = ecs_field_id(iter, 3);
 	projection_t *projection = ecs_field(iter, projection_t, 4);
 
-	const ecs_id_t model_id = ecs_lookup(ecs_world(), "chirp.Model");
 	const ecs_entity_t model_entity = ecs_pair_second(ecs_world(), pair_id);
-	const model_t *model = ecs_get_id(ecs_world(), model_entity, model_id);
+	const model_t *model = ecs_get_id(ecs_world(), model_entity, EcsModel);
 	const size_t index = *ecs_field(iter, size_t, 3);
 
 	// TODO: Maybe do this in pre-render?
@@ -202,12 +203,11 @@ static void end_render(ecs_iter_t *iter)
 
 void ecs_add_render()
 {
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	ecs_add_id(ecs_world(), engine, ecs_lookup(ecs_world(), "chirp.GpuCommandBuffer"));
-	ecs_add_id(ecs_world(), engine, ecs_lookup(ecs_world(), "chirp.GpuRenderPass"));
-	ecs_add_id(ecs_world(), engine, ecs_lookup(ecs_world(), "chirp.SwapchainTexture"));
-	ecs_add_id(ecs_world(), engine, ecs_lookup(ecs_world(), "chirp.SwapchainTextureSize"));
-	ecs_add_id(ecs_world(), engine, ecs_lookup(ecs_world(), "chirp.ViewProjection"));
+	ecs_add_id(ecs_world(), EcsEngine, EcsGpuCommandBuffer);
+	ecs_add_id(ecs_world(), EcsEngine, EcsGpuRenderPass);
+	ecs_add_id(ecs_world(), EcsEngine, EcsSwapchainTexture);
+	ecs_add_id(ecs_world(), EcsEngine, EcsSwapchainTextureSize);
+	ecs_add_id(ecs_world(), EcsEngine, EcsViewProjection);
 
 	ecs_system_init(ecs_world(), &(ecs_system_desc_t){
 		.entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){

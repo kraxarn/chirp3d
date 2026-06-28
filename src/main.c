@@ -10,7 +10,9 @@
 #include "scriptengine.h"
 #include "systeminfo.h"
 #include "vector.h"
+#include "ecs/components.h"
 #include "ecs/events.h"
+#include "ecs/tags.h"
 
 #include "dcimgui.h"
 #include "flecs.h"
@@ -116,8 +118,8 @@ static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device,
 	const ecs_entity_t entity = ecs_entity_init(ecs_world(), &entity_desc);
 	ecs_add_pair(ecs_world(), entity, EcsChildOf, parent);
 
-	const ecs_id_t model_id = ecs_lookup(ecs_world(), "chirp.Model");
-	ecs_set_id(ecs_world(), entity, model_id, sizeof(model_t), &model);
+	ecs_set_id(ecs_world(), entity, EcsModel,
+		sizeof(model_t), &model);
 
 	for (size_t i = 0; i < model.node_count; i++)
 	{
@@ -127,9 +129,9 @@ static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device,
 		const ecs_entity_t node = ecs_entity_init(ecs_world(), &node_desc);
 		ecs_add_pair(ecs_world(), node, EcsChildOf, entity);
 
-		const ecs_id_t position_id = ecs_lookup(ecs_world(), "chirp.Position");
 		const position_t position = model_node_translation(&model, i);
-		ecs_set_id(ecs_world(), node, position_id, sizeof(position_t), &position);
+		ecs_set_id(ecs_world(), node, EcsPosition,
+			sizeof(position_t), &position);
 	}
 
 	return entity;
@@ -153,13 +155,11 @@ static ecs_entity_t create_instance(const ecs_entity_t entity, const size_t node
 	const ecs_entity_t parent = ecs_entity_init(ecs_world(), &parent_desc);
 	ecs_add_pair(ecs_world(), instance, EcsChildOf, parent);
 
-	const ecs_id_t instance_of_id = ecs_lookup(ecs_world(), "chirp.InstanceOf");
-	ecs_set_id(ecs_world(), instance, ecs_pair(instance_of_id, entity),
+	ecs_set_id(ecs_world(), instance, ecs_pair(EcsInstanceOf, entity),
 		sizeof(size_t), &node_index);
 
 	const projection_t projection = {.rebuild = true};
-	const ecs_id_t projection_id = ecs_lookup(ecs_world(), "chirp.Projection");
-	ecs_set_id(ecs_world(), instance, projection_id,
+	ecs_set_id(ecs_world(), instance, EcsProjection,
 		sizeof(projection_t), &projection);
 
 	return instance;
@@ -201,16 +201,16 @@ static void build_scene(ecs_iter_t *iter)
 		.y = 90.F,
 		.z = 0.F,
 	};
-	const ecs_id_t rotation_id = ecs_lookup(ecs_world(), "chirp.Rotation");
-	ecs_set_id(ecs_world(), blaster_instance, rotation_id, sizeof(rotation_t), &rotation);
+	ecs_set_id(ecs_world(), blaster_instance, EcsRotation,
+		sizeof(rotation_t), &rotation);
 
 	const position_t position = {
 		.x = 5.F,
 		.y = 1.F,
 		.z = -5.F,
 	};
-	const ecs_id_t position_id = ecs_lookup(ecs_world(), "chirp.Position");
-	ecs_set_id(ecs_world(), blaster_instance, position_id, sizeof(position_t), &position);
+	ecs_set_id(ecs_world(), blaster_instance, EcsPosition,
+		sizeof(position_t), &position);
 
 	// Bullet
 
@@ -225,8 +225,7 @@ static void build_scene(ecs_iter_t *iter)
 		return;
 	}
 
-	const ecs_id_t scene_id = ecs_lookup(ecs_world(), "chirp.Scene");
-	ecs_add_id(ecs_world(), scene, scene_id);
+	ecs_add_id(ecs_world(), scene, EcsScene);
 
 	// Physics
 
@@ -262,8 +261,8 @@ static void build_scene(ecs_iter_t *iter)
 		.name = "Player",
 	};
 	const ecs_entity_t player_entity = ecs_entity_init(ecs_world(), &entity_desc);
-	const ecs_id_t physics_body_id = ecs_lookup(ecs_world(), "chirp.PhysicsBody");
-	ecs_set_id(ecs_world(), player_entity, physics_body_id, sizeof(physics_body_id_t), &player_physics_id);
+	ecs_set_id(ecs_world(), player_entity, EcsPhysicsBody,
+		sizeof(physics_body_id_t), &player_physics_id);
 
 	const vector3f_t gravity = {.y = -physics_config->gravity_y};
 	physics_set_gravity(physics_engine, gravity);
@@ -352,20 +351,17 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		return fatal_error("Initialisation failed");
 	}
 
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	const ecs_id_t init_id = ecs_lookup(ecs_world(), "chirp.Init");
-	ecs_set_id(ecs_world(), engine, init_id, sizeof(SDL_InitFlags), &init_flags);
+	ecs_set_id(ecs_world(), EcsEngine, EcsInit,
+		sizeof(SDL_InitFlags), &init_flags);
 
 	state->last_update = SDL_GetTicks();
 
-	const ecs_id_t camera_id = ecs_lookup(ecs_world(), "chirp.Camera");
 	const camera_t camera = camera_create_default();
-	ecs_set_id(ecs_world(), engine, camera_id,
+	ecs_set_id(ecs_world(), EcsEngine, EcsCamera,
 		sizeof(camera_t), &camera);
 
-	const ecs_id_t physics_config_id = ecs_lookup(ecs_world(), "chirp.PhysicsConfig");
 	const physics_config_t physics_config = physics_config_create_default();
-	ecs_set_id(ecs_world(), engine, physics_config_id,
+	ecs_set_id(ecs_world(), EcsEngine, EcsPhysicsConfig,
 		sizeof(physics_config_t), &physics_config);
 
 	physics_engine_t physics_engine;
@@ -374,17 +370,16 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		return fatal_error("Failed to initialise physics engine");
 	}
 
-	const ecs_id_t physics_engine_id = ecs_lookup(ecs_world(), "chirp.PhysicsEngine");
-	ecs_set_id(ecs_world(), engine, physics_engine_id,
+	ecs_set_id(ecs_world(), EcsEngine, EcsPhysicsEngine,
 		sizeof(physics_engine_t), &physics_engine);
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
-	ecs_set_id(ecs_world(), engine, ecs_lookup(ecs_world(), "chirp.ClearColor"),
+	ecs_set_id(ecs_world(), EcsEngine, EcsClearColor,
 		sizeof(clear_color_t), &clear_color);
 
 	state->status_query = ecs_query_init(ecs_world(), &(ecs_query_desc_t){
 		.terms = {
-			(ecs_term_t){.id = ecs_lookup(ecs_world(), "chirp.Error")},
+			(ecs_term_t){.id = EcsError},
 		},
 	});
 
@@ -432,9 +427,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	const physics_config_t *physics_config = ecs_const_data("chirp.PhysicsConfig");
 
 	const ecs_entity_t player_entity = ecs_lookup(ecs_world(), "Player");
-	const ecs_id_t physics_body_id = ecs_lookup(ecs_world(), "chirp.PhysicsBody");
 	const physics_body_id_t player_body_id = player_entity != 0
-		? *((physics_body_id_t*) ecs_get_id(ecs_world(), player_entity, physics_body_id))
+		? *((physics_body_id_t*) ecs_get_id(ecs_world(), player_entity, EcsPhysicsBody))
 		: 0;
 
 	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
@@ -450,9 +444,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		const float move_speed = physics_config->move_speed;
 		const float jump_speed = physics_config->jump_speed;
 
-		const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-		const ecs_id_t input_id = ecs_lookup(ecs_world(), "chirp.Input");
-		const input_t *input = ecs_get_id(ecs_world(), engine, input_id);
+		const input_t *input = ecs_get_id(ecs_world(), EcsEngine, EcsInput);
 
 		if (input_is_down(input, "move_forward"))
 		{
@@ -517,12 +509,12 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 				position = *ecs_field(&iter, position_t, 1);
 			}
 
-			const ecs_id_t position_id = ecs_lookup(ecs_world(), "chirp.Position");
-			ecs_set_id(ecs_world(), entity, position_id, sizeof(position_t), &position);
+			ecs_set_id(ecs_world(), entity, EcsPosition,
+				sizeof(position_t), &position);
 
 			const rotation_t rotation = vector3f_zero();
-			const ecs_id_t rotation_id = ecs_lookup(ecs_world(), "chirp.Rotation");
-			ecs_set_id(ecs_world(), entity, rotation_id, sizeof(rotation_t), &rotation);
+			ecs_set_id(ecs_world(), entity, EcsRotation,
+				sizeof(rotation_t), &rotation);
 
 			const cylinder_config_t config = {
 				.half_height = 0.1F,
@@ -535,7 +527,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 				},
 			};
 			const physics_body_id_t body_id = physics_add_cylinder(physics_engine, &config);
-			ecs_set_id(ecs_world(), entity, physics_body_id, sizeof(physics_body_id_t), &body_id);
+			ecs_set_id(ecs_world(), entity, EcsPhysicsBody,
+				sizeof(physics_body_id_t), &body_id);
 
 			const vector3f_t forward = vector3f_normalize(vector3f_sub(camera->target, position));
 			const vector3f_t velocity = vector3f_scale(forward, firepower);
@@ -643,14 +636,10 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 		emit(EcsOnKey, EcsKeyboardEvent, &event->key);
 	}
 
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	const ecs_id_t window_id = ecs_lookup(ecs_world(), "chirp.Window");
-	SDL_Window *window = *((window_t**) ecs_get_id(ecs_world(), engine, window_id));
-
+	SDL_Window *window = *((window_t**) ecs_get_id(ecs_world(), EcsEngine, EcsWindow));
 	if (SDL_GetWindowRelativeMouseMode(window))
 	{
-		const ecs_id_t input_id = ecs_lookup(ecs_world(), "chirp.Input");
-		const input_t *input = ecs_get_id(ecs_world(), engine, input_id);
+		const input_t *input = ecs_get_id(ecs_world(), EcsEngine, EcsInput);
 		input_update(input, event);
 	}
 

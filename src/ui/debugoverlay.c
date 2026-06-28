@@ -8,6 +8,7 @@
 #include "physicsconfig.h"
 #include "systeminfo.h"
 #include "videodriver.h"
+#include "ecs/components.h"
 
 #include "dcimgui.h"
 #include "flecs.h"
@@ -236,8 +237,7 @@ void draw_debug_overlay(app_state_t *state)
 			{
 				const physics_engine_t *physics_engine = ecs_const_data("chirp.PhysicsEngine");
 				const ecs_entity_t player_entity = ecs_lookup(ecs_world(), "Player");
-				const ecs_id_t physics_body_id = ecs_lookup(ecs_world(), "chirp.PhysicsBody");
-				const physics_body_id_t *player_body_id = ecs_get_id(ecs_world(), player_entity, physics_body_id);
+				const physics_body_id_t *player_body_id = ecs_get_id(ecs_world(), player_entity, EcsPhysicsBody);
 				draw_physics_info(physics_engine, *player_body_id);
 			}
 

@@ -1,5 +1,7 @@
 #include "assets.h"
 #include "ecs.h"
+#include "ecs/components.h"
+#include "ecs/tags.h"
 
 #include "flecs.h"
 
@@ -17,9 +19,7 @@ static void on_file_opened(void *userdata,
 	assets_t assets;
 	if (assets_create(filelist[0], userdata, &assets))
 	{
-		const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-		const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
-		ecs_set_id(ecs_world(), engine, assets_id,
+		ecs_set_id(ecs_world(), EcsEngine, EcsAssets,
 			sizeof(assets_t), &assets);
 	}
 }
@@ -39,9 +39,7 @@ static void create_assets(ecs_iter_t *iter)
 	{
 		SDL_free(path);
 
-		const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-		const ecs_id_t assets_id = ecs_lookup(ecs_world(), "chirp.Assets");
-		ecs_set_id(ecs_world(), engine, assets_id,
+		ecs_set_id(ecs_world(), EcsEngine, EcsAssets,
 			sizeof(assets_t), &assets);
 
 		return;
@@ -63,10 +61,7 @@ void ecs_add_assets()
 {
 	const ecs_observer_desc_t observer_desc = {
 		.query.terms = {
-			(ecs_term_t){
-				.id = ecs_lookup(ecs_world(), "chirp.Input"),
-				.inout = EcsIn,
-			},
+			(ecs_term_t){.id = EcsInput, .inout = EcsIn},
 		},
 		.events = {EcsOnSet},
 		.callback = create_assets,

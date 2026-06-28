@@ -6,7 +6,9 @@
 #include "resources.h"
 #include "shader.h"
 #include "systeminfo.h"
+#include "ecs/components.h"
 #include "ecs/events.h"
+#include "ecs/tags.h"
 
 #include "flecs.h"
 
@@ -58,10 +60,7 @@ static void create_gpu_device(ecs_iter_t *iter)
 		return;
 	}
 
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	const ecs_entity_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
-
-	ecs_set_id(ecs_world(), engine, gpu_device_id,
+	ecs_set_id(ecs_world(), EcsEngine, EcsGpuDevice,
 		sizeof(SDL_GPUDevice*), (const void*) &device);
 }
 
@@ -142,10 +141,7 @@ static void set_depth_texture(ecs_iter_t *iter)
 		return;
 	}
 
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	const ecs_id_t depth_texture_id = ecs_lookup(ecs_world(), "chirp.DepthTexture");
-
-	ecs_set_id(ecs_world(), engine, depth_texture_id,
+	ecs_set_id(ecs_world(), EcsEngine, EcsDepthTexture,
 		sizeof(SDL_GPUTexture*), (const void*) &depth_texture);
 }
 
@@ -196,15 +192,12 @@ static void load_default_shaders(ecs_iter_t *iter)
 		return;
 	}
 
-	const ecs_id_t vertex_shader_id = ecs_lookup(ecs_world(), "chirp.VertexShader");
-	const ecs_id_t fragment_shader_id = ecs_lookup(ecs_world(), "chirp.FragmentShader");
-
 	const ecs_entity_t entity = ecs_new(ecs_world());
 
-	ecs_set_id(ecs_world(), entity, vertex_shader_id,
+	ecs_set_id(ecs_world(), entity, EcsVertexShader,
 		sizeof(SDL_GPUShader*), (const void*) &vertex_shader);
 
-	ecs_set_id(ecs_world(), entity, fragment_shader_id,
+	ecs_set_id(ecs_world(), entity, EcsFragmentShader,
 		sizeof(SDL_GPUShader*), (const void*) &fragment_shader);
 }
 
@@ -297,10 +290,7 @@ static void create_default_pipeline(ecs_iter_t *iter)
 		return;
 	}
 
-	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
-	const ecs_id_t pipeline_id = ecs_lookup(ecs_world(), "chirp.GpuGraphicsPipeline");
-
-	ecs_set_id(ecs_world(), engine, pipeline_id,
+	ecs_set_id(ecs_world(), EcsEngine, EcsGpuGraphicsPipeline,
 		sizeof(SDL_GPUGraphicsPipeline*), (const void*) &pipeline);
 }
 
@@ -321,36 +311,33 @@ static void resize_depth_texture(ecs_iter_t *iter)
 
 void ecs_add_gpu()
 {
-	const ecs_id_t window_id = ecs_lookup(ecs_world(), "chirp.Window");
-	const ecs_id_t gpu_device_id = ecs_lookup(ecs_world(), "chirp.GpuDevice");
-
 	const ecs_observer_desc_t observer_desc[] = {
 		(ecs_observer_desc_t){
 			.query.terms = {
-				(ecs_term_t){.id = window_id}
+				(ecs_term_t){.id = EcsWindow}
 			},
 			.events = {EcsOnSet},
 			.callback = create_gpu_device,
 		},
 		(ecs_observer_desc_t){
 			.query.terms = {
-				(ecs_term_t){.id = gpu_device_id}
+				(ecs_term_t){.id = EcsGpuDevice}
 			},
 			.events = {EcsOnSet},
 			.callback = log_gpu_info,
 		},
 		(ecs_observer_desc_t){
 			.query.terms = {
-				(ecs_term_t){.id = window_id},
-				(ecs_term_t){.id = gpu_device_id}
+				(ecs_term_t){.id = EcsWindow},
+				(ecs_term_t){.id = EcsGpuDevice}
 			},
 			.events = {EcsOnSet},
 			.callback = enable_vsync,
 		},
 		(ecs_observer_desc_t){
 			.query.terms = {
-				(ecs_term_t){.id = window_id},
-				(ecs_term_t){.id = gpu_device_id}
+				(ecs_term_t){.id = EcsWindow},
+				(ecs_term_t){.id = EcsGpuDevice}
 			},
 			.events = {EcsOnSet},
 			.callback = set_depth_texture,
@@ -358,15 +345,15 @@ void ecs_add_gpu()
 		(ecs_observer_desc_t){
 			.query.terms = {
 				(ecs_term_t){.id = EcsWindowEvent, .inout = EcsIn},
-				(ecs_term_t){.id = gpu_device_id, .src.name = "$g", .inout = EcsIn},
-				(ecs_term_t){.id = ecs_lookup(ecs_world(), "chirp.DepthTexture"), .src.name = "$d", .inout = EcsInOut},
+				(ecs_term_t){.id = EcsGpuDevice, .src.name = "$g", .inout = EcsIn},
+				(ecs_term_t){.id = EcsDepthTexture, .src.name = "$d", .inout = EcsInOut},
 			},
 			.events = {EcsOnWindowResized},
 			.callback = resize_depth_texture,
 		},
 		(ecs_observer_desc_t){
 			.query.terms = {
-				(ecs_term_t){.id = gpu_device_id}
+				(ecs_term_t){.id = EcsGpuDevice}
 			},
 			.events = {EcsOnSet},
 			.callback = load_default_shaders,
