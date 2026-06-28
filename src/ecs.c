@@ -9,6 +9,7 @@
 #include "windowconfig.h"
 #include "ecs/components.h"
 #include "ecs/events.h"
+#include "ecs/tags.h"
 
 #include "flecs.h"
 
@@ -249,7 +250,8 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 {
 	scope("Chirp")
 	{
-		tag("Engine");
+		EcsEngine = tag("Engine");
+		EcsScene = tag("Scene");
 
 		EcsAssets = component("Assets", assets_t);
 		EcsInit = component("Init", init_flags_t);
@@ -355,8 +357,6 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 			(ecs_member_t){.name = "vm_index", .type = ecs_id(ecs_i32_t)},
 		);
 #endif
-
-		tag("Scene");
 
 		create_pipeline();
 	}
