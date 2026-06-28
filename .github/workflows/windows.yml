@@ -24,7 +24,6 @@ jobs:
 
           - os: windows-11-arm
             arch: 'arm64'
-            compiler-flags: '-mfloat-abi=hard -mfpu=neon'
 
     steps:
       - uses: actions/checkout@v5
