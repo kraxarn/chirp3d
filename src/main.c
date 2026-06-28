@@ -396,7 +396,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
 		.query.expr = "[in] chirp.event.KeyboardEvent, [in] chirp.Window($w)",
-		.events = {EcsOnKeyboard},
+		.events = {EcsOnKey},
 		.callback = unlock_cursor,
 	});
 
@@ -640,7 +640,7 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 	if (event_type == SDL_EVENT_KEY_DOWN
 		|| event_type == SDL_EVENT_KEY_UP)
 	{
-		emit(EcsOnKeyboard, EcsKeyboardEvent, &event->key);
+		emit(EcsOnKey, EcsKeyboardEvent, &event->key);
 	}
 
 	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
@@ -656,16 +656,7 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 
 	if (event->type == SDL_EVENT_WINDOW_RESIZED)
 	{
-		// TODO
-		// SDL_GPUDevice *gpu_device = ecs_mut_data_ptr("chirp.GpuDevice");
-		// const auto depth_texture = (SDL_GPUTexture**) ecs_const_data("chirp.DepthTexture");
-		//
-		// SDL_ReleaseGPUTexture(gpu_device, *depth_texture);
-		// const auto size = (vector2i_t){
-		// 	.x = event->window.data1,
-		// 	.y = event->window.data2,
-		// };
-		// *depth_texture = create_depth_texture(gpu_device, size);
+		emit(EcsOnWindowResized, EcsWindowEvent, &event->window);
 	}
 
 	return SDL_APP_CONTINUE;

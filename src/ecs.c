@@ -20,11 +20,6 @@
 static ecs_world_t *world = nullptr;
 static ecs_entity_t phases[PHASE_COUNT];
 
-ecs_entity_t EcsOnMouseButton = 0;
-ecs_id_t EcsMouseButtonEvent = 0;
-ecs_entity_t EcsOnKeyboard = 0;
-ecs_id_t EcsKeyboardEvent = 0;
-
 static void log_debug_info()
 {
 	constexpr size_t temp_len = 160;
@@ -239,13 +234,14 @@ static ecs_entity_t tag(const char *name)
 
 static void add_events()
 {
-	const ecs_id_t event_type = component("EventType", SDL_EventType);
-
 	EcsOnMouseButton = entity("OnMouseButton");
 	EcsMouseButtonEvent = component("MouseButtonEvent", SDL_MouseButtonEvent);
 
-	EcsOnKeyboard = entity("OnKeyboard");
+	EcsOnKey = entity("OnKey");
 	EcsKeyboardEvent = component("KeyboardEvent", SDL_KeyboardEvent);
+
+	EcsOnWindowResized = entity("OnWindowResized");
+	EcsWindowEvent = component("WindowEvent", SDL_WindowEvent);
 }
 
 static void module([[maybe_unused]] ecs_world_t *unused)

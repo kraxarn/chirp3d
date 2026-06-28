@@ -6,6 +6,7 @@
 #include "resources.h"
 #include "shader.h"
 #include "systeminfo.h"
+#include "ecs/events.h"
 
 #include "flecs.h"
 
@@ -100,22 +101,12 @@ static void enable_vsync(ecs_iter_t *iter)
 	}
 }
 
-static void create_depth_texture(ecs_iter_t *iter)
+static SDL_GPUTexture *create_depth_texture(SDL_GPUDevice *device, const vector2i_t size)
 {
-	SDL_Window *window = *ecs_field(iter, window_t*, 0);
-	SDL_GPUDevice *device = *ecs_field(iter, gpu_device_t*, 1);
-
-	vector2i_t depth_size;
-	if (!SDL_GetWindowSize(window, &depth_size.x, &depth_size.y))
-	{
-		ecs_set_error("Window error", SDL_GetError());
-		return;
-	}
-
 	const SDL_GPUTextureCreateInfo create_info = {
 		.type = SDL_GPU_TEXTURETYPE_2D,
-		.width = depth_size.x,
-		.height = depth_size.y,
+		.width = size.x,
+		.height = size.y,
 		.layer_count_or_depth = 1,
 		.num_levels = 1,
 		.sample_count = SDL_GPU_SAMPLECOUNT_1,
@@ -127,6 +118,27 @@ static void create_depth_texture(ecs_iter_t *iter)
 	if (depth_texture == nullptr)
 	{
 		ecs_set_error("Depth texture error", SDL_GetError());
+		return nullptr;
+	}
+
+	return depth_texture;
+}
+
+static void set_depth_texture(ecs_iter_t *iter)
+{
+	SDL_Window *window = *ecs_field(iter, window_t*, 0);
+	SDL_GPUDevice *device = *ecs_field(iter, gpu_device_t*, 1);
+
+	vector2i_t size;
+	if (!SDL_GetWindowSize(window, &size.x, &size.y))
+	{
+		ecs_set_error("Window error", SDL_GetError());
+		return;
+	}
+
+	SDL_GPUTexture *depth_texture = create_depth_texture(device, size);
+	if (depth_texture == nullptr)
+	{
 		return;
 	}
 
@@ -292,6 +304,21 @@ static void create_default_pipeline(ecs_iter_t *iter)
 		sizeof(SDL_GPUGraphicsPipeline*), (const void*) &pipeline);
 }
 
+static void resize_depth_texture(ecs_iter_t *iter)
+{
+	const SDL_WindowEvent *event = ecs_field(iter, SDL_WindowEvent, 0);
+	const vector2i_t size = {
+		.x = event->data1,
+		.y = event->data2,
+	};
+
+	SDL_GPUDevice *device = *ecs_field(iter, gpu_device_t*, 1);
+	SDL_GPUTexture **depth_texture = ecs_field(iter, depth_texture_t*, 2);
+
+	SDL_ReleaseGPUTexture(device, *depth_texture);
+	*depth_texture = create_depth_texture(device, size);
+}
+
 void ecs_add_gpu()
 {
 	const ecs_id_t window_id = ecs_lookup(ecs_world(), "chirp.Window");
@@ -326,7 +353,16 @@ void ecs_add_gpu()
 				(ecs_term_t){.id = gpu_device_id}
 			},
 			.events = {EcsOnSet},
-			.callback = create_depth_texture,
+			.callback = set_depth_texture,
+		},
+		(ecs_observer_desc_t){
+			.query.terms = {
+				(ecs_term_t){.id = EcsWindowEvent, .inout = EcsIn},
+				(ecs_term_t){.id = gpu_device_id, .src.name = "$g", .inout = EcsIn},
+				(ecs_term_t){.id = ecs_lookup(ecs_world(), "chirp.DepthTexture"), .src.name = "$d", .inout = EcsInOut},
+			},
+			.events = {EcsOnWindowResized},
+			.callback = resize_depth_texture,
 		},
 		(ecs_observer_desc_t){
 			.query.terms = {
