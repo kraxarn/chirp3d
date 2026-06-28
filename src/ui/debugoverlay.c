@@ -9,6 +9,7 @@
 #include "systeminfo.h"
 #include "videodriver.h"
 #include "ecs/components.h"
+#include "ecs/tags.h"
 
 #include "dcimgui.h"
 #include "flecs.h"
@@ -175,7 +176,7 @@ void draw_debug_overlay(app_state_t *state)
 
 	if (physics_open)
 	{
-		const physics_engine_t *physics_engine = ecs_const_data("chirp.PhysicsEngine");
+		const physics_engine_t *physics_engine = ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsEngine);
 		physics_config_t *physics_config = ecs_mut_data("chirp.PhysicsConfig");
 		show_physics_properties(&physics_open, physics_engine, physics_config);
 	}
@@ -229,13 +230,13 @@ void draw_debug_overlay(app_state_t *state)
 
 			if ((elements & DEBUG_OVERLAY_CAMERA) > 0)
 			{
-				const camera_t *camera = ecs_const_data("chirp.Camera");
+				const camera_t *camera = ecs_get_id(ecs_world(), EcsEngine, EcsCamera);
 				draw_camera_info(camera);
 			}
 
 			if ((elements & DEBUG_OVERLAY_PHYSICS) > 0)
 			{
-				const physics_engine_t *physics_engine = ecs_const_data("chirp.PhysicsEngine");
+				const physics_engine_t *physics_engine = ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsEngine);
 				const ecs_entity_t player_entity = ecs_lookup(ecs_world(), "Player");
 				const physics_body_id_t *player_body_id = ecs_get_id(ecs_world(), player_entity, EcsPhysicsBody);
 				draw_physics_info(physics_engine, *player_body_id);

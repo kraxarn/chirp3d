@@ -444,7 +444,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	ecs_progress(ecs_world(), state->dt);
 
 	physics_engine_t *physics_engine = ecs_mut_data("chirp.PhysicsEngine");
-	const physics_config_t *physics_config = ecs_const_data("chirp.PhysicsConfig");
+	const physics_config_t *physics_config = ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsConfig);
 
 	const ecs_entity_t player_entity = ecs_lookup(ecs_world(), "Player");
 	const physics_body_id_t player_body_id = player_entity != 0
@@ -682,8 +682,8 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 		}
 	}
 
-	assets_destroy(ecs_const_data("chirp.Assets"));
-	physics_destroy(ecs_const_data("chirp.PhysicsEngine"));
+	assets_destroy(ecs_get_id(ecs_world(), EcsEngine, EcsAssets));
+	physics_destroy(ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsEngine));
 	script_engine_destroy();
 
 	// cImGui_ImplSDL3_Shutdown();

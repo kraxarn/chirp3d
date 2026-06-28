@@ -440,21 +440,9 @@ ecs_entity_t ecs_set_error(const char *title, const char *message)
 	return entity;
 }
 
-const void *ecs_const_data(const char *name)
-{
-	const ecs_id_t component = ecs_lookup(world, name);
-	if (component == 0)
-	{
-		SDL_LogWarn(LOG_CATEGORY_ECS, "Unknown component: %s", name);
-		return nullptr;
-	}
-
-	return ecs_get_id(world, EcsEngine, component);
-}
-
 void *ecs_mut_data_ptr(const char *name)
 {
-	const void *data = ecs_const_data(name);
+	const void *data = ecs_get_id(world, EcsEngine, ecs_lookup(world, name));
 	if (data == nullptr)
 	{
 		return nullptr;
