@@ -7,6 +7,7 @@
 #include "physics.h"
 #include "physicsconfig.h"
 #include "windowconfig.h"
+#include "ecs/components.h"
 #include "ecs/events.h"
 
 #include "flecs.h"
@@ -250,36 +251,36 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 	{
 		tag("Engine");
 
-		component("Assets", assets_t);
-		component("Init", init_flags_t);
-		component("WindowConfig", window_config_t);
-		component("Window", window_t*);
-		component("GpuDevice", gpu_device_t*);
-		component("GpuGraphicsPipeline", gpu_graphics_pipeline_t*);
-		component("DepthTexture", depth_texture_t*);
-		component("GpuCommandBuffer", gpu_command_buffer_t*);
-		component("GpuRenderPass", gpu_render_pass_t*);
-		component("SwapchainTexture", swapchain_texture_t*);
-		component("SwapchainTextureSize", swapchain_texture_size_t);
-		component("Camera", camera_t);
-		component("PhysicsConfig", physics_config_t);
-		component("PhysicsEngine", physics_engine_t);
-		component("Model", model_t);
-		component("InstanceOf", instance_of_index_t);
-		component("PhysicsBody", physics_body_id_t);
-		component("Rotation", rotation_t);
-		component("Position", position_t);
-		component("Scale", scale_t);
-		component("Projection", projection_t);
-		component("ImGuiContext", imgui_context_t*);
-		component("ImGuiDrawData", imgui_draw_data_t);
-		component("VertexShader", vertex_shader_t*);
-		component("FragmentShader", fragment_shader_t*);
-		component("ClearColor", clear_color_t);
-		component("ViewProjection", view_projection_t);
-		component("Error", error_t);
-		component("Input", input_t);
-		component("ScriptEngine", py_vm_index_t);
+		EcsAssets = component("Assets", assets_t);
+		EcsInit = component("Init", init_flags_t);
+		EcsWindowConfig = component("WindowConfig", window_config_t);
+		EcsWindow = component("Window", window_t*);
+		EcsGpuDevice = component("GpuDevice", gpu_device_t*);
+		EcsGpuGraphicsPipeline = component("GpuGraphicsPipeline", gpu_graphics_pipeline_t*);
+		EcsDepthTexture = component("DepthTexture", depth_texture_t*);
+		EcsGpuCommandBuffer = component("GpuCommandBuffer", gpu_command_buffer_t*);
+		EcsGpuRenderPass = component("GpuRenderPass", gpu_render_pass_t*);
+		EcsSwapchainTexture = component("SwapchainTexture", swapchain_texture_t*);
+		EcsSwapchainTextureSize = component("SwapchainTextureSize", swapchain_texture_size_t);
+		EcsCamera = component("Camera", camera_t);
+		EcsPhysicsConfig = component("PhysicsConfig", physics_config_t);
+		EcsPhysicsEngine = component("PhysicsEngine", physics_engine_t);
+		EcsModel = component("Model", model_t);
+		EcsInstanceOf = component("InstanceOf", instance_of_index_t);
+		EcsPhysicsBody = component("PhysicsBody", physics_body_id_t);
+		EcsRotation = component("Rotation", rotation_t);
+		EcsPosition = component("Position", position_t);
+		EcsScale = component("Scale", scale_t);
+		EcsProjection = component("Projection", projection_t);
+		EcsImGuiContext = component("ImGuiContext", imgui_context_t*);
+		EcsImGuiDrawData = component("ImGuiDrawData", imgui_draw_data_t);
+		EcsVertexShader = component("VertexShader", vertex_shader_t*);
+		EcsFragmentShader = component("FragmentShader", fragment_shader_t*);
+		EcsClearColor = component("ClearColor", clear_color_t);
+		EcsViewProjection = component("ViewProjection", view_projection_t);
+		EcsError = component("Error", error_t);
+		EcsInput = component("Input", input_t);
+		EcsScriptEngine = component("ScriptEngine", py_vm_index_t);
 
 #ifndef NDEBUG
 		reflect("chirp.Init",
