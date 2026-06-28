@@ -49,7 +49,7 @@ static SDL_AppResult fatal_error(const char *message)
 {
 	SDL_LogCritical(LOG_CATEGORY_CORE, "%s: %s", message, SDL_GetError());
 #ifdef NDEBUG
-	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
+	SDL_Window *window = ecs_get_id_ptr(EcsWindow);
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, message, SDL_GetError(), window);
 #endif
 	return SDL_APP_FAILURE;
