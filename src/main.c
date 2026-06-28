@@ -10,6 +10,7 @@
 #include "scriptengine.h"
 #include "systeminfo.h"
 #include "vector.h"
+#include "ecs/events.h"
 
 #include "dcimgui.h"
 #include "flecs.h"
@@ -270,6 +271,30 @@ static void build_scene(ecs_iter_t *iter)
 	physics_optimize(physics_engine);
 }
 
+static void lock_cursor(ecs_iter_t *iter)
+{
+	const SDL_MouseButtonEvent *event = ecs_field(iter, SDL_MouseButtonEvent, 0);
+	if (event->button != SDL_BUTTON_LEFT)
+	{
+		return;
+	}
+
+	SDL_Window *window = *ecs_field(iter, window_t*, 1);
+	SDL_SetWindowRelativeMouseMode(window, true);
+}
+
+static void unlock_cursor(ecs_iter_t *iter)
+{
+	const SDL_KeyboardEvent *event = ecs_field(iter, SDL_KeyboardEvent, 0);
+	if (event->key != SDLK_ESCAPE)
+	{
+		return;
+	}
+
+	SDL_Window *window = *ecs_field(iter, window_t*, 1);
+	SDL_SetWindowRelativeMouseMode(window, false);
+}
+
 SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	[[maybe_unused]] char **argv)
 {
@@ -361,6 +386,18 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		.terms = {
 			(ecs_term_t){.id = ecs_lookup(ecs_world(), "chirp.Error")},
 		},
+	});
+
+	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
+		.query.expr = "[in] chirp.event.MouseButtonEvent, [in] chirp.Window($w)",
+		.events = {EcsOnMouseButton},
+		.callback = lock_cursor,
+	});
+
+	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
+		.query.expr = "[in] chirp.event.KeyboardEvent, [in] chirp.Window($w)",
+		.events = {EcsOnKeyboard},
+		.callback = unlock_cursor,
 	});
 
 	return SDL_APP_CONTINUE;
@@ -567,34 +604,51 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	return SDL_APP_CONTINUE;
 }
 
+static void emit(const ecs_entity_t event, const ecs_id_t value_type, void *value)
+{
+	const ecs_entity_t entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
+		.set = ecs_values((ecs_value_t){.type = value_type, .ptr = value}),
+	});
+
+	ecs_emit(ecs_world(), &(ecs_event_desc_t){
+		.event = event,
+		.entity = entity,
+		.ids = &(ecs_type_t){
+			.array = (ecs_id_t[]){value_type},
+			.count = 1,
+		},
+	});
+
+	ecs_delete(ecs_world(), entity);
+}
+
 SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 {
-	if (event->type == SDL_EVENT_QUIT)
+	const SDL_EventType event_type = event->type;
+
+	if (event_type == SDL_EVENT_QUIT)
 	{
 		return SDL_APP_SUCCESS;
 	}
 
-	query("[none] chirp.ImGuiContext")
+	if (event_type == SDL_EVENT_MOUSE_BUTTON_DOWN
+		|| event_type == SDL_EVENT_MOUSE_BUTTON_UP)
 	{
-		cImGui_ImplSDL3_ProcessEvent(event);
+		emit(EcsOnMouseButton, EcsMouseButtonEvent, &event->button);
 	}
 
-	SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
+	if (event_type == SDL_EVENT_KEY_DOWN
+		|| event_type == SDL_EVENT_KEY_UP)
+	{
+		emit(EcsOnKeyboard, EcsKeyboardEvent, &event->key);
+	}
 
-	if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN
-		&& event->button.button == SDL_BUTTON_LEFT
-		/* && !ImGui_GetIO()->WantCaptureMouse */)
-	{
-		SDL_SetWindowRelativeMouseMode(window, true);
-	}
-	else if (event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_ESCAPE)
-	{
-		SDL_SetWindowRelativeMouseMode(window, false);
-	}
+	const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
+	const ecs_id_t window_id = ecs_lookup(ecs_world(), "chirp.Window");
+	SDL_Window *window = *((window_t**) ecs_get_id(ecs_world(), engine, window_id));
 
 	if (SDL_GetWindowRelativeMouseMode(window))
 	{
-		const ecs_entity_t engine = ecs_lookup(ecs_world(), "chirp.Engine");
 		const ecs_id_t input_id = ecs_lookup(ecs_world(), "chirp.Input");
 		const input_t *input = ecs_get_id(ecs_world(), engine, input_id);
 		input_update(input, event);

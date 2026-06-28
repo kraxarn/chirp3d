@@ -7,6 +7,7 @@
 #include "physics.h"
 #include "physicsconfig.h"
 #include "windowconfig.h"
+#include "ecs/events.h"
 
 #include "flecs.h"
 
@@ -18,6 +19,11 @@
 
 static ecs_world_t *world = nullptr;
 static ecs_entity_t phases[PHASE_COUNT];
+
+ecs_entity_t EcsOnMouseButton = 0;
+ecs_id_t EcsMouseButtonEvent = 0;
+ecs_entity_t EcsOnKeyboard = 0;
+ecs_id_t EcsKeyboardEvent = 0;
 
 static void log_debug_info()
 {
@@ -165,7 +171,16 @@ static void ctor_zero(void *ptr, const Sint32 count, const ecs_type_info_t *type
 	SDL_memset(ptr, 0, (size_t) count * type_info->size);
 }
 
-static ecs_entity_t component_impl(const char *name, const char *symbol,
+[[nodiscard]]
+static ecs_entity_t entity(const char *name)
+{
+	return ecs_entity_init(world, &(ecs_entity_desc_t){
+		.name = name,
+	});
+}
+
+[[nodiscard]]
+static ecs_id_t component_impl(const char *name, const char *symbol,
 	const ecs_size_t size, const ecs_size_t alignment)
 {
 	const ecs_entity_desc_t entity_desc = {
@@ -182,7 +197,7 @@ static ecs_entity_t component_impl(const char *name, const char *symbol,
 		},
 	};
 
-	const ecs_entity_t component = ecs_component_init(world, &component_desc);
+	const ecs_id_t component = ecs_component_init(world, &component_desc);
 	SDL_assert(component != 0);
 
 	const ecs_type_hooks_t hooks = {
@@ -224,46 +239,150 @@ static ecs_entity_t tag(const char *name)
 
 static void add_events()
 {
-#define add_event(event) component(#event, SDL_##event)
-	// See SDL3/SDL_events.h
-	add_event(DisplayEvent);
-	add_event(WindowEvent);
-	add_event(KeyboardDeviceEvent);
-	add_event(KeyboardEvent);
-	add_event(TextEditingEvent);
-	add_event(TextEditingCandidatesEvent);
-	add_event(TextInputEvent);
-	add_event(MouseDeviceEvent);
-	add_event(MouseMotionEvent);
-	add_event(MouseButtonEvent);
-	add_event(MouseWheelEvent);
-	add_event(JoyDeviceEvent);
-	add_event(JoyAxisEvent);
-	add_event(JoyBallEvent);
-	add_event(JoyHatEvent);
-	add_event(JoyButtonEvent);
-	add_event(JoyBatteryEvent);
-	add_event(GamepadDeviceEvent);
-	add_event(GamepadAxisEvent);
-	add_event(GamepadButtonEvent);
-	add_event(GamepadTouchpadEvent);
-	add_event(GamepadSensorEvent);
-	add_event(AudioDeviceEvent);
-	add_event(CameraDeviceEvent);
-	add_event(SensorEvent);
-	add_event(QuitEvent);
-	add_event(UserEvent);
-	add_event(TouchFingerEvent);
-	add_event(PinchFingerEvent);
-	add_event(PenProximityEvent);
-	add_event(PenTouchEvent);
-	add_event(PenMotionEvent);
-	add_event(PenButtonEvent);
-	add_event(PenAxisEvent);
-	add_event(RenderEvent);
-	add_event(DropEvent);
-	add_event(ClipboardEvent);
-#undef add_event
+	const ecs_id_t event_type = component("EventType", SDL_EventType);
+
+	EcsOnMouseButton = entity("OnMouseButton");
+	EcsMouseButtonEvent = component("MouseButtonEvent", SDL_MouseButtonEvent);
+
+	EcsOnKeyboard = entity("OnKeyboard");
+	EcsKeyboardEvent = component("KeyboardEvent", SDL_KeyboardEvent);
+
+#ifndef NDEBUG
+	ecs_enum_init(world, &(ecs_enum_desc_t){
+		.entity = event_type,
+		// By default, only 32 values are allowed, so ignore unused values
+		.constants = {
+			// Application
+			(ecs_enum_constant_t){.name = "Quit", .value = SDL_EVENT_QUIT},
+			// iOS / Android
+			// (ecs_enum_constant_t){.name = "Terminating", .value = SDL_EVENT_TERMINATING},
+			// (ecs_enum_constant_t){.name = "LowMemory", .value = SDL_EVENT_LOW_MEMORY},
+			// (ecs_enum_constant_t){.name = "WillEnterBackground", .value = SDL_EVENT_WILL_ENTER_BACKGROUND},
+			// (ecs_enum_constant_t){.name = "DidEnterBackground", .value = SDL_EVENT_DID_ENTER_BACKGROUND},
+			// (ecs_enum_constant_t){.name = "WillEnterForeground", .value = SDL_EVENT_WILL_ENTER_FOREGROUND},
+			// (ecs_enum_constant_t){.name = "DidEnterForeground", .value = SDL_EVENT_DID_ENTER_FOREGROUND},
+			// (ecs_enum_constant_t){.name = "LocaleChanged", .value = SDL_EVENT_LOCALE_CHANGED},
+			// (ecs_enum_constant_t){.name = "SystemThemeChanged", .value = SDL_EVENT_SYSTEM_THEME_CHANGED},
+			// Display
+			// (ecs_enum_constant_t){.name = "DisplayOrientation", .value = SDL_EVENT_DISPLAY_ORIENTATION},
+			// (ecs_enum_constant_t){.name = "DisplayAdded", .value = SDL_EVENT_DISPLAY_ADDED},
+			// (ecs_enum_constant_t){.name = "DisplayRemoved", .value = SDL_EVENT_DISPLAY_REMOVED},
+			// (ecs_enum_constant_t){.name = "DisplayMoved", .value = SDL_EVENT_DISPLAY_MOVED},
+			// (ecs_enum_constant_t){.name = "DisplayDesktopModeChanged", .value = SDL_EVENT_DISPLAY_DESKTOP_MODE_CHANGED},
+			// (ecs_enum_constant_t){.name = "DisplayCurrentModeChanged", .value = SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED},
+			// (ecs_enum_constant_t){.name = "DisplayContentScaleChanged", .value = SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED},
+			// (ecs_enum_constant_t){.name = "DisplayUsableBoundsChanged", .value = SDL_EVENT_DISPLAY_USABLE_BOUNDS_CHANGED},
+			// Window
+			// (ecs_enum_constant_t){.name = "WindowShown", .value = SDL_EVENT_WINDOW_SHOWN},
+			// (ecs_enum_constant_t){.name = "WindowHidden", .value = SDL_EVENT_WINDOW_HIDDEN},
+			// (ecs_enum_constant_t){.name = "WindowExposed", .value = SDL_EVENT_WINDOW_EXPOSED},
+			// (ecs_enum_constant_t){.name = "WindowMoved", .value = SDL_EVENT_WINDOW_MOVED},
+			// (ecs_enum_constant_t){.name = "WindowResized", .value = SDL_EVENT_WINDOW_RESIZED},
+			// (ecs_enum_constant_t){.name = "WindowPixelSizeChanged", .value = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED},
+			// (ecs_enum_constant_t){.name = "WindowMetalViewResized", .value = SDL_EVENT_WINDOW_METAL_VIEW_RESIZED},
+			// (ecs_enum_constant_t){.name = "WindowMinimized", .value = SDL_EVENT_WINDOW_MINIMIZED},
+			// (ecs_enum_constant_t){.name = "WindowMaximized", .value = SDL_EVENT_WINDOW_MAXIMIZED},
+			// (ecs_enum_constant_t){.name = "WindowRestored", .value = SDL_EVENT_WINDOW_RESTORED},
+			// (ecs_enum_constant_t){.name = "WindowMouseEnter", .value = SDL_EVENT_WINDOW_MOUSE_ENTER},
+			// (ecs_enum_constant_t){.name = "WindowMouseLeave", .value = SDL_EVENT_WINDOW_MOUSE_LEAVE},
+			// (ecs_enum_constant_t){.name = "WindowFocusGained", .value = SDL_EVENT_WINDOW_FOCUS_GAINED},
+			// (ecs_enum_constant_t){.name = "WindowFocusLost", .value = SDL_EVENT_WINDOW_FOCUS_LOST},
+			// (ecs_enum_constant_t){.name = "WindowCloseRequested", .value = SDL_EVENT_WINDOW_CLOSE_REQUESTED},
+			// (ecs_enum_constant_t){.name = "WindowHitTest", .value = SDL_EVENT_WINDOW_HIT_TEST},
+			// (ecs_enum_constant_t){.name = "WindowIccProfChanged", .value = SDL_EVENT_WINDOW_ICCPROF_CHANGED},
+			// (ecs_enum_constant_t){.name = "WindowDisplayChanged", .value = SDL_EVENT_WINDOW_DISPLAY_CHANGED},
+			// (ecs_enum_constant_t){.name = "WindowDisplayScaleChanged", .value = SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED},
+			// (ecs_enum_constant_t){.name = "WindowSafeAreaChanged", .value = SDL_EVENT_WINDOW_SAFE_AREA_CHANGED},
+			// (ecs_enum_constant_t){.name = "WindowOccluded", .value = SDL_EVENT_WINDOW_OCCLUDED},
+			// (ecs_enum_constant_t){.name = "WindowEnterFullscreen", .value = SDL_EVENT_WINDOW_ENTER_FULLSCREEN},
+			// (ecs_enum_constant_t){.name = "WindowLeaveFullscreen", .value = SDL_EVENT_WINDOW_LEAVE_FULLSCREEN},
+			// (ecs_enum_constant_t){.name = "WindowDestroyed", .value = SDL_EVENT_WINDOW_DESTROYED},
+			// (ecs_enum_constant_t){.name = "WindowHdrStateChanged", .value = SDL_EVENT_WINDOW_HDR_STATE_CHANGED},
+			// Keyboard
+			// (ecs_enum_constant_t){.name = "KeyDown", .value = SDL_EVENT_KEY_DOWN},
+			// (ecs_enum_constant_t){.name = "KeyUp", .value = SDL_EVENT_KEY_UP},
+			// (ecs_enum_constant_t){.name = "TextEditing", .value = SDL_EVENT_TEXT_EDITING},
+			// (ecs_enum_constant_t){.name = "TextInput", .value = SDL_EVENT_TEXT_INPUT},
+			// (ecs_enum_constant_t){.name = "KeymapChanged", .value = SDL_EVENT_KEYMAP_CHANGED},
+			// (ecs_enum_constant_t){.name = "KeyboardAdded", .value = SDL_EVENT_KEYBOARD_ADDED},
+			// (ecs_enum_constant_t){.name = "KeyboardRemoved", .value = SDL_EVENT_KEYBOARD_REMOVED},
+			// (ecs_enum_constant_t){.name = "TextEditingCandidates", .value = SDL_EVENT_TEXT_EDITING_CANDIDATES},
+			// (ecs_enum_constant_t){.name = "ScreenKeyboardShown", .value = SDL_EVENT_SCREEN_KEYBOARD_SHOWN},
+			// (ecs_enum_constant_t){.name = "ScreenKeyboardHidden", .value = SDL_EVENT_SCREEN_KEYBOARD_HIDDEN},
+			// Mouse
+			// (ecs_enum_constant_t){.name = "MouseMotion", .value = SDL_EVENT_MOUSE_MOTION},
+			(ecs_enum_constant_t){.name = "MouseButtonDown", .value = SDL_EVENT_MOUSE_BUTTON_DOWN},
+			(ecs_enum_constant_t){.name = "MouseButtonUp", .value = SDL_EVENT_MOUSE_BUTTON_UP},
+			// (ecs_enum_constant_t){.name = "MouseWheel", .value = SDL_EVENT_MOUSE_WHEEL},
+			// (ecs_enum_constant_t){.name = "MouseAdded", .value = SDL_EVENT_MOUSE_ADDED},
+			// (ecs_enum_constant_t){.name = "MouseRemoved", .value = SDL_EVENT_MOUSE_REMOVED},
+			// Joystick
+			// (ecs_enum_constant_t){.name = "JoystickAxisMotion", .value = SDL_EVENT_JOYSTICK_AXIS_MOTION},
+			// (ecs_enum_constant_t){.name = "JoystickBallMotion", .value = SDL_EVENT_JOYSTICK_BALL_MOTION},
+			// (ecs_enum_constant_t){.name = "JoystickHatMotion", .value = SDL_EVENT_JOYSTICK_HAT_MOTION},
+			// (ecs_enum_constant_t){.name = "JoystickButtonDown", .value = SDL_EVENT_JOYSTICK_BUTTON_DOWN},
+			// (ecs_enum_constant_t){.name = "JoystickButtonUp", .value = SDL_EVENT_JOYSTICK_BUTTON_UP},
+			// (ecs_enum_constant_t){.name = "JoystickAdded", .value = SDL_EVENT_JOYSTICK_ADDED},
+			// (ecs_enum_constant_t){.name = "JoystickRemoved", .value = SDL_EVENT_JOYSTICK_REMOVED},
+			// (ecs_enum_constant_t){.name = "JoystickBatteryUpdated", .value = SDL_EVENT_JOYSTICK_BATTERY_UPDATED},
+			// (ecs_enum_constant_t){.name = "JoystickUpdateComplete", .value = SDL_EVENT_JOYSTICK_UPDATE_COMPLETE},
+			// Gamepad
+			// (ecs_enum_constant_t){.name = "GamepadAxisMotion", .value = SDL_EVENT_GAMEPAD_AXIS_MOTION},
+			// (ecs_enum_constant_t){.name = "GamepadButtonDown", .value = SDL_EVENT_GAMEPAD_BUTTON_DOWN},
+			// (ecs_enum_constant_t){.name = "GamepadButtonUp", .value = SDL_EVENT_GAMEPAD_BUTTON_UP},
+			// (ecs_enum_constant_t){.name = "GamepadAdded", .value = SDL_EVENT_GAMEPAD_ADDED},
+			// (ecs_enum_constant_t){.name = "GamepadRemoved", .value = SDL_EVENT_GAMEPAD_REMOVED},
+			// (ecs_enum_constant_t){.name = "GamepadRemapped", .value = SDL_EVENT_GAMEPAD_REMAPPED},
+			// (ecs_enum_constant_t){.name = "GamepadTouchpadDown", .value = SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN},
+			// (ecs_enum_constant_t){.name = "GamepadTouchpadMotion", .value = SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION},
+			// (ecs_enum_constant_t){.name = "GamepadTouchpadUp", .value = SDL_EVENT_GAMEPAD_TOUCHPAD_UP},
+			// (ecs_enum_constant_t){.name = "GamepadSensorUpdate", .value = SDL_EVENT_GAMEPAD_SENSOR_UPDATE},
+			// (ecs_enum_constant_t){.name = "GamepadUpdateComplete", .value = SDL_EVENT_GAMEPAD_UPDATE_COMPLETE},
+			// (ecs_enum_constant_t){.name = "GamepadSteamHandleUpdated", .value = SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED},
+			// Touch
+			// (ecs_enum_constant_t){.name = "FingerDown", .value = SDL_EVENT_FINGER_DOWN},
+			// (ecs_enum_constant_t){.name = "FingerUp", .value = SDL_EVENT_FINGER_UP},
+			// (ecs_enum_constant_t){.name = "FingerMotion", .value = SDL_EVENT_FINGER_MOTION},
+			// (ecs_enum_constant_t){.name = "FingerCanceled", .value = SDL_EVENT_FINGER_CANCELED},
+			// Pinch
+			// (ecs_enum_constant_t){.name = "PinchBegin", .value = SDL_EVENT_PINCH_BEGIN},
+			// (ecs_enum_constant_t){.name = "PinchUpdate", .value = SDL_EVENT_PINCH_UPDATE},
+			// (ecs_enum_constant_t){.name = "PinchEnd", .value = SDL_EVENT_PINCH_END},
+			// Clipboard
+			// (ecs_enum_constant_t){.name = "ClipboardUpdate", .value = SDL_EVENT_CLIPBOARD_UPDATE},
+			// Drag and drop
+			// (ecs_enum_constant_t){.name = "DropFile", .value = SDL_EVENT_DROP_FILE},
+			// (ecs_enum_constant_t){.name = "DropText", .value = SDL_EVENT_DROP_TEXT},
+			// (ecs_enum_constant_t){.name = "DropBegin", .value = SDL_EVENT_DROP_BEGIN},
+			// (ecs_enum_constant_t){.name = "DropComplete", .value = SDL_EVENT_DROP_COMPLETE},
+			// (ecs_enum_constant_t){.name = "DropPosition", .value = SDL_EVENT_DROP_POSITION},
+			// Audio hotplug
+			// (ecs_enum_constant_t){.name = "AudioDeviceAdded", .value = SDL_EVENT_AUDIO_DEVICE_ADDED},
+			// (ecs_enum_constant_t){.name = "AudioDeviceRemoved", .value = SDL_EVENT_AUDIO_DEVICE_REMOVED},
+			// (ecs_enum_constant_t){.name = "AudioDeviceFormatChanged", .value = SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED},
+			// Sensor
+			// (ecs_enum_constant_t){.name = "SensorUpdate", .value = SDL_EVENT_SENSOR_UPDATE},
+			// Pen
+			// (ecs_enum_constant_t){.name = "PenProximityIn", .value = SDL_EVENT_PEN_PROXIMITY_IN},
+			// (ecs_enum_constant_t){.name = "PenProximityOut", .value = SDL_EVENT_PEN_PROXIMITY_OUT},
+			// (ecs_enum_constant_t){.name = "PenDown", .value = SDL_EVENT_PEN_DOWN},
+			// (ecs_enum_constant_t){.name = "PenUp", .value = SDL_EVENT_PEN_UP},
+			// (ecs_enum_constant_t){.name = "PenButtonDown", .value = SDL_EVENT_PEN_BUTTON_DOWN},
+			// (ecs_enum_constant_t){.name = "PenButtonUp", .value = SDL_EVENT_PEN_BUTTON_UP},
+			// (ecs_enum_constant_t){.name = "PenMotion", .value = SDL_EVENT_PEN_MOTION},
+			// (ecs_enum_constant_t){.name = "PenAxis", .value = SDL_EVENT_PEN_AXIS},
+			// Camera hotplug
+			// (ecs_enum_constant_t){.name = "CameraDeviceAdded", .value = SDL_EVENT_CAMERA_DEVICE_ADDED},
+			// (ecs_enum_constant_t){.name = "CameraDeviceRemoved", .value = SDL_EVENT_CAMERA_DEVICE_REMOVED},
+			// (ecs_enum_constant_t){.name = "CameraDeviceApproved", .value = SDL_EVENT_CAMERA_DEVICE_APPROVED},
+			// (ecs_enum_constant_t){.name = "CameraDeviceDenied", .value = SDL_EVENT_CAMERA_DEVICE_DENIED},
+			// Render
+			// (ecs_enum_constant_t){.name = "RenderTargetsReset", .value = SDL_EVENT_RENDER_TARGETS_RESET},
+			// (ecs_enum_constant_t){.name = "RenderDeviceReset", .value = SDL_EVENT_RENDER_DEVICE_RESET},
+			// (ecs_enum_constant_t){.name = "RenderDeviceLost", .value = SDL_EVENT_RENDER_DEVICE_LOST},
+		},
+	});
+#endif
 }
 
 static void module([[maybe_unused]] ecs_world_t *unused)
@@ -382,7 +501,7 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		create_pipeline();
 	}
 
-	scope("ChirpEvents")
+	scope("ChirpEvent")
 	{
 		add_events();
 	}
