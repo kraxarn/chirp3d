@@ -214,10 +214,18 @@ void ecs_add_render()
 			.name = "BeginRender",
 			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_RENDER_BEGIN))),
 		}),
-		.query.expr =
-		"[in] chirp.Window, [in] chirp.GpuDevice, [in] chirp.ClearColor, [in] ?chirp.DepthTexture,"
-		"[in] ?chirp.ImGuiDrawData, [in] chirp.GpuGraphicsPipeline, [out] chirp.GpuCommandBuffer,"
-		"[out] chirp.GpuRenderPass, [out] chirp.SwapchainTexture, [out] chirp.SwapchainTextureSize",
+		.query.terms = {
+			(ecs_term_t){.id = EcsWindow, .inout = EcsIn},
+			(ecs_term_t){.id = EcsGpuDevice, .inout = EcsIn},
+			(ecs_term_t){.id = EcsClearColor, .inout = EcsIn},
+			(ecs_term_t){.id = EcsDepthTexture, .inout = EcsIn, .oper = EcsOptional},
+			(ecs_term_t){.id = EcsImGuiDrawData, .inout = EcsIn, .oper = EcsOptional},
+			(ecs_term_t){.id = EcsGpuGraphicsPipeline, .inout = EcsIn},
+			(ecs_term_t){.id = EcsGpuCommandBuffer, .inout = EcsOut},
+			(ecs_term_t){.id = EcsGpuRenderPass, .inout = EcsOut},
+			(ecs_term_t){.id = EcsSwapchainTexture, .inout = EcsOut},
+			(ecs_term_t){.id = EcsSwapchainTextureSize, .inout = EcsOut},
+		},
 		.callback = begin_render,
 	});
 
@@ -226,7 +234,11 @@ void ecs_add_render()
 			.name = "RebuildCameraProjection",
 			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_RENDER_BEGIN))),
 		}),
-		.query.expr = "[in] chirp.Camera, [in] ?chirp.SwapchainTextureSize, [out] chirp.ViewProjection",
+		.query.terms = {
+			(ecs_term_t){.id = EcsCamera, .inout = EcsIn},
+			(ecs_term_t){.id = EcsSwapchainTextureSize, .inout = EcsIn, .oper = EcsOptional},
+			(ecs_term_t){.id = EcsViewProjection, .inout = EcsOut},
+		},
 		.callback = rebuild_camera_projection,
 	});
 
@@ -235,9 +247,13 @@ void ecs_add_render()
 			.name = "RenderScene",
 			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_RENDER))),
 		}),
-		.query.expr =
-		"[in] chirp.GpuRenderPass, [in] chirp.GpuCommandBuffer,"
-		"[in] chirp.ViewProjection, [in] chirp.Model($model), [none] chirp.Scene($model)",
+		.query.terms = {
+			(ecs_term_t){.id = EcsGpuRenderPass, .inout = EcsIn},
+			(ecs_term_t){.id = EcsGpuCommandBuffer, .inout = EcsIn},
+			(ecs_term_t){.id = EcsViewProjection, .inout = EcsIn},
+			(ecs_term_t){.id = EcsModel, .src.name = "$model", .inout = EcsIn},
+			(ecs_term_t){.id = EcsScene, .src.name = "$model", .inout = EcsInOutNone},
+		},
 		.callback = render_scene,
 	});
 
@@ -246,10 +262,16 @@ void ecs_add_render()
 			.name = "RenderModel",
 			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_RENDER))),
 		}),
-		.query.expr =
-		"[in] chirp.GpuRenderPass, [in] chirp.GpuCommandBuffer, [in] chirp.ViewProjection,"
-		"[in] chirp.InstanceOf($model, *), [inout] chirp.Projection($model),"
-		"[in] ?chirp.Scale($model), [in] ?chirp.Rotation($model), [in] ?chirp.Position($model)",
+		.query.terms = {
+			(ecs_term_t){.id = EcsGpuRenderPass, .inout = EcsIn},
+			(ecs_term_t){.id = EcsGpuCommandBuffer, .inout = EcsIn},
+			(ecs_term_t){.id = EcsViewProjection, .inout = EcsIn},
+			(ecs_term_t){.src.name = "$model", .first.id = EcsInstanceOf, .second.id = EcsWildcard, .inout = EcsIn},
+			(ecs_term_t){.id = EcsProjection, .src.name = "$model", .inout = EcsInOut},
+			(ecs_term_t){.id = EcsScale, .src.name = "$model", .inout = EcsIn, .oper = EcsOptional},
+			(ecs_term_t){.id = EcsRotation, .src.name = "$model", .inout = EcsIn, .oper = EcsOptional},
+			(ecs_term_t){.id = EcsPosition, .src.name = "$model", .inout = EcsIn, .oper = EcsOptional},
+		},
 		.callback = render_model,
 	});
 
@@ -258,7 +280,11 @@ void ecs_add_render()
 			.name = "EndRender",
 			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_RENDER_END))),
 		}),
-		.query.expr = "[in] chirp.GpuRenderPass, [in] chirp.GpuCommandBuffer, [in] ?chirp.SwapchainTexture",
+		.query.terms = {
+			(ecs_term_t){.id = EcsGpuRenderPass, .inout = EcsIn},
+			(ecs_term_t){.id = EcsGpuCommandBuffer, .inout = EcsIn},
+			(ecs_term_t){.id = EcsSwapchainTexture, .inout = EcsIn, .oper = EcsOptional},
+		},
 		.callback = end_render,
 	});
 }

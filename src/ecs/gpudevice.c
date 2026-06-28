@@ -359,9 +359,12 @@ void ecs_add_gpu()
 			.callback = load_default_shaders,
 		},
 		(ecs_observer_desc_t){
-			.query.expr =
-			"[in] chirp.Window($engine), [in] chirp.GpuDevice($engine),"
-			"[in] chirp.VertexShader($this), [in] chirp.FragmentShader($this)",
+			.query.terms = {
+				(ecs_term_t){.id = EcsWindow, .src.name = "$engine", .inout = EcsIn},
+				(ecs_term_t){.id = EcsGpuDevice, .src.name = "$engine", .inout = EcsIn},
+				(ecs_term_t){.id = EcsVertexShader, .inout = EcsIn},
+				(ecs_term_t){.id = EcsFragmentShader, .inout = EcsIn},
+			},
 			.events = {EcsOnSet},
 			.callback = create_default_pipeline,
 		},

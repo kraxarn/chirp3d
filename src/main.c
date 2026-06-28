@@ -180,7 +180,17 @@ static void build_scene(ecs_iter_t *iter)
 	const camera_t *camera = ecs_field(iter, camera_t, 4);
 
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
-		.query.expr = "chirp.Position($this), $this == \"Model.scene.Spawn\"",
+		.query.terms = {
+			(ecs_term_t){.id = EcsPosition, .inout = EcsIn},
+			(ecs_term_t){
+				.first.id = EcsPredEq,
+				.second = (ecs_term_ref_t){
+					.id = EcsIsName,
+					.name = "Model.scene.Spawn",
+				},
+				.inout = EcsInOutNone,
+			},
+		},
 		.events = {EcsOnSet},
 		.callback = log_spawn_position,
 	});
@@ -338,9 +348,13 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	ecs_add_script_engine();
 
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
-		.query.expr =
-		"[in] chirp.Assets, [in] chirp.GpuDevice, [in] chirp.PhysicsEngine,"
-		"[in] chirp.PhysicsConfig, [in] chirp.Camera",
+		.query.terms = {
+			(ecs_term_t){.id = EcsAssets, .inout = EcsIn},
+			(ecs_term_t){.id = EcsGpuDevice, .inout = EcsIn},
+			(ecs_term_t){.id = EcsPhysicsEngine, .inout = EcsIn},
+			(ecs_term_t){.id = EcsPhysicsConfig, .inout = EcsIn},
+			(ecs_term_t){.id = EcsCamera, .inout = EcsIn},
+		},
 		.events = {EcsOnSet},
 		.callback = build_scene,
 	});
@@ -384,13 +398,19 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	});
 
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
-		.query.expr = "[in] chirp.event.MouseButtonEvent, [in] chirp.Window($w)",
+		.query.terms = {
+			(ecs_term_t){.id = EcsMouseButtonEvent, .inout = EcsIn},
+			(ecs_term_t){.id = EcsWindow, .src.name = "$window", .inout = EcsIn},
+		},
 		.events = {EcsOnMouseButton},
 		.callback = lock_cursor,
 	});
 
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
-		.query.expr = "[in] chirp.event.KeyboardEvent, [in] chirp.Window($w)",
+		.query.terms = {
+			(ecs_term_t){.id = EcsKeyboardEvent, .inout = EcsIn},
+			(ecs_term_t){.id = EcsWindow, .src.name = "$window", .inout = EcsIn},
+		},
 		.events = {EcsOnKey},
 		.callback = unlock_cursor,
 	});

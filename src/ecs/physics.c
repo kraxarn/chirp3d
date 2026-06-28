@@ -1,5 +1,7 @@
 #include "physics.h"
 #include "ecs.h"
+#include "ecs/components.h"
+#include "ecs/tags.h"
 
 #include "flecs.h"
 
@@ -42,7 +44,9 @@ void ecs_add_physics()
 			.name = "UpdatePhysics",
 			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_PHYSICS_UPDATE))),
 		}),
-		.query.expr = "[in] chirp.PhysicsEngine",
+		.query.terms = {
+			(ecs_term_t){.id = EcsPhysicsEngine, .inout = EcsIn},
+		},
 		.callback = update_physics,
 	});
 
@@ -51,9 +55,13 @@ void ecs_add_physics()
 			.name = "SyncPhysics",
 			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_PHYSICS_SYNC))),
 		}),
-		.query.expr =
-		"[in] chirp.PhysicsEngine(chirp.Engine), [in] chirp.PhysicsBody,"
-		"[inout] chirp.Projection, [out] chirp.Position, [out] chirp.Rotation",
+		.query.terms = {
+			(ecs_term_t){.id = EcsPhysicsEngine, .src.id = EcsEngine, .inout = EcsIn},
+			(ecs_term_t){.id = EcsPhysicsBody, .inout = EcsIn},
+			(ecs_term_t){.id = EcsProjection, .inout = EcsInOut},
+			(ecs_term_t){.id = EcsPosition, .inout = EcsOut},
+			(ecs_term_t){.id = EcsRotation, .inout = EcsOut},
+		},
 		.callback = sync_physics,
 	});
 }

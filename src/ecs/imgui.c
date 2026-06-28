@@ -101,7 +101,11 @@ void ecs_add_imgui()
 			.name = "RenderScene",
 			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_RENDER))),
 		}),
-		.query.expr = "[in] chirp.GpuCommandBuffer, [in] chirp.GpuRenderPass, [in] chirp.ImGuiDrawData",
+		.query.terms = {
+			(ecs_term_t){.id = EcsGpuCommandBuffer, .inout = EcsIn},
+			(ecs_term_t){.id = EcsGpuRenderPass, .inout = EcsIn},
+			(ecs_term_t){.id = EcsImGuiDrawData, .inout = EcsIn},
+		},
 		.callback = render,
 	});
 }
