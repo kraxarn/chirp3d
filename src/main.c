@@ -607,7 +607,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		const error_t *error = ecs_field(&iter, error_t, 0);
 		SDL_LogCritical(LOG_CATEGORY_CORE, "%s: %s", error->title, error->message);
 #ifdef NDEBUG
-		SDL_Window *window = ecs_mut_data_ptr("chirp.Window");
+		SDL_Window *window = ecs_get_id_ptr(EcsWindow);
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, error->title, error->message, window);
 #endif
 		ecs_iter_fini(&iter);
