@@ -4,6 +4,7 @@
 #include "ecsosapi.h"
 #include "input.h"
 #include "logcategory.h"
+#include "mousebutton.h"
 #include "physics.h"
 #include "physicsconfig.h"
 #include "windowconfig.h"
@@ -228,6 +229,18 @@ static ecs_entity_t tag(const char *name)
 		ecs_struct_init(world, &struct_desc);	\
 	} while (false)
 
+static ecs_entity_t reflect_string(const ecs_entity_t entity,
+	const ecs_meta_serialize_t serialize)
+{
+	return ecs_opaque_init(world, &(ecs_opaque_desc_t){
+		.entity = entity,
+		.type = (EcsOpaque){
+			.as_type = ecs_id(ecs_string_t),
+			.serialize = serialize,
+		},
+	});
+}
+
 #define scope(name)	\
 	for (const ecs_entity_t mod = ecs_module_init(world, name, &(ecs_component_desc_t){}),	\
 		scope = ecs_set_scope(world, mod);													\
@@ -246,19 +259,32 @@ static void add_events()
 	EcsWindowEvent = component("WindowEvent", SDL_WindowEvent);
 }
 
+#ifndef NDEBUG
+
+static int keycode_serialize(const ecs_serializer_t *ser, const void *ptr)
+{
+	const SDL_Keycode keycode = *(SDL_Keycode*) ptr;
+	const char *name = SDL_GetKeyName(keycode);
+	return ser->value(ser, ecs_id(ecs_string_t), (const void*) &name);
+}
+
+static int mouse_button_flags_serialize(const ecs_serializer_t *ser, const void *ptr)
+{
+	const SDL_MouseButtonFlags flags = *(SDL_MouseButtonFlags*) ptr;
+	const char *name = mouse_button_name(flags);
+	return ser->value(ser, ecs_id(ecs_string_t), (const void*) &name);
+}
+
+#endif
+
 static void add_input()
 {
 	EcsKeycode = component("Keycode", SDL_Keycode);
 	EcsMouseButtonFlags = component("MouseButtonFlags", SDL_MouseButtonFlags);
 
 #ifndef NDEBUG
-	reflect(EcsKeycode,
-		(ecs_member_t){.name = "value", .type = ecs_id(ecs_u32_t)},
-	);
-
-	reflect(EcsMouseButtonFlags,
-		(ecs_member_t){.name = "value", .type = ecs_id(ecs_u32_t)},
-	);
+	reflect_string(EcsKeycode, keycode_serialize);
+	reflect_string(EcsMouseButtonFlags, mouse_button_flags_serialize);
 #endif
 }
 
