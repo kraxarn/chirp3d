@@ -101,10 +101,7 @@ bool input_add(const input_t *input, const char *name, const input_config_t conf
 		return SDL_SetError("Property already exists");
 	}
 
-	const ecs_entity_t entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
-		.name = name,
-	});
-	ecs_add_id(ecs_world(), entity, ecs_pair(EcsChildOf, input->entity));
+	const ecs_entity_t entity = ecs_new_w_parent(ecs_world(), input->entity, name);
 
 	input_map_t *map = SDL_malloc(sizeof(input_map_t));
 
