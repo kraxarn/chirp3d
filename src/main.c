@@ -25,14 +25,10 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
-// For use with RenderDoc
-#ifdef FORCE_X11
-#include <SDL3/SDL_hints.h>
-#endif
-
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_log.h>
@@ -318,6 +314,12 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
 #endif
 
+	if (!sdl_supported())
+	{
+		return fatal_error("Unsupported SDL version");
+	}
+
+	// For use with RenderDoc
 #ifdef FORCE_X11
 	if (!SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11"))
 	{
@@ -325,10 +327,12 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	}
 #endif
 
-	if (!sdl_supported())
+#ifndef NDEBUG
+	if (!SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1"))
 	{
-		return fatal_error("Unsupported SDL version");
+		SDL_LogWarn(LOG_CATEGORY_CORE, "Failed to enable screensaver: %s", SDL_GetError());
 	}
+#endif
 
 	app_state_t *state = SDL_calloc(1, sizeof(app_state_t));
 	if (state == nullptr)
