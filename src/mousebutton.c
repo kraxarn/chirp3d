@@ -1,10 +1,10 @@
 #include "mousebutton.h"
 
-#define button_left   "left"
-#define button_middle "middle"
-#define button_right  "right"
-#define button_side1  "side1"
-#define button_side2  "side2"
+#define button_left   "Left"
+#define button_middle "Middle"
+#define button_right  "Right"
+#define button_side1  "Side1"
+#define button_side2  "Side2"
 
 const char *mouse_button_name(const SDL_MouseButtonFlags flags)
 {
