@@ -2,6 +2,9 @@
 #include "logcategory.h"
 #include "map.h"
 #include "mousebutton.h"
+#include "ecs/components.h"
+
+#include "flecs.h"
 
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_log.h>
@@ -57,9 +60,14 @@ bool input_create(input_t *input)
 	input->button_map = map_create();
 	input->name_map = map_create();
 
+	input->entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
+		.name = "Input",
+	});
+
 	return (bool) (input->key_map != 0
 		&& input->button_map != 0
-		&& input->name_map != 0);
+		&& input->name_map != 0
+		&& input->entity != 0);
 }
 
 void input_update(const input_t *input, const SDL_Event *event)
@@ -93,6 +101,11 @@ bool input_add(const input_t *input, const char *name, const input_config_t conf
 		return SDL_SetError("Property already exists");
 	}
 
+	const ecs_entity_t entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
+		.name = name,
+	});
+	ecs_add_id(ecs_world(), entity, ecs_pair(EcsChildOf, input->entity));
+
 	input_map_t *map = SDL_malloc(sizeof(input_map_t));
 
 	if (!SDL_SetPointerPropertyWithCleanup(input->name_map, name, map,
@@ -105,11 +118,17 @@ bool input_add(const input_t *input, const char *name, const input_config_t conf
 	{
 		map->type = TYPE_KEYBOARD;
 		map->keycode = config.keycode;
+
+		ecs_set_id(ecs_world(), entity, EcsKeycode,
+			sizeof(SDL_Keycode), &config.keycode);
 	}
 	else if (config.mouse_button > 0)
 	{
 		map->type = TYPE_MOUSE_BUTTON;
 		map->mouse_button = config.mouse_button;
+
+		ecs_set_id(ecs_world(), entity, EcsMouseButtonFlags,
+			sizeof(SDL_MouseButtonFlags), &config.mouse_button);
 	}
 	else
 	{

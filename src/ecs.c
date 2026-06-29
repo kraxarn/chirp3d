@@ -246,6 +246,22 @@ static void add_events()
 	EcsWindowEvent = component("WindowEvent", SDL_WindowEvent);
 }
 
+static void add_input()
+{
+	EcsKeycode = component("Keycode", SDL_Keycode);
+	EcsMouseButtonFlags = component("MouseButtonFlags", SDL_MouseButtonFlags);
+
+#ifndef NDEBUG
+	reflect("chirp.input.Keycode",
+		(ecs_member_t){.name = "value", .type = ecs_id(ecs_u32_t)},
+	);
+
+	reflect("chirp.input.MouseButtonFlags",
+		(ecs_member_t){.name = "value", .type = ecs_id(ecs_u32_t)},
+	);
+#endif
+}
+
 static void module([[maybe_unused]] ecs_world_t *unused)
 {
 	scope("Chirp")
@@ -365,6 +381,11 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 	{
 		add_events();
 	}
+
+	scope("ChirpInput")
+	{
+		add_input();
+	};
 }
 
 static void on_init_set([[maybe_unused]] ecs_iter_t *iter)

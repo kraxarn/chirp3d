@@ -30,3 +30,8 @@ ecs_id_t EcsViewProjection = 0;
 ecs_id_t EcsError = 0;
 ecs_id_t EcsInput = 0;
 ecs_id_t EcsScriptEngine = 0;
+
+// Input
+
+ecs_id_t EcsKeycode = 0;
+ecs_id_t EcsMouseButtonFlags = 0;
