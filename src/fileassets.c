@@ -271,7 +271,9 @@ static bool parse_project(SDL_IOStream *stream,
 		}
 		else if (SDL_GetError()[0] != '\0')
 		{
+			// TODO: Make sure it's returned from parse_project_*
 			SDL_LogWarn(LOG_CATEGORY_ASSETS, "%s", SDL_GetError());
+			SDL_ClearError();
 		}
 	}
 
