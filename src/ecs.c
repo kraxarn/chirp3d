@@ -219,10 +219,10 @@ static ecs_entity_t tag(const char *name)
 	return entity;
 }
 
-#define reflect(n, ...)							\
+#define reflect(e, ...)							\
 	do {										\
 		const ecs_struct_desc_t struct_desc = {	\
-			.entity = ecs_lookup(world, n),		\
+			.entity = e,						\
 			.members = {__VA_ARGS__},			\
 		};										\
 		ecs_struct_init(world, &struct_desc);	\
@@ -252,11 +252,11 @@ static void add_input()
 	EcsMouseButtonFlags = component("MouseButtonFlags", SDL_MouseButtonFlags);
 
 #ifndef NDEBUG
-	reflect("chirp.input.Keycode",
+	reflect(EcsKeycode,
 		(ecs_member_t){.name = "value", .type = ecs_id(ecs_u32_t)},
 	);
 
-	reflect("chirp.input.MouseButtonFlags",
+	reflect(EcsMouseButtonFlags,
 		(ecs_member_t){.name = "value", .type = ecs_id(ecs_u32_t)},
 	);
 #endif
@@ -301,17 +301,17 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		EcsScriptEngine = component("ScriptEngine", py_vm_index_t);
 
 #ifndef NDEBUG
-		reflect("chirp.Init",
+		reflect(EcsInit,
 			(ecs_member_t){.name = "flags", .type = ecs_id(ecs_u32_t)},
 		);
 
-		reflect("chirp.WindowConfig",
+		reflect(EcsWindowConfig,
 			(ecs_member_t){.name = "title", .type = ecs_id(ecs_string_t)},
 			(ecs_member_t){.name = "size", .type = ecs_id(ecs_i32_t), .count = 2},
 			(ecs_member_t){.name = "fullscreen", .type = ecs_id(ecs_bool_t)},
 		);
 
-		reflect("chirp.Camera",
+		reflect(EcsCamera,
 			(ecs_member_t){.name = "position", .type = ecs_id(ecs_f32_t), .count = 3},
 			(ecs_member_t){.name = "target", .type = ecs_id(ecs_f32_t), .count = 3},
 			(ecs_member_t){.name = "up", .type = ecs_id(ecs_f32_t), .count = 3},
@@ -320,56 +320,56 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 			(ecs_member_t){.name = "far_plane", .type = ecs_id(ecs_f32_t)},
 		);
 
-		reflect("chirp.PhysicsConfig",
+		reflect(EcsPhysicsConfig,
 			(ecs_member_t){.name = "move_speed", .type = ecs_id(ecs_f32_t)},
 			(ecs_member_t){.name = "max_move_speed", .type = ecs_id(ecs_f32_t)},
 			(ecs_member_t){.name = "gravity_y", .type = ecs_id(ecs_f32_t)},
 			(ecs_member_t){.name = "jump_speed", .type = ecs_id(ecs_f32_t)},
 		);
 
-		reflect("chirp.InstanceOf",
+		reflect(EcsInstanceOf,
 			(ecs_member_t){.name = "index", .type = ecs_id(ecs_uptr_t)},
 		);
 
-		reflect("chirp.PhysicsBody",
+		reflect(EcsPhysicsBody,
 			(ecs_member_t){.name = "id", .type = ecs_id(ecs_u32_t)},
 		);
 
-		reflect("chirp.Rotation",
+		reflect(EcsRotation,
 			(ecs_member_t){.name = "x", .type = ecs_id(ecs_f32_t)},
 			(ecs_member_t){.name = "y", .type = ecs_id(ecs_f32_t)},
 			(ecs_member_t){.name = "z", .type = ecs_id(ecs_f32_t)},
 		);
 
-		reflect("chirp.Position",
+		reflect(EcsPosition,
 			(ecs_member_t){.name = "x", .type = ecs_id(ecs_f32_t)},
 			(ecs_member_t){.name = "y", .type = ecs_id(ecs_f32_t)},
 			(ecs_member_t){.name = "z", .type = ecs_id(ecs_f32_t)},
 		);
 
-		reflect("chirp.Scale",
+		reflect(EcsScale,
 			(ecs_member_t){.name = "x", .type = ecs_id(ecs_f32_t)},
 			(ecs_member_t){.name = "y", .type = ecs_id(ecs_f32_t)},
 			(ecs_member_t){.name = "z", .type = ecs_id(ecs_f32_t)},
 		);
 
-		reflect("chirp.Projection",
+		reflect(EcsProjection,
 			(ecs_member_t){.name = "rebuild", .type = ecs_id(ecs_bool_t)},
 			(ecs_member_t){.name = "value", .type = ecs_id(ecs_f32_t), .count = 16},
 		);
 
-		reflect("chirp.Error",
+		reflect(EcsError,
 			(ecs_member_t){.name = "title", .type = ecs_id(ecs_string_t)},
 			(ecs_member_t){.name = "message", .type = ecs_id(ecs_string_t)},
 		);
 
-		reflect("chirp.Input",
+		reflect(EcsInput,
 			(ecs_member_t){.name = "key_map", .type = ecs_id(ecs_u32_t)},
 			(ecs_member_t){.name = "button_map", .type = ecs_id(ecs_u32_t)},
 			(ecs_member_t){.name = "name_map", .type = ecs_id(ecs_u32_t)},
 		);
 
-		reflect("chirp.ScriptEngine",
+		reflect(EcsScriptEngine,
 			(ecs_member_t){.name = "vm_index", .type = ecs_id(ecs_i32_t)},
 		);
 #endif
