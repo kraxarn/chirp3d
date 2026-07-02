@@ -129,7 +129,10 @@ bool input_add(const char *name, const input_config_t config)
 		ecs_add_pair(ecs_world(), entity, EcsMapsTo, target);
 	}
 
-	// TODO: Maybe check if any component was actually set and emit a warning?
+	if (!ecs_has_pair(ecs_world(), entity, EcsMapsTo, EcsWildcard))
+	{
+		return SDL_SetError("Unknown input mapping for %s", name);
+	}
 
 	return true;
 }
