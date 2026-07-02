@@ -221,6 +221,8 @@ static ecs_entity_t tag(const char *name)
 	return entity;
 }
 
+#ifndef NDEBUG
+
 #define reflect(e, ...)							\
 	do {										\
 		const ecs_struct_desc_t struct_desc = {	\
@@ -248,6 +250,8 @@ static ecs_entity_t reflect_string(const ecs_entity_t entity,
 		},
 	});
 }
+
+#endif
 
 #define scope(name)	\
 	for (const ecs_entity_t mod = ecs_module_init(world, name, &(ecs_component_desc_t){}),	\
