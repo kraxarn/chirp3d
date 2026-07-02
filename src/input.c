@@ -129,11 +129,6 @@ bool input_add(const char *name, const input_config_t config)
 		ecs_add_pair(ecs_world(), entity, EcsMapsTo, target);
 	}
 
-	if (!ecs_has_pair(ecs_world(), entity, EcsMapsTo, EcsWildcard))
-	{
-		return SDL_SetError("Unknown input mapping for %s", name);
-	}
-
 	return true;
 }
 
