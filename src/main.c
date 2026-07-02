@@ -470,43 +470,43 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 		const input_t *input = ecs_get_id(ecs_world(), EcsEngine, EcsInput);
 
-		if (input_is_down(input, "move_forward"))
+		if (input_is_down("move_forward"))
 		{
 			const vector3f_t velocity = camera_to_z(camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_down(input, "move_backward"))
+		if (input_is_down("move_backward"))
 		{
 			const vector3f_t velocity = camera_to_z(camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_down(input, "move_left"))
+		if (input_is_down("move_left"))
 		{
 			const vector3f_t velocity = camera_to_x(camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_down(input, "move_right"))
+		if (input_is_down("move_right"))
 		{
 			const vector3f_t velocity = camera_to_x(camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_down(input, "move_up"))
+		if (input_is_down("move_up"))
 		{
 			const vector3f_t velocity = camera_to_y(camera, move_speed * state->dt);
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_down(input, "move_down"))
+		if (input_is_down("move_down"))
 		{
 			const vector3f_t velocity = camera_to_y(camera, -(move_speed * state->dt));
 			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
 		}
 
-		if (input_is_pressed(input, "jump"))
+		if (input_is_pressed("jump"))
 		{
 			const vector3f_t velocity = physics_body_linear_velocity(physics_engine, player_body_id);
 			if (velocity.y > -0.1F && velocity.y < 0.1F)
@@ -520,7 +520,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			}
 		}
 
-		if (input_is_pressed(input, "shoot"))
+		if (input_is_pressed("shoot"))
 		{
 			static constexpr float firepower = 100.F;
 
@@ -664,7 +664,7 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 	if (SDL_GetWindowRelativeMouseMode(window))
 	{
 		const input_t *input = ecs_get_id(ecs_world(), EcsEngine, EcsInput);
-		input_update(input, event);
+		input_update(event);
 	}
 
 	if (event->type == SDL_EVENT_WINDOW_RESIZED)

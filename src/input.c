@@ -1,185 +1,175 @@
 #include "input.h"
+
 #include "logcategory.h"
-#include "map.h"
 #include "mousebutton.h"
 #include "ecs/components.h"
+#include "ecs/entities.h"
 
 #include "flecs.h"
 
+#include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_log.h>
 
-typedef enum : Sint64
+static constexpr Uint16 crc_mouse_button = 0xE05E;
+static constexpr Uint16 crc_keycode = 0x4ECD;
+static constexpr Uint16 crc_input_name = 0x1407;
+
+#define make_alive(f, v, n, p)											\
+	do {																\
+		const bool was_alive = ecs_is_alive(ecs_world(), entity);		\
+		ecs_make_alive(ecs_world(), entity);							\
+		if (!was_alive) {												\
+			const char *name = f(v);									\
+			SDL_LogDebug(LOG_CATEGORY_INPUT, "New "n": %s (%u / %u)",	\
+				name, v, crc);											\
+			ecs_add_pair(ecs_world(), entity, EcsChildOf, p);			\
+			ecs_set_name(ecs_world(), entity, name);					\
+		}																\
+	} while (false)
+
+static ecs_entity_t set_keycode_state(const SDL_Keycode keycode, const input_state_t input_state)
 {
-	STATE_UP,
-	STATE_PRESSED,
-	STATE_DOWN,
-} input_state_t;
+	const Uint16 crc = SDL_crc16(crc_keycode, &keycode, sizeof(SDL_Keycode) / sizeof(Uint8));
+	const ecs_entity_t entity = ecs_offset_input + crc;
+	make_alive(SDL_GetKeyName, keycode, "keycode", EcsKeycodeStates);
 
-typedef enum : Uint8
-{
-	TYPE_UNKNOWN,
-	TYPE_KEYBOARD,
-	TYPE_MOUSE_BUTTON,
-} input_type_t;
+	ecs_set_id(ecs_world(), entity, EcsInputState,
+		sizeof(input_state_t), &input_state);
 
-typedef struct
-{
-	input_type_t type;
-
-	union
-	{
-		SDL_Keycode keycode;
-		SDL_MouseButtonFlags mouse_button;
-	};
-} input_map_t;
-
-static void update_keyboard_event(const input_t *input, const SDL_KeyboardEvent event)
-{
-	const char *key_name = SDL_GetKeyName(event.key);
-
-	// Events get repeatedly triggered when key is held down
-	const input_state_t state = map_get(input->key_map, key_name, STATE_UP);
-	if (state != STATE_UP && event.down)
-	{
-		return;
-	}
-
-	map_set(input->key_map, key_name, event.down ? STATE_PRESSED : STATE_UP);
+	return entity;
 }
 
-static void update_mouse_button_event(const input_t *input, const SDL_MouseButtonEvent event)
+static ecs_entity_t set_mouse_button_state(const Uint8 button, const input_state_t input_state)
 {
-	const char *button_name = mouse_button_name(event.button);
-	map_set(input->button_map, button_name, event.down ? STATE_PRESSED : STATE_UP);
+	const Uint16 crc = SDL_crc16(crc_mouse_button, &button, 1);
+	const ecs_entity_t entity = ecs_offset_input + crc;
+	make_alive(mouse_button_name, button, "mouse button", EcsMouseButtonStates);
+
+	ecs_set_id(ecs_world(), entity, EcsInputState,
+		sizeof(input_state_t), &input_state);
+
+	return entity;
+}
+
+static void update_keyboard_event(const SDL_KeyboardEvent event)
+{
+	input_state_t input_state;
+	if (event.repeat) // TODO: I think we can just do this instead of getting the current value
+	{
+		input_state = STATE_DOWN;
+	}
+	else if (event.down)
+	{
+		input_state = STATE_PRESSED;
+	}
+	else
+	{
+		input_state = STATE_UP;
+	}
+
+	set_keycode_state(event.key, input_state);
+}
+
+static void update_mouse_button_event(const SDL_MouseButtonEvent event)
+{
+	const input_state_t input_state = (int) event.down ? STATE_DOWN : STATE_UP;
+	set_mouse_button_state(event.button, input_state);
 }
 
 bool input_create(input_t *input)
 {
-	input->key_map = map_create();
-	input->button_map = map_create();
-	input->name_map = map_create();
-
-	input->entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
+	input->parent = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
 		.name = "Input",
 	});
-
-	return (bool) (input->key_map != 0
-		&& input->button_map != 0
-		&& input->name_map != 0
-		&& input->entity != 0);
-}
-
-void input_update(const input_t *input, const SDL_Event *event)
-{
-	switch (event->type)
+	if (input->parent == 0)
 	{
-		case SDL_EVENT_KEY_DOWN:
-		case SDL_EVENT_KEY_UP:
-			update_keyboard_event(input, event->key);
-			break;
-
-		case SDL_EVENT_MOUSE_BUTTON_DOWN:
-		case SDL_EVENT_MOUSE_BUTTON_UP:
-			update_mouse_button_event(input, event->button);
-			break;
-
-		default:
-			break;
-	}
-}
-
-static void input_map_cleanup([[maybe_unused]] void *userdata, void *value)
-{
-	SDL_free(value);
-}
-
-bool input_add(const input_t *input, const char *name, const input_config_t config)
-{
-	if (map_contains(input->name_map, name))
-	{
-		return SDL_SetError("Property already exists");
-	}
-
-	const ecs_entity_t entity = ecs_new_w_parent(ecs_world(), input->entity, name);
-
-	input_map_t *map = SDL_malloc(sizeof(input_map_t));
-
-	if (!SDL_SetPointerPropertyWithCleanup(input->name_map, name, map,
-		input_map_cleanup, nullptr))
-	{
-		return false;
-	}
-
-	if (config.keycode != SDLK_UNKNOWN)
-	{
-		map->type = TYPE_KEYBOARD;
-		map->keycode = config.keycode;
-
-		ecs_set_id(ecs_world(), entity, EcsKeycode,
-			sizeof(SDL_Keycode), &config.keycode);
-	}
-	else if (config.mouse_button > 0)
-	{
-		map->type = TYPE_MOUSE_BUTTON;
-		map->mouse_button = config.mouse_button;
-
-		ecs_set_id(ecs_world(), entity, EcsMouseButtonFlags,
-			sizeof(SDL_MouseButtonFlags), &config.mouse_button);
-	}
-	else
-	{
-		SDL_ClearProperty(input->name_map, name);
-		return SDL_SetError("Unknown input mapping");
+		return SDL_SetError("Failed to create parent entity");
 	}
 
 	return true;
 }
 
-[[nodiscard]]
-static input_state_t input_state(const input_t *input, const char *name)
+void input_update(const SDL_Event *event)
 {
-	const input_map_t *input_map = map_get(input->name_map, name, nullptr);
-	if (input_map == nullptr)
+	switch (event->type)
+	{
+		case SDL_EVENT_KEY_DOWN:
+		case SDL_EVENT_KEY_UP:
+			update_keyboard_event(event->key);
+			break;
+
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
+		case SDL_EVENT_MOUSE_BUTTON_UP:
+			update_mouse_button_event(event->button);
+			break;
+
+		default:
+			break;
+	}
+}
+
+static ecs_entity_t input_entity(const char *name)
+{
+	const Uint16 crc = SDL_crc16(crc_input_name, name, SDL_strlen(name));
+	return ecs_offset_input + crc;
+}
+
+bool input_add(const input_t *input, const char *name, const input_config_t config)
+{
+	const ecs_entity_t entity = input_entity(name);
+	ecs_make_alive(ecs_world(), entity);
+	ecs_add_pair(ecs_world(), entity, EcsChildOf, input->parent);
+	ecs_set_name(ecs_world(), entity, name);
+
+	if (config.keycode != SDLK_UNKNOWN)
+	{
+		const ecs_entity_t target = set_keycode_state(config.keycode, STATE_UP);
+		ecs_add_pair(ecs_world(), entity, EcsMapsTo, target);
+	}
+
+	if (config.mouse_button > 0)
+	{
+		const ecs_entity_t target = set_mouse_button_state(config.mouse_button, STATE_UP);
+		ecs_add_pair(ecs_world(), entity, EcsMapsTo, target);
+	}
+
+	// TODO: Maybe check if any component was actually set and emit a warning?
+
+	return true;
+}
+
+[[nodiscard]]
+static input_state_t input_state(const char *name)
+{
+	const ecs_entity_t entity = input_entity(name);
+	if (!ecs_is_alive(ecs_world(), entity))
+	{
+		SDL_LogWarn(LOG_CATEGORY_INPUT, "Invalid input: %s", name);
+		return STATE_UP;
+	}
+
+	// TODO: We could have it mapped to multiple keys, don't assume index 0 only
+	const ecs_entity_t target = ecs_get_target(ecs_world(), entity, EcsMapsTo, 0);
+	if (target == 0)
 	{
 		SDL_LogWarn(LOG_CATEGORY_INPUT, "Unmapped input: %s", name);
 		return STATE_UP;
 	}
 
-	map_t map;
-	const char *key;
+	const input_state_t *input_state = ecs_get_id(ecs_world(),
+		target, EcsInputState);
 
-	switch (input_map->type)
-	{
-		case TYPE_KEYBOARD:
-			map = input->key_map;
-			key = SDL_GetKeyName(input_map->keycode);
-			break;
-
-		case TYPE_MOUSE_BUTTON:
-			map = input->button_map;
-			key = mouse_button_name(input_map->mouse_button);
-			break;
-
-		default:
-			return STATE_UP;
-	}
-
-	const input_state_t state = map_get(map, key, STATE_UP);
-	if (state == STATE_PRESSED)
-	{
-		map_set(map, key, STATE_DOWN);
-	}
-
-	return state;
+	SDL_assert(input_state != nullptr);
+	return *input_state;
 }
 
-bool input_is_pressed(const input_t *input, const char *name)
+bool input_is_pressed(const char *name)
 {
-	return input_state(input, name) == STATE_PRESSED;
+	return input_state(name) == STATE_PRESSED;
 }
 
-bool input_is_down(const input_t *input, const char *name)
+bool input_is_down(const char *name)
 {
-	return input_state(input, name) != STATE_UP;
+	return input_state(name) != STATE_UP;
 }

@@ -37,5 +37,6 @@ extern ecs_id_t EcsScriptEngine;
 
 // Input
 
+extern ecs_id_t EcsInputState;
 extern ecs_id_t EcsKeycode;
 extern ecs_id_t EcsMouseButtonFlags;

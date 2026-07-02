@@ -33,5 +33,6 @@ ecs_id_t EcsScriptEngine = 0;
 
 // Input
 
+ecs_id_t EcsInputState = 0;
 ecs_id_t EcsKeycode = 0;
 ecs_id_t EcsMouseButtonFlags = 0;

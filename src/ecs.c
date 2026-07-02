@@ -9,6 +9,7 @@
 #include "physicsconfig.h"
 #include "windowconfig.h"
 #include "ecs/components.h"
+#include "ecs/entities.h"
 #include "ecs/events.h"
 #include "ecs/tags.h"
 
@@ -229,6 +230,13 @@ static ecs_entity_t tag(const char *name)
 		ecs_struct_init(world, &struct_desc);	\
 	} while (false)
 
+#define reflect_enum(e, t, ...)					\
+	ecs_enum_init(world, &(ecs_enum_desc_t){	\
+		.entity = e,							\
+		.constants = {__VA_ARGS__},				\
+		.underlying_type = t,					\
+	});
+
 static ecs_entity_t reflect_string(const ecs_entity_t entity,
 	const ecs_meta_serialize_t serialize)
 {
@@ -279,10 +287,21 @@ static int mouse_button_flags_serialize(const ecs_serializer_t *ser, const void 
 
 static void add_input()
 {
+	EcsKeycodeStates = entity("KeycodeStates");
+	EcsMouseButtonStates = entity("MouseButtonStates");
+	EcsMapsTo = entity("MapsTo");
+
+	EcsInputState = component("InputState", input_state_t);
 	EcsKeycode = component("Keycode", SDL_Keycode);
 	EcsMouseButtonFlags = component("MouseButtonFlags", SDL_MouseButtonFlags);
 
 #ifndef NDEBUG
+	reflect_enum(EcsInputState, ecs_id(ecs_u8_t),
+		(ecs_enum_constant_t){.name = "Up", .value_unsigned = STATE_UP},
+		(ecs_enum_constant_t){.name = "Pressed", .value_unsigned = STATE_PRESSED},
+		(ecs_enum_constant_t){.name = "Down", .value_unsigned = STATE_DOWN},
+	);
+
 	reflect_string(EcsKeycode, keycode_serialize);
 	reflect_string(EcsMouseButtonFlags, mouse_button_flags_serialize);
 #endif
@@ -387,12 +406,6 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		reflect(EcsError,
 			(ecs_member_t){.name = "title", .type = ecs_id(ecs_string_t)},
 			(ecs_member_t){.name = "message", .type = ecs_id(ecs_string_t)},
-		);
-
-		reflect(EcsInput,
-			(ecs_member_t){.name = "key_map", .type = ecs_id(ecs_u32_t)},
-			(ecs_member_t){.name = "button_map", .type = ecs_id(ecs_u32_t)},
-			(ecs_member_t){.name = "name_map", .type = ecs_id(ecs_u32_t)},
 		);
 
 		reflect(EcsScriptEngine,
