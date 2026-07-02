@@ -28,10 +28,21 @@ static constexpr Uint16 crc_input_name = 0x1407;
 		}																\
 	} while (false)
 
-static ecs_entity_t set_keycode_state(const SDL_Keycode keycode, const input_state_t input_state)
+[[nodiscard]]
+static ecs_entity_t keycode_entity(const SDL_Keycode keycode, Uint16 *checksum)
 {
 	const Uint16 crc = SDL_crc16(crc_keycode, &keycode, sizeof(SDL_Keycode) / sizeof(Uint8));
-	const ecs_entity_t entity = ecs_offset_input + crc;
+	if (checksum != nullptr)
+	{
+		*checksum = crc;
+	}
+	return ecs_offset_input + crc;
+}
+
+static ecs_entity_t set_keycode_state(const SDL_Keycode keycode, const input_state_t input_state)
+{
+	Uint16 crc = 0;
+	const ecs_entity_t entity = keycode_entity(keycode, &crc);
 	make_alive(SDL_GetKeyName, keycode, "keycode", EcsKeycodeStates);
 
 	ecs_set_id(ecs_world(), entity, EcsInputState,
@@ -54,26 +65,23 @@ static ecs_entity_t set_mouse_button_state(const Uint8 button, const input_state
 
 static void update_keyboard_event(const SDL_KeyboardEvent event)
 {
-	input_state_t input_state;
-	if (event.repeat) // TODO: I think we can just do this instead of getting the current value
+	if (event.down)
 	{
-		input_state = STATE_DOWN;
-	}
-	else if (event.down)
-	{
-		input_state = STATE_PRESSED;
-	}
-	else
-	{
-		input_state = STATE_UP;
+		const ecs_entity_t entity = keycode_entity(event.key, nullptr);
+		const input_state_t *current_state = ecs_get_id(ecs_world(), entity, EcsInputState);
+		if (current_state != nullptr && *current_state != STATE_UP)
+		{
+			return;
+		}
 	}
 
+	const input_state_t input_state = (int) event.down ? STATE_PRESSED : STATE_UP;
 	set_keycode_state(event.key, input_state);
 }
 
 static void update_mouse_button_event(const SDL_MouseButtonEvent event)
 {
-	const input_state_t input_state = (int) event.down ? STATE_DOWN : STATE_UP;
+	const input_state_t input_state = (int) event.down ? STATE_PRESSED : STATE_UP;
 	set_mouse_button_state(event.button, input_state);
 }
 
@@ -144,11 +152,20 @@ static input_state_t input_state(const char *name)
 		return STATE_UP;
 	}
 
-	const input_state_t *input_state = ecs_get_id(ecs_world(),
+	// We need to create a copy of it in case we modify it in the if-statement below
+	const input_state_t *input_state_ptr = ecs_get_id(ecs_world(),
 		target, EcsInputState);
+	SDL_assert(input_state_ptr != nullptr);
+	const input_state_t input_state = *input_state_ptr;
 
-	SDL_assert(input_state != nullptr);
-	return *input_state;
+	if (input_state == STATE_PRESSED)
+	{
+		constexpr input_state_t new_state = STATE_DOWN;
+		ecs_set_id(ecs_world(), target, EcsInputState,
+			sizeof(input_state_t), &new_state);
+	}
+
+	return input_state;
 }
 
 bool input_is_pressed(const char *name)
