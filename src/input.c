@@ -77,19 +77,6 @@ static void update_mouse_button_event(const SDL_MouseButtonEvent event)
 	set_mouse_button_state(event.button, input_state);
 }
 
-bool input_create(input_t *input)
-{
-	input->parent = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
-		.name = "Input",
-	});
-	if (input->parent == 0)
-	{
-		return SDL_SetError("Failed to create parent entity");
-	}
-
-	return true;
-}
-
 void input_update(const SDL_Event *event)
 {
 	switch (event->type)
@@ -115,11 +102,11 @@ static ecs_entity_t input_entity(const char *name)
 	return ecs_offset_input + crc;
 }
 
-bool input_add(const input_t *input, const char *name, const input_config_t config)
+bool input_add(const char *name, const input_config_t config)
 {
 	const ecs_entity_t entity = input_entity(name);
 	ecs_make_alive(ecs_world(), entity);
-	ecs_add_pair(ecs_world(), entity, EcsChildOf, input->parent);
+	ecs_add_pair(ecs_world(), entity, EcsChildOf, EcsInput);
 	ecs_set_name(ecs_world(), entity, name);
 
 	if (config.keycode != SDLK_UNKNOWN)

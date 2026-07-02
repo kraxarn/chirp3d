@@ -8,7 +8,7 @@
 #include <SDL3/SDL_dialog.h>
 #include <SDL3/SDL_filesystem.h>
 
-static void on_file_opened(void *userdata,
+static void on_file_opened([[maybe_unused]] void *userdata,
 	const char *const *filelist, [[maybe_unused]] int filter)
 {
 	if (filelist == nullptr || filelist[0] == nullptr)
@@ -17,17 +17,15 @@ static void on_file_opened(void *userdata,
 	}
 
 	assets_t assets;
-	if (assets_create(filelist[0], userdata, &assets))
+	if (assets_create(filelist[0], &assets))
 	{
 		ecs_set_id(ecs_world(), EcsEngine, EcsAssets,
 			sizeof(assets_t), &assets);
 	}
 }
 
-static void create_assets(ecs_iter_t *iter)
+static void create_assets([[maybe_unused]] ecs_iter_t *iter)
 {
-	const input_t *input = ecs_field(iter, input_t, 0);
-
 	const char *base_path = SDL_GetBasePath();
 	const size_t path_len = SDL_strlen(base_path) + SDL_arraysize("assets.nest") + 1;
 	char *path = SDL_calloc(path_len, sizeof(char));
@@ -35,7 +33,7 @@ static void create_assets(ecs_iter_t *iter)
 	SDL_strlcat(path, "assets.nest", path_len);
 
 	assets_t assets;
-	if (assets_create(path, input, &assets))
+	if (assets_create(path, &assets))
 	{
 		SDL_free(path);
 
@@ -53,7 +51,7 @@ static void create_assets(ecs_iter_t *iter)
 		},
 	};
 
-	SDL_ShowOpenFileDialog(on_file_opened, (void*) input, nullptr,
+	SDL_ShowOpenFileDialog(on_file_opened, nullptr, nullptr,
 		filters, SDL_arraysize(filters), nullptr, false);
 }
 
@@ -61,7 +59,8 @@ void ecs_add_assets()
 {
 	const ecs_observer_desc_t observer_desc = {
 		.query.terms = {
-			(ecs_term_t){.id = EcsInput, .inout = EcsIn},
+			// TODO: We want to parse the project settings before init
+			(ecs_term_t){.id = EcsInit, .inout = EcsInOutNone},
 		},
 		.events = {EcsOnSet},
 		.callback = create_assets,

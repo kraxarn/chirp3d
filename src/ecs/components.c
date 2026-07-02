@@ -28,7 +28,6 @@ ecs_id_t EcsFragmentShader = 0;
 ecs_id_t EcsClearColor = 0;
 ecs_id_t EcsViewProjection = 0;
 ecs_id_t EcsError = 0;
-ecs_id_t EcsInput = 0;
 ecs_id_t EcsScriptEngine = 0;
 
 // Input

@@ -135,8 +135,8 @@ static bool parse_project_window(char *json, window_config_t *window_config,
 	return true;
 }
 
-static bool parse_project_input(const input_t *input, char *json,
-	const json_token_t *tokens, const int token_count, const json_token_t *token)
+static bool parse_project_input(char *json, const json_token_t *tokens,
+	const int token_count, const json_token_t *token)
 {
 	const json_token_t *prev_parent = nullptr;
 	input_config_t input_config = {0};
@@ -162,7 +162,7 @@ static bool parse_project_input(const input_t *input, char *json,
 		if (prev_parent != nullptr && parent != prev_parent)
 		{
 			json[prev_parent->end] = '\0';
-			if (!input_add(input, json + prev_parent->start, input_config))
+			if (!input_add(json + prev_parent->start, input_config))
 			{
 				return false;
 			}
@@ -209,7 +209,7 @@ static bool parse_project_input(const input_t *input, char *json,
 	if (prev_parent != nullptr)
 	{
 		json[prev_parent->end] = '\0';
-		if (!input_add(input, json + prev_parent->start, input_config))
+		if (!input_add(json + prev_parent->start, input_config))
 		{
 			return false;
 		}
@@ -219,8 +219,7 @@ static bool parse_project_input(const input_t *input, char *json,
 }
 
 [[nodiscard]]
-static bool parse_project(SDL_IOStream *stream,
-	assets_t *assets, const input_t *input)
+static bool parse_project(SDL_IOStream *stream, assets_t *assets)
 {
 	size_t json_len = 0;
 	char *json = SDL_LoadFile_IO(stream, &json_len, true);
@@ -265,7 +264,7 @@ static bool parse_project(SDL_IOStream *stream,
 			|| (is_key(json, token, "win")
 				&& parse_project_window(json, &assets->window_config, tokens, count, token))
 			|| (is_key(json, token, "inp")
-				&& parse_project_input(input, json, tokens, count, token)))
+				&& parse_project_input(json, tokens, count, token)))
 		{
 			i += size;
 		}
@@ -330,7 +329,7 @@ static bool validate_header(SDL_IOStream *stream)
 	return true;
 }
 
-bool assets_create(const char *path, const input_t *input, assets_t *assets)
+bool assets_create(const char *path, assets_t *assets)
 {
 	SDL_IOStream *stream = SDL_IOFromFile(path, "rb");
 	if (stream == nullptr)
@@ -392,7 +391,7 @@ bool assets_create(const char *path, const input_t *input, assets_t *assets)
 		}
 	}
 
-	if (!parse_project(assets_load(assets, "project"), assets, input))
+	if (!parse_project(assets_load(assets, "project"), assets))
 	{
 		assets_destroy(assets);
 		return false;

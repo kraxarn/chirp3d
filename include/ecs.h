@@ -93,5 +93,4 @@ void ecs_add_window();
 void ecs_add_gpu();
 void ecs_add_physics();
 void ecs_add_render();
-void ecs_add_input();
 void ecs_add_script_engine();

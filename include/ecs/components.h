@@ -32,7 +32,6 @@ extern ecs_id_t EcsFragmentShader;
 extern ecs_id_t EcsClearColor;
 extern ecs_id_t EcsViewProjection;
 extern ecs_id_t EcsError;
-extern ecs_id_t EcsInput;
 extern ecs_id_t EcsScriptEngine;
 
 // Input

@@ -287,6 +287,7 @@ static int mouse_button_flags_serialize(const ecs_serializer_t *ser, const void 
 
 static void add_input()
 {
+	EcsInput = entity("Input");
 	EcsKeycodeStates = entity("KeycodeStates");
 	EcsMouseButtonStates = entity("MouseButtonStates");
 	EcsMapsTo = entity("MapsTo");
@@ -342,7 +343,6 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		EcsClearColor = component("ClearColor", clear_color_t);
 		EcsViewProjection = component("ViewProjection", view_projection_t);
 		EcsError = component("Error", error_t);
-		EcsInput = component("Input", input_t);
 		EcsScriptEngine = component("ScriptEngine", py_vm_index_t);
 
 #ifndef NDEBUG

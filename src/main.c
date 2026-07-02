@@ -348,7 +348,6 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	ecs_add_assets();
 	ecs_add_physics();
 	ecs_add_render();
-	ecs_add_input();
 	ecs_add_script_engine();
 
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
@@ -467,8 +466,6 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 		const float move_speed = physics_config->move_speed;
 		const float jump_speed = physics_config->jump_speed;
-
-		const input_t *input = ecs_get_id(ecs_world(), EcsEngine, EcsInput);
 
 		if (input_is_down("move_forward"))
 		{
@@ -663,7 +660,6 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 	SDL_Window *window = *((window_t**) ecs_get_id(ecs_world(), EcsEngine, EcsWindow));
 	if (SDL_GetWindowRelativeMouseMode(window))
 	{
-		const input_t *input = ecs_get_id(ecs_world(), EcsEngine, EcsInput);
 		input_update(event);
 	}
 
