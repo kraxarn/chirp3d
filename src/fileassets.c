@@ -1,3 +1,4 @@
+#include "array.h"
 #include "assets.h"
 #include "assetstream.h"
 #include "ecs.h"
@@ -187,12 +188,20 @@ static bool parse_project_input(char *json, const json_token_t *tokens,
 
 		if (is_key(json, key, "key"))
 		{
-			json[value->end] = '\0';
-			input_config.keycode = SDL_GetKeyFromName(json + value->start);
-			if (input_config.keycode == SDLK_UNKNOWN)
+			array_reserve(input_config.keycodes, value->size);
+			for (int j = 0; j < value->size; j++)
 			{
-				SDL_LogError(LOG_CATEGORY_INPUT, "Unknown keycode for %.*s: %s",
-					token_str(key), json + value->start);
+				const json_token_t *curr = value + j + 1;
+				json[curr->end] = '\0';
+
+				const SDL_Keycode keycode = SDL_GetKeyFromName(json + curr->start);
+				if (keycode == SDLK_UNKNOWN)
+				{
+					SDL_LogError(LOG_CATEGORY_INPUT, "Unknown keycode for %.*s: %s",
+						token_str(key), json + curr->start);
+					continue;
+				}
+				array_push(input_config.keycodes, keycode);
 			}
 		}
 		else if (is_key(json, key, "mou"))
@@ -215,10 +224,10 @@ static bool parse_project_input(char *json, const json_token_t *tokens,
 		}
 		else
 		{
-			return SDL_SetError("Unknown input key: %.*s", token_str(key));
+			SDL_LogError(LOG_CATEGORY_INPUT, "Unknown input key: %.*s", token_str(key));
 		}
 
-		i += value->type == JSON_ARRAY ? 3 : 1;
+		i += value->size + 1;
 		prev_parent = parent;
 	}
 

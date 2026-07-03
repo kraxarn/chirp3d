@@ -5,6 +5,6 @@
 
 typedef struct input_config_t
 {
-	SDL_Keycode keycode;
+	SDL_Keycode *keycodes;
 	SDL_MouseButtonFlags mouse_button;
 } input_config_t;

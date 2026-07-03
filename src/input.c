@@ -1,5 +1,5 @@
 #include "input.h"
-
+#include "array.h"
 #include "logcategory.h"
 #include "mousebutton.h"
 #include "ecs/components.h"
@@ -7,7 +7,6 @@
 
 #include "flecs.h"
 
-#include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_log.h>
 
@@ -117,10 +116,14 @@ bool input_add(const char *name, const input_config_t config)
 	ecs_add_pair(ecs_world(), entity, EcsChildOf, EcsInput);
 	ecs_set_name(ecs_world(), entity, name);
 
-	if (config.keycode != SDLK_UNKNOWN)
+	if (config.keycodes != nullptr)
 	{
-		const ecs_entity_t target = set_keycode_state(config.keycode, STATE_UP);
-		ecs_add_pair(ecs_world(), entity, EcsMapsTo, target);
+		for (size_t i = 0; i < array_size(config.keycodes); i++)
+		{
+			const SDL_Keycode keycode = array_at(config.keycodes, i);
+			const ecs_entity_t target = set_keycode_state(keycode, STATE_UP);
+			ecs_add_pair(ecs_world(), entity, EcsMapsTo, target);
+		}
 	}
 
 	if (config.mouse_button > 0)
@@ -142,28 +145,29 @@ static input_state_t input_state(const char *name)
 		return STATE_UP;
 	}
 
-	// TODO: We could have it mapped to multiple keys, don't assume index 0 only
-	const ecs_entity_t target = ecs_get_target(ecs_world(), entity, EcsMapsTo, 0);
-	if (target == 0)
+	ecs_entity_t target;
+	Sint32 index = 0;
+
+	while ((target = ecs_get_target(ecs_world(), entity, EcsMapsTo, index++)) != 0)
 	{
-		SDL_LogWarn(LOG_CATEGORY_INPUT, "Unmapped input: %s", name);
-		return STATE_UP;
+		const input_state_t input_state = *(input_state_t*) ecs_get_id(ecs_world(),
+			target, EcsInputState);
+
+		if (input_state == STATE_PRESSED)
+		{
+			constexpr input_state_t new_state = STATE_DOWN;
+			ecs_set_id(ecs_world(), target, EcsInputState,
+				sizeof(input_state_t), &new_state);
+			return STATE_PRESSED;
+		}
+
+		if (input_state != STATE_UP)
+		{
+			return input_state;
+		}
 	}
 
-	// We need to create a copy of it in case we modify it in the if-statement below
-	const input_state_t *input_state_ptr = ecs_get_id(ecs_world(),
-		target, EcsInputState);
-	SDL_assert(input_state_ptr != nullptr);
-	const input_state_t input_state = *input_state_ptr;
-
-	if (input_state == STATE_PRESSED)
-	{
-		constexpr input_state_t new_state = STATE_DOWN;
-		ecs_set_id(ecs_world(), target, EcsInputState,
-			sizeof(input_state_t), &new_state);
-	}
-
-	return input_state;
+	return STATE_UP;
 }
 
 bool input_is_pressed(const char *name)
