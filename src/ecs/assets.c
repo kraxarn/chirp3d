@@ -59,8 +59,7 @@ void ecs_add_assets()
 {
 	const ecs_observer_desc_t observer_desc = {
 		.query.terms = {
-			// TODO: We want to parse the project settings before init
-			(ecs_term_t){.id = EcsInit, .inout = EcsInOutNone},
+			(ecs_term_t){.id = EcsInit, .inout = EcsInOutFilter},
 		},
 		.events = {EcsOnSet},
 		.callback = create_assets,
