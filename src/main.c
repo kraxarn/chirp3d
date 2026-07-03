@@ -418,6 +418,7 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 		.callback = unlock_cursor,
 	});
 
+	// NOTE: Returning from here will call a default SDL_Init if not already called
 	return SDL_APP_CONTINUE;
 }
 
