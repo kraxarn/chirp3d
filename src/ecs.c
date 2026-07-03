@@ -320,6 +320,7 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		EcsScene = tag("Scene");
 
 		EcsAssets = component("Assets", assets_t);
+		EcsMetadata = component("Metadata", metadata_t);
 		EcsInit = component("Init", init_flags_t);
 		EcsWindowConfig = component("WindowConfig", window_config_t);
 		EcsWindow = component("Window", window_t*);
@@ -350,6 +351,16 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		EcsScriptEngine = component("ScriptEngine", py_vm_index_t);
 
 #ifndef NDEBUG
+		reflect(EcsMetadata,
+			(ecs_member_t){.name = "name", .type = ecs_id(ecs_string_t)},
+			(ecs_member_t){.name = "version", .type = ecs_id(ecs_string_t)},
+			(ecs_member_t){.name = "identifier", .type = ecs_id(ecs_string_t)},
+			(ecs_member_t){.name = "creator", .type = ecs_id(ecs_string_t)},
+			(ecs_member_t){.name = "copyright", .type = ecs_id(ecs_string_t)},
+			(ecs_member_t){.name = "url", .type = ecs_id(ecs_string_t)},
+			(ecs_member_t){.name = "type", .type = ecs_id(ecs_string_t)},
+		);
+
 		reflect(EcsInit,
 			(ecs_member_t){.name = "flags", .type = ecs_id(ecs_u32_t)},
 		);
