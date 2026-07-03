@@ -191,7 +191,7 @@ static bool parse_project_input(char *json, const json_token_t *tokens,
 			input_config.keycode = SDL_GetKeyFromName(json + value->start);
 			if (input_config.keycode == SDLK_UNKNOWN)
 			{
-				return SDL_SetError("Unknown keycode for %.*s: %s",
+				SDL_LogError(LOG_CATEGORY_INPUT, "Unknown keycode for %.*s: %s",
 					token_str(key), json + value->start);
 			}
 		}
@@ -201,7 +201,7 @@ static bool parse_project_input(char *json, const json_token_t *tokens,
 			input_config.mouse_button = mouse_button_from_name(json + value->start);
 			if (input_config.mouse_button == 0)
 			{
-				return SDL_SetError("Unknown mouse button for %.*s: %s",
+				SDL_LogError(LOG_CATEGORY_INPUT, "Unknown mouse button for %.*s: %s",
 					token_str(key), json + value->start);
 			}
 		}
