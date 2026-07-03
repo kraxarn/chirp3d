@@ -152,7 +152,7 @@ static void rebuild_model_projection(projection_t *projection, const vector3f_t 
 
 static void render_model(ecs_iter_t *iter)
 {
-	SDL_assert(iter->count == 1); // TODO
+	SDL_assert(iter->count == 1);
 
 	SDL_GPURenderPass *render_pass = *ecs_field(iter, gpu_render_pass_t*, 0);
 	SDL_GPUCommandBuffer *command_buffer = *ecs_field(iter, gpu_command_buffer_t*, 1);
