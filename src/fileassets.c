@@ -1,5 +1,6 @@
 #include "assets.h"
 #include "assetstream.h"
+#include "ecs.h"
 #include "input.h"
 #include "inputconfig.h"
 #include "json.h"
@@ -7,6 +8,9 @@
 #include "map.h"
 #include "mousebutton.h"
 #include "windowconfig.h"
+#include "ecs/components.h"
+
+#include "flecs.h"
 
 #include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_init.h>
@@ -79,6 +83,18 @@ static bool parse_project_metadata(char *json, const json_token_t *token)
 		json[value->end] = '\0';
 		SDL_SetAppMetadataProperty(prop_name, json + value->start);
 	}
+
+	const metadata_t metadata = {
+		.name = SDL_GetAppMetadataProperty(SDL_PROP_APP_METADATA_NAME_STRING),
+		.version = SDL_GetAppMetadataProperty(SDL_PROP_APP_METADATA_VERSION_STRING),
+		.identifier = SDL_GetAppMetadataProperty(SDL_PROP_APP_METADATA_IDENTIFIER_STRING),
+		.creator = SDL_GetAppMetadataProperty(SDL_PROP_APP_METADATA_CREATOR_STRING),
+		.copyright = SDL_GetAppMetadataProperty(SDL_PROP_APP_METADATA_COPYRIGHT_STRING),
+		.url = SDL_GetAppMetadataProperty(SDL_PROP_APP_METADATA_URL_STRING),
+		.type = SDL_GetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING),
+	};
+	ecs_set_id(ecs_world(), EcsMetadata, EcsMetadata,
+		sizeof(metadata_t), &metadata);
 
 	return true;
 }
