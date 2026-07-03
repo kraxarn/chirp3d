@@ -1,5 +1,6 @@
 #include "assets.h"
 #include "ecs.h"
+#include "logcategory.h"
 #include "ecs/components.h"
 #include "ecs/tags.h"
 
@@ -7,6 +8,7 @@
 
 #include <SDL3/SDL_dialog.h>
 #include <SDL3/SDL_filesystem.h>
+#include <SDL3/SDL_log.h>
 
 static void on_file_opened([[maybe_unused]] void *userdata,
 	const char *const *filelist, [[maybe_unused]] int filter)
@@ -43,6 +45,11 @@ static void create_assets([[maybe_unused]] ecs_iter_t *iter)
 		return;
 	}
 	SDL_free(path);
+
+	SDL_LogWarn(LOG_CATEGORY_ASSETS,
+		"Failed to load assets from default path: %s",
+		SDL_GetError()
+	);
 
 	const SDL_DialogFileFilter filters[] = {
 		(SDL_DialogFileFilter){
