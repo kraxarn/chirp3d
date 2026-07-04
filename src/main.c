@@ -9,6 +9,7 @@
 #include "physicsconfig.h"
 #include "scriptengine.h"
 #include "systeminfo.h"
+#include "termcolors.h"
 #include "vector.h"
 #include "ecs/components.h"
 #include "ecs/events.h"
@@ -25,6 +26,7 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
+#include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
@@ -307,6 +309,37 @@ static void set_default_metadata()
 	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_IDENTIFIER_STRING, ENGINE_IDENTIFIER);
 }
 
+[[nodiscard]]
+static const char *log_category_name(const log_category_t category)
+{
+	switch (category)
+	{
+		case LOG_CATEGORY_CORE: return "core";
+		case LOG_CATEGORY_RENDER: return "render";
+		case LOG_CATEGORY_FONT: return "font";
+		case LOG_CATEGORY_ASSETS: return "assets";
+		case LOG_CATEGORY_INPUT: return "input";
+		case LOG_CATEGORY_PHYSICS: return "physics";
+		case LOG_CATEGORY_MODEL: return "model";
+		case LOG_CATEGORY_ECS: return "ecs";
+		case LOG_CATEGORY_SCRIPT: return "script";
+		case LOG_CATEGORY_UI: return "ui";
+		default: return "sdl";
+	}
+}
+
+static void log(void *userdata, const int category, const SDL_LogPriority priority, const char *message)
+{
+	const char *category_name = log_category_name(category);
+
+	static constexpr size_t temp_len = 256;
+	static char temp[temp_len];
+	SDL_assert(SDL_strlen(message) + SDL_strlen(category_name) < temp_len);
+
+	SDL_snprintf(temp, temp_len, COLOR_FG_BOLD("%-7s") " " COLOR_FG_WHITE("%s"), category_name, message);
+	SDL_GetDefaultLogOutputFunction()(userdata, category, priority, temp);
+}
+
 SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	[[maybe_unused]] char **argv)
 {
@@ -325,6 +358,13 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	{
 		return fatal_error("Unsupported SDL version");
 	}
+
+	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_DEBUG, COLOR_FG_BLUE("debug "));
+	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_INFO, COLOR_FG_GREEN("info  "));
+	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_WARN, COLOR_FG_YELLOW("warn  "));
+	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_ERROR, COLOR_FG_RED("error "));
+	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_CRITICAL, COLOR_FG_RED("fatal "));
+	SDL_SetLogOutputFunction(log, nullptr);
 
 	// For use with RenderDoc
 #ifdef FORCE_X11
