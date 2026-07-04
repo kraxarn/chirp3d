@@ -26,7 +26,6 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
-#include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
@@ -334,7 +333,6 @@ static void log(void *userdata, const int category, const SDL_LogPriority priori
 
 	static constexpr size_t temp_len = 256;
 	static char temp[temp_len];
-	SDL_assert(SDL_strlen(message) + SDL_strlen(category_name) < temp_len);
 
 	SDL_snprintf(temp, temp_len, COLOR_FG_BOLD("%-7s") " " COLOR_FG_WHITE("%s"), category_name, message);
 	SDL_GetDefaultLogOutputFunction()(userdata, category, priority, temp);
