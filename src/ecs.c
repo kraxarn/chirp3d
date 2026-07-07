@@ -316,6 +316,8 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 {
 	scope("Chirp")
 	{
+		EcsInstanceOf = entity("InstanceOf");
+
 		EcsEngine = tag("Engine");
 		EcsScene = tag("Scene");
 
@@ -335,7 +337,6 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		EcsPhysicsConfig = component("PhysicsConfig", physics_config_t);
 		EcsPhysicsEngine = component("PhysicsEngine", physics_engine_t);
 		EcsModel = component("Model", model_t);
-		EcsInstanceOf = component("InstanceOf", instance_of_index_t);
 		EcsPhysicsBody = component("PhysicsBody", physics_body_id_t);
 		EcsRotation = component("Rotation", rotation_t);
 		EcsPosition = component("Position", position_t);
@@ -385,10 +386,6 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 			(ecs_member_t){.name = "max_move_speed", .type = ecs_id(ecs_f32_t)},
 			(ecs_member_t){.name = "gravity_y", .type = ecs_id(ecs_f32_t)},
 			(ecs_member_t){.name = "jump_speed", .type = ecs_id(ecs_f32_t)},
-		);
-
-		reflect(EcsInstanceOf,
-			(ecs_member_t){.name = "index", .type = ecs_id(ecs_uptr_t)},
 		);
 
 		reflect(EcsPhysicsBody,

@@ -1,5 +1,7 @@
 #include "ecs/entities.h"
 
+ecs_entity_t EcsInstanceOf = 0;
+
 // Input
 
 ecs_entity_t EcsInput = 0;

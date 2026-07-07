@@ -12,6 +12,7 @@
 #include "termcolors.h"
 #include "vector.h"
 #include "ecs/components.h"
+#include "ecs/entities.h"
 #include "ecs/events.h"
 #include "ecs/tags.h"
 
@@ -134,7 +135,7 @@ static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device,
 	return entity;
 }
 
-static ecs_entity_t create_instance(const ecs_entity_t entity, const size_t node_index)
+static ecs_entity_t create_instance(const ecs_entity_t entity)
 {
 	const ecs_entity_t instance = ecs_new(ecs_world());
 
@@ -152,9 +153,9 @@ static ecs_entity_t create_instance(const ecs_entity_t entity, const size_t node
 	const ecs_entity_t parent = ecs_entity_init(ecs_world(), &parent_desc);
 	ecs_add_pair(ecs_world(), instance, EcsChildOf, parent);
 
-	ecs_set_id(ecs_world(), instance, ecs_pair(EcsInstanceOf, entity),
-		sizeof(size_t), &node_index);
+	ecs_add_pair(ecs_world(), instance, EcsInstanceOf, entity);
 
+	// TODO: One projection per node
 	const projection_t projection = {.rebuild = true};
 	ecs_set_id(ecs_world(), instance, EcsProjection,
 		sizeof(projection_t), &projection);
@@ -201,7 +202,7 @@ static void build_scene(ecs_iter_t *iter)
 		return;
 	}
 
-	const ecs_entity_t blaster_instance = create_instance(blaster, 0);
+	const ecs_entity_t blaster_instance = create_instance(blaster);
 
 	const rotation_t rotation = {
 		.x = 0.F,
@@ -571,7 +572,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			static constexpr float firepower = 100.F;
 
 			const ecs_entity_t bullet = ecs_lookup(ecs_world(), "Model.bullet");
-			const ecs_entity_t entity = create_instance(bullet, 0);
+			const ecs_entity_t entity = create_instance(bullet);
 
 			position_t position = {};
 			query("[none] (chirp.InstanceOf, Model.blaster), [in] chirp.Position")

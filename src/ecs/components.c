@@ -16,7 +16,6 @@ ecs_id_t EcsCamera = 0;
 ecs_id_t EcsPhysicsConfig = 0;
 ecs_id_t EcsPhysicsEngine = 0;
 ecs_id_t EcsModel = 0;
-ecs_id_t EcsInstanceOf = 0;
 ecs_id_t EcsPhysicsBody = 0;
 ecs_id_t EcsRotation = 0;
 ecs_id_t EcsPosition = 0;

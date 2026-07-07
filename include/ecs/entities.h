@@ -2,6 +2,8 @@
 
 #include "ecs.h"
 
+extern ecs_id_t EcsInstanceOf;
+
 // Input
 
 extern ecs_entity_t EcsInput;

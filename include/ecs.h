@@ -22,7 +22,6 @@ typedef SDL_GPURenderPass gpu_render_pass_t;
 typedef SDL_GPUTexture depth_texture_t;
 typedef SDL_GPUTexture swapchain_texture_t;
 typedef vector2f_t swapchain_texture_size_t;
-typedef size_t instance_of_index_t;
 typedef vector3f_t rotation_t;
 typedef vector3f_t position_t;
 typedef vector3f_t scale_t;

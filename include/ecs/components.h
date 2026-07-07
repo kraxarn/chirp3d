@@ -20,7 +20,6 @@ extern ecs_id_t EcsCamera;
 extern ecs_id_t EcsPhysicsConfig;
 extern ecs_id_t EcsPhysicsEngine;
 extern ecs_id_t EcsModel;
-extern ecs_id_t EcsInstanceOf;
 extern ecs_id_t EcsPhysicsBody;
 extern ecs_id_t EcsRotation;
 extern ecs_id_t EcsPosition;

@@ -3,6 +3,7 @@
 #include "math.h"
 #include "model.h"
 #include "ecs/components.h"
+#include "ecs/entities.h"
 #include "ecs/tags.h"
 
 #include "dcimgui.h"
@@ -163,7 +164,6 @@ static void render_model(ecs_iter_t *iter)
 
 	const ecs_entity_t model_entity = ecs_pair_second(ecs_world(), pair_id);
 	const model_t *model = ecs_get_id(ecs_world(), model_entity, EcsModel);
-	const size_t index = *ecs_field(iter, size_t, 3);
 
 	// TODO: Maybe do this in pre-render?
 	if (projection->rebuild)
@@ -174,7 +174,8 @@ static void render_model(ecs_iter_t *iter)
 		rebuild_model_projection(projection, scale, rotation, position);
 	}
 
-	model_draw_indexed(model, index, render_pass, command_buffer,
+	// TODO: Don't assume only one node
+	model_draw_indexed(model, 0, render_pass, command_buffer,
 		matrix4x4_multiply(projection->value, view_proj));
 }
 
