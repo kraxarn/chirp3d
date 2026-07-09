@@ -402,14 +402,22 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 	for (size_t nn = 0; nn < gltf_data->nodes_count; nn++)
 	{
 		const cgltf_node *gltf_node = gltf_data->nodes + nn;
-		SDL_LogDebug(LOG_CATEGORY_MODEL, "Found node: %s", gltf_node->name);
-
 		node_t *node = model->nodes + nn;
-		node->name = SDL_strdup(gltf_node->name);
+
+		if (gltf_node->name == nullptr)
+		{
+			SDL_LogWarn(LOG_CATEGORY_MODEL, "Node %zu does not have a name", nn + 1);
+			SDL_asprintf(&node->name, "node%02zu", nn);
+		}
+		else
+		{
+			SDL_LogDebug(LOG_CATEGORY_MODEL, "Found node: %s", gltf_node->name);
+			node->name = SDL_strdup(gltf_node->name);
+		}
+
 		node->translation = *((vector3f_t*) gltf_node->translation);
 
-		if (node->name != nullptr
-			&& !map_set(model->node_indices, node->name, (Sint64) nn))
+		if (!map_set(model->node_indices, node->name, (Sint64) nn))
 		{
 			return false;
 		}
