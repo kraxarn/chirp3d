@@ -394,6 +394,20 @@ static void set_primitive_material(const mesh_primitive_t *primitive,
 	}
 }
 
+static Uint16 fix_node_name(const char *name)
+{
+	Uint16 changes = 0;
+
+	char *str;
+	while ((str = SDL_strchr(name, '.')) != nullptr)
+	{
+		*str = '_';
+		changes++;
+	}
+
+	return changes;
+}
+
 static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 {
 	model->node_count = gltf_data->nodes_count;
@@ -413,6 +427,13 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 		{
 			SDL_LogDebug(LOG_CATEGORY_MODEL, "Found node: %s", gltf_node->name);
 			node->name = SDL_strdup(gltf_node->name);
+
+			const int changes = fix_node_name(node->name);
+			if (changes > 0)
+			{
+				SDL_LogWarn(LOG_CATEGORY_MODEL, "Renamed invalid node name \"%s\" to \"%s\"",
+					gltf_node->name, node->name);
+			}
 		}
 
 		node->translation = *((vector3f_t*) gltf_node->translation);
