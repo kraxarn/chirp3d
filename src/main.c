@@ -97,6 +97,20 @@ static bool query_cleanup(ecs_query_t *query)
 
 #define query(expr) _query(expr, _query_name(_d), _query_name(_q))
 
+static Uint16 fix_entity_name(const char *name)
+{
+	Uint16 changes = 0;
+
+	char *str;
+	while ((str = SDL_strchr(name, '.')) != nullptr)
+	{
+		*str = '_';
+		changes++;
+	}
+
+	return changes;
+}
+
 static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device, const char *name)
 {
 	model_t model;
@@ -121,10 +135,17 @@ static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device,
 
 	for (size_t i = 0; i < model.node_count; i++)
 	{
-		const ecs_entity_desc_t node_desc = {
-			.name = model_node_name(&model, i),
-		};
-		const ecs_entity_t node = ecs_entity_init(ecs_world(), &node_desc);
+		char *node_name = SDL_strdup(model_node_name(&model, i));
+		if (fix_entity_name(node_name) > 0)
+		{
+			SDL_LogWarn(LOG_CATEGORY_MODEL, "Renamed invalid entity name \"%s\" to \"%s\" in \"%s\"",
+				model_node_name(&model, i), node_name, name);
+		}
+		const ecs_entity_t node = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
+			.name = node_name,
+		});
+		SDL_free(node_name);
+
 		ecs_add_pair(ecs_world(), node, EcsChildOf, entity);
 
 		const position_t position = model_node_translation(&model, i);
