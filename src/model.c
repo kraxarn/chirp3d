@@ -1,6 +1,5 @@
 #include "model.h"
 #include "logcategory.h"
-#include "map.h"
 #include "uniformdata.h"
 #include "vector.h"
 
@@ -417,11 +416,6 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 
 		node->translation = *((vector3f_t*) gltf_node->translation);
 
-		if (!map_set(model->node_indices, node->name, (Sint64) nn))
-		{
-			return false;
-		}
-
 		const cgltf_mesh *gltf_mesh = gltf_node->mesh;
 		if (gltf_mesh == nullptr)
 		{
@@ -789,12 +783,6 @@ bool model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool close_
 	model->sampler = nullptr;
 	model->texture = nullptr;
 
-	model->node_indices = map_create();
-	if (model->node_indices == 0)
-	{
-		return false;
-	}
-
 	const cgltf_options options = {
 		.type = cgltf_file_type_glb,
 	};
@@ -847,29 +835,6 @@ bool model_create(SDL_GPUDevice *device, SDL_IOStream *stream, const bool close_
 	const Uint64 model_end = SDL_GetTicks();
 	SDL_LogDebug(LOG_CATEGORY_MODEL, "Loaded model data in %lu ms", model_end - buffer_end);
 
-	return true;
-}
-
-bool model_find_node(const model_t *model, const char *name, size_t *index)
-{
-	if (name == nullptr)
-	{
-		if (model->node_count > 1)
-		{
-			return SDL_SetError("No node specified");
-		}
-
-		*index = 0;
-		return true;
-	}
-
-	const Sint64 map_index = map_get(model->node_indices, name, -1);
-	if (map_index < 0)
-	{
-		return SDL_SetError("No such node: %s", name);
-	}
-
-	*index = (size_t) map_index;
 	return true;
 }
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "map.h"
 #include "matrix.h"
 #include "vector.h"
 
@@ -32,8 +31,6 @@ typedef struct model_t
 	node_t *nodes;
 	size_t node_count;
 
-	map_t node_indices;
-
 	scene_camera_t *cameras;
 	size_t camera_count;
 
@@ -42,8 +39,6 @@ typedef struct model_t
 } model_t;
 
 bool model_create(SDL_GPUDevice *device, SDL_IOStream *stream, bool close_io, model_t *model);
-
-bool model_find_node(const model_t *model, const char *name, size_t *index);
 
 void model_destroy(const model_t *model);
 
