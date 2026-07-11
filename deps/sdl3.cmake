@@ -5,7 +5,10 @@ FetchContent_Declare(sdl
 	GIT_TAG release-3.4.12
 )
 
-find_package(SDL3 3.4 QUIET)
+option(USE_VENDORED_SDL "Force vendored SDL, even if available in system" OFF)
+if (NOT USE_VENDORED_SDL)
+	find_package(SDL3 3.4 QUIET)
+endif ()
 
 if (SDL3_FOUND)
 	message(STATUS "Using system sdl3")
