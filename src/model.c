@@ -928,18 +928,21 @@ void model_draw_indexed(const model_t *model, const size_t index,
 	SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffer *command_buffer,
 	const matrix4x4_t projection)
 {
+	SDL_assert(model != nullptr);
 	SDL_assert(index < model->node_count);
 	node_draw(model, model->nodes + index, render_pass, command_buffer, projection);
 }
 
 const char *model_node_name(const model_t *model, const size_t index)
 {
+	SDL_assert(model != nullptr);
 	SDL_assert(index < model->node_count);
 	return model->nodes[index].name;
 }
 
 vector3f_t model_node_translation(const model_t *model, const size_t index)
 {
+	SDL_assert(model != nullptr);
 	SDL_assert(index < model->node_count);
 	return model->nodes[index].translation;
 }
