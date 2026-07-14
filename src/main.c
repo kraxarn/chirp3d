@@ -331,12 +331,22 @@ static void set_default_metadata()
 }
 
 [[nodiscard]]
-static const char *log_category_name(const log_category_t category)
+static const char *log_category_name(const int category)
 {
 	switch (category)
 	{
+		case SDL_LOG_CATEGORY_APPLICATION: return "app";
+		case SDL_LOG_CATEGORY_ERROR: return "error";
+		case SDL_LOG_CATEGORY_ASSERT: return "assert";
+		case SDL_LOG_CATEGORY_SYSTEM: return "system";
+		case SDL_LOG_CATEGORY_AUDIO: return "audio";
+		case SDL_LOG_CATEGORY_VIDEO: return "video";
+		case SDL_LOG_CATEGORY_RENDER: return "render";
+		case SDL_LOG_CATEGORY_INPUT: return "input";
+		case SDL_LOG_CATEGORY_TEST: return "test";
+		case SDL_LOG_CATEGORY_GPU: return "gpu";
 		case LOG_CATEGORY_CORE: return "core";
-		case LOG_CATEGORY_RENDER: return "render";
+		case LOG_CATEGORY_RENDER: return "render"; // Same name as built-in render logging
 		case LOG_CATEGORY_FONT: return "font";
 		case LOG_CATEGORY_ASSETS: return "assets";
 		case LOG_CATEGORY_INPUT: return "input";
@@ -345,7 +355,7 @@ static const char *log_category_name(const log_category_t category)
 		case LOG_CATEGORY_ECS: return "ecs";
 		case LOG_CATEGORY_SCRIPT: return "script";
 		case LOG_CATEGORY_UI: return "ui";
-		default: return "sdl";
+		default: return "unknown";
 	}
 }
 
