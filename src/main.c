@@ -396,6 +396,18 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_CRITICAL, COLOR_FG_RED("fatal "));
 	SDL_SetLogOutputFunction(log, nullptr);
 
+	SDL_LogDebug(LOG_CATEGORY_CORE, "Assertion level: %s",
+#if SDL_ASSERT_LEVEL == 0
+		"disabled"
+#elif SDL_ASSERT_LEVEL == 1
+		"release"
+#elif SDL_ASSERT_LEVEL == 2
+		"debug"
+#elif SDL_ASSERT_LEVEL == 3
+		"paranoid"
+#endif
+	);
+
 	// For use with RenderDoc
 #ifdef FORCE_X11
 	if (!SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11"))
