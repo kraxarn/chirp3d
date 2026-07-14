@@ -38,7 +38,7 @@ typedef struct node_t
 	mesh_primitive_t *primitives;
 	size_t primitive_count;
 
-	matrix4x4_t world_transform;
+	const matrix4x4_t world_transform;
 	vector3f_t translation;
 } node_t;
 
