@@ -446,7 +446,7 @@ static void on_init_set([[maybe_unused]] ecs_iter_t *iter)
 
 	const int cores = SDL_GetNumLogicalCPUCores();
 	ecs_set_threads(world, cores);
-	SDL_LogDebug(LOG_CATEGORY_ECS, "Using %d ECS threads", cores);
+	SDL_LogDebug(LOG_CATEGORY_ECS, "Using %d threads", cores);
 
 #ifdef FLECS_REST
 	ecs_singleton_set(world, EcsRest, {0});
