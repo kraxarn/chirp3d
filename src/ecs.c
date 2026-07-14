@@ -117,7 +117,7 @@ static void log_debug_info()
 
 #undef append
 
-	SDL_LogDebug(LOG_CATEGORY_ECS, "ECS addons: %s", temp);
+	SDL_LogDebug(LOG_CATEGORY_ECS, "Addons: %s", temp);
 }
 
 static ecs_entity_t phase(const char *name)
