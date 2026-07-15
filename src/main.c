@@ -861,6 +861,12 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 
 void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 {
+	if (ecs_world() == nullptr)
+	{
+		SDL_free(appstate);
+		return;
+	}
+
 	ecs_query_t *query = ecs_query_init(ecs_world(), &(ecs_query_desc_t){
 		.terms = {
 			(ecs_term_t){.id = EcsModel, .inout = EcsIn},
