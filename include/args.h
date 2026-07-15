@@ -17,6 +17,13 @@ typedef struct
 	 * Create the GPU device with the "prefer low power" hint
 	 */
 	arg_option_t prefer_low_power;
+
+	/**
+	 * --gpu-debug-mode / --no-gpu-debug-mode
+	 *
+	 * Create the GPU device with the "debug mode" and "verbose" hints
+	 */
+	arg_option_t gpu_debug_mode;
 } args_t;
 
 [[nodiscard]]
