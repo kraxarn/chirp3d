@@ -50,6 +50,14 @@ static void print_help()
 			.command = video_drivers,
 			.description = "Force specific video driver",
 		},
+		(arg_command_t){
+			.command = "--(no-)allow-screensaver",
+			.description = "Enable screensaver while running",
+		},
+		(arg_command_t){
+			.command = "--(no-)fatal-error-message-box",
+			.description = "Show a message box on fatal error",
+		},
 	};
 
 	log_func(nullptr, SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO,
