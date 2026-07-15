@@ -832,7 +832,13 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 
 void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 {
-	query("[in] chirp.Model")
+	ecs_query_t *query = ecs_query_init(ecs_world(), &(ecs_query_desc_t){
+		.terms = {
+			(ecs_term_t){.id = EcsModel, .inout = EcsIn},
+		},
+	});
+	ecs_iter_t iter = ecs_query_iter(ecs_world(), query);
+	while (ecs_query_next(&iter))
 	{
 		const model_t *models = ecs_field(&iter, model_t, 0);
 		for (Sint32 i = 0; i < iter.count; i++)
@@ -840,6 +846,7 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 			model_destroy(models + i);
 		}
 	}
+	ecs_query_fini(query);
 
 	assets_destroy(ecs_get_id(ecs_world(), EcsEngine, EcsAssets));
 	physics_destroy(ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsEngine));
