@@ -1,3 +1,4 @@
+#include "args.h"
 #include "ecs.h"
 #include "gpudriver.h"
 #include "gpushaderformat.h"
@@ -25,6 +26,7 @@ static constexpr auto debug_mode =
 static void create_gpu_device(ecs_iter_t *iter)
 {
 	SDL_Window *window = *ecs_field(iter, window_t*, 0);
+	const args_t args = *ecs_field(iter, args_t, 1);
 
 	const SDL_PropertiesID props = SDL_CreateProperties();
 	if (props == 0)
@@ -35,7 +37,7 @@ static void create_gpu_device(ecs_iter_t *iter)
 
 	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, debug_mode);
 	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_VERBOSE_BOOLEAN, debug_mode);
-	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_PREFERLOWPOWER_BOOLEAN, false); // Prefer iGPU
+	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_PREFERLOWPOWER_BOOLEAN, args.prefer_low_power);
 
 	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_SPIRV_BOOLEAN, true);
 	SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXIL_BOOLEAN, true);
@@ -315,7 +317,8 @@ void ecs_add_gpu()
 	const ecs_observer_desc_t observer_desc[] = {
 		(ecs_observer_desc_t){
 			.query.terms = {
-				(ecs_term_t){.id = EcsWindow}
+				(ecs_term_t){.id = EcsWindow, .inout = EcsInOut},
+				(ecs_term_t){.id = EcsArgs, .src.name = "$args", .inout = EcsIn},
 			},
 			.events = {EcsOnSet},
 			.callback = create_gpu_device,

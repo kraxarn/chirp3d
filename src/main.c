@@ -1,4 +1,5 @@
 #include "appstate.h"
+#include "args.h"
 #include "assets.h"
 #include "camera.h"
 #include "ecs.h"
@@ -393,13 +394,14 @@ static void log(void *userdata, const int category, const SDL_LogPriority priori
 	SDL_GetDefaultLogOutputFunction()(userdata, category, priority, temp);
 }
 
-SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
-	[[maybe_unused]] char **argv)
+SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 {
 	if (!system_info_cpu_supported())
 	{
 		return fatal_error("Unsupported CPU");
 	}
+
+	const args_t args = args_parse(argc, argv);
 
 #ifdef NDEBUG
 	SDL_SetLogPriorities(SDL_LOG_PRIORITY_INFO);
@@ -461,6 +463,9 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] const int argc,
 	ecs_add_physics();
 	ecs_add_render();
 	ecs_add_script_engine();
+
+	ecs_set_id(ecs_world(), EcsArgs, EcsArgs,
+		sizeof(args_t), &args);
 
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
 		.query.terms = {

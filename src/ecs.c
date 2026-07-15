@@ -1,4 +1,5 @@
 #include "ecs.h"
+#include "args.h"
 #include "assets.h"
 #include "camera.h"
 #include "ecsosapi.h"
@@ -350,6 +351,7 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		EcsViewProjection = component("ViewProjection", view_projection_t);
 		EcsError = component("Error", error_t);
 		EcsScriptEngine = component("ScriptEngine", py_vm_index_t);
+		EcsArgs = component("Args", args_t);
 
 #ifndef NDEBUG
 		reflect(EcsMetadata,
@@ -422,6 +424,10 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 
 		reflect(EcsScriptEngine,
 			(ecs_member_t){.name = "vm_index", .type = ecs_id(ecs_i32_t)},
+		);
+
+		reflect(EcsArgs,
+			(ecs_member_t){.name = "prefer_low_power", .type = ecs_id(ecs_bool_t)},
 		);
 #endif
 
