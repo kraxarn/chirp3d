@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
 
 typedef enum : Uint8
@@ -24,6 +25,13 @@ typedef struct
 	 * Create the GPU device with the "debug mode" and "verbose" hints
 	 */
 	arg_option_t gpu_debug_mode;
+
+	/**
+	 * --log-priority debug/info/warn/error
+	 *
+	 * Sets to global log priority to the specified level
+	 */
+	SDL_LogPriority log_priority;
 } args_t;
 
 [[nodiscard]]

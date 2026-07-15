@@ -401,14 +401,6 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		return fatal_error("Unsupported CPU");
 	}
 
-	const args_t args = args_parse(argc, argv);
-
-#ifdef NDEBUG
-	SDL_SetLogPriorities(SDL_LOG_PRIORITY_INFO);
-#else
-	SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
-#endif
-
 	if (!sdl_supported())
 	{
 		return fatal_error("Unsupported SDL version");
@@ -420,6 +412,21 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_ERROR, COLOR_FG_RED("error "));
 	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_CRITICAL, COLOR_FG_RED("fatal "));
 	SDL_SetLogOutputFunction(log, nullptr);
+
+	const args_t args = args_parse(argc, argv);
+
+	if (args.log_priority == SDL_LOG_PRIORITY_INVALID)
+	{
+#ifdef NDEBUG
+		SDL_SetLogPriorities(SDL_LOG_PRIORITY_INFO);
+#else
+		SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
+#endif
+	}
+	else
+	{
+		SDL_SetLogPriorities(args.log_priority);
+	}
 
 	SDL_LogDebug(LOG_CATEGORY_CORE, "Assertion level: %s",
 #if SDL_ASSERT_LEVEL == 0
