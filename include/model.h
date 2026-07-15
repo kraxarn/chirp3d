@@ -43,7 +43,7 @@ bool model_create(SDL_GPUDevice *device, SDL_IOStream *stream, bool close_io, mo
 void model_destroy(const model_t *model);
 
 void model_draw(const model_t *model, SDL_GPURenderPass *render_pass,
-	SDL_GPUCommandBuffer *command_buffer, matrix4x4_t projection);
+	SDL_GPUCommandBuffer *command_buffer, matrix4x4_t view_projection);
 
 void model_draw_indexed(const model_t *model, size_t index,
 	SDL_GPURenderPass *render_pass, SDL_GPUCommandBuffer *command_buffer,

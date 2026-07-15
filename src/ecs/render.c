@@ -115,40 +115,38 @@ static void render_scene(ecs_iter_t *iter)
 	model_draw(model, render_pass, command_buffer, view_proj);
 }
 
-static void rebuild_model_projection(projection_t *projection, const vector3f_t *scale,
+[[nodiscard]]
+static projection_t rebuild_model_projection(const matrix4x4_t *transform, const vector3f_t *scale,
 	const vector3f_t *rotation, const vector3f_t *position)
 {
-	Uint8 mul = 0;
-	projection->value = matrix4x4_zero();
+	projection_t projection = {
+		.rebuild = false,
+		.value = *transform,
+	};
 
 	if (scale != nullptr)
 	{
-		projection->value = mul++ > 0
-			? matrix4x4_multiply(projection->value, matrix4x4_create_scale(*scale))
-			: matrix4x4_create_scale(*scale);
+		projection.value = matrix4x4_multiply(projection.value,
+			matrix4x4_create_scale(*scale));
 	}
 
 	if (rotation != nullptr)
 	{
-		const matrix4x4_t transform = matrix4x4_multiply_n((matrix4x4_t[]){
+		projection.value = matrix4x4_multiply_n((matrix4x4_t[]){
+			projection.value,
 			matrix4x4_create_rotation_x(rotation->x),
 			matrix4x4_create_rotation_y(rotation->y),
 			matrix4x4_create_rotation_z(rotation->z),
-		}, 3);
-
-		projection->value = mul++ > 0
-			? matrix4x4_multiply(projection->value, transform)
-			: transform;
+		}, 4);
 	}
 
 	if (position != nullptr)
 	{
-		projection->value = mul > 0
-			? matrix4x4_multiply(projection->value, matrix4x4_create_translation(*position))
-			: matrix4x4_create_translation(*position);
+		projection.value = matrix4x4_multiply(projection.value,
+			matrix4x4_create_translation(*position));
 	}
 
-	projection->rebuild = false;
+	return projection;
 }
 
 static void render_model(ecs_iter_t *iter)
@@ -157,6 +155,7 @@ static void render_model(ecs_iter_t *iter)
 	SDL_GPUCommandBuffer *command_buffer = *ecs_field(iter, gpu_command_buffer_t*, 1);
 	const matrix4x4_t view_proj = *ecs_field(iter, view_projection_t, 2);
 	projection_t *projections = ecs_field(iter, projection_t, 3);
+	const world_transform_t *world_transform = ecs_field(iter, world_transform_t, 9);
 	const model_t *model = ecs_field(iter, model_t, 11);
 
 	for (Sint32 i = 0; i < iter->count; i++)
@@ -169,7 +168,7 @@ static void render_model(ecs_iter_t *iter)
 			const vector3f_t *scale = ecs_field(iter, scale_t, 5);
 			const vector3f_t *rotation = ecs_field(iter, rotation_t, 6);
 			const vector3f_t *position = ecs_field(iter, position_t, 7);
-			rebuild_model_projection(projection, scale, rotation, position);
+			*projection = rebuild_model_projection(world_transform, scale, rotation, position);
 		}
 
 		model_draw_indexed(model, i, render_pass, command_buffer,

@@ -32,6 +32,7 @@ typedef SDL_GPUShader fragment_shader_t;
 typedef SDL_FColor clear_color_t;
 typedef matrix4x4_t view_projection_t;
 typedef Sint32 py_vm_index_t;
+typedef matrix4x4_t world_transform_t;
 
 typedef struct
 {

@@ -897,7 +897,7 @@ static void mesh_draw(const model_t *model, const node_t *node, const mesh_primi
 	SDL_BindGPUFragmentSamplers(render_pass, 0, &binding, 1);
 
 	const vertex_uniform_data_t vertex_data = {
-		.mvp = matrix4x4_multiply(node->world_transform, projection),
+		.mvp = projection,
 	};
 	SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_data, sizeof(vertex_uniform_data_t));
 
@@ -915,11 +915,13 @@ static void node_draw(const model_t *model, const node_t *node, SDL_GPURenderPas
 }
 
 void model_draw(const model_t *model, SDL_GPURenderPass *render_pass,
-	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t projection)
+	SDL_GPUCommandBuffer *command_buffer, const matrix4x4_t view_projection)
 {
 	for (size_t i = 0; i < model->node_count; i++)
 	{
-		node_draw(model, model->nodes + i, render_pass, command_buffer, projection);
+		const node_t *node = model->nodes + i;
+		const matrix4x4_t projection = matrix4x4_multiply(node->world_transform, view_projection);
+		node_draw(model, node, render_pass, command_buffer, projection);
 	}
 }
 

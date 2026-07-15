@@ -349,6 +349,7 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		EcsFragmentShader = component("FragmentShader", fragment_shader_t*);
 		EcsClearColor = component("ClearColor", clear_color_t);
 		EcsViewProjection = component("ViewProjection", view_projection_t);
+		EcsWorldTransform = component("WorldTransform", world_transform_t);
 		EcsError = component("Error", error_t);
 		EcsScriptEngine = component("ScriptEngine", py_vm_index_t);
 		EcsArgs = component("Args", args_t);
@@ -414,6 +415,10 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 
 		reflect(EcsProjection,
 			(ecs_member_t){.name = "rebuild", .type = ecs_id(ecs_bool_t)},
+			(ecs_member_t){.name = "value", .type = ecs_id(ecs_f32_t), .count = 16},
+		);
+
+		reflect(EcsWorldTransform,
 			(ecs_member_t){.name = "value", .type = ecs_id(ecs_f32_t), .count = 16},
 		);
 

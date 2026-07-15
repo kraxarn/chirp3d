@@ -170,6 +170,10 @@ static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device,
 		const position_t position = model_node_translation(&model, i);
 		ecs_set_id(ecs_world(), node, EcsPosition,
 			sizeof(position_t), &position);
+
+		const world_transform_t world_transform = model_node_world_transform(&model, i);
+		ecs_set_id(ecs_world(), node, EcsWorldTransform,
+			sizeof(world_transform_t), &world_transform);
 	}
 
 	ecs_defer_resume(ecs_world());
