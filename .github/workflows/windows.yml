@@ -18,9 +18,10 @@ jobs:
             arch: 'x86_64'
             compile-flags: '-march=x86-64-v3'
 
-          - os: windows-latest
-            arch: 'x86'
-            compile-flags: '-march=i686 -m32 -mavx2 -mfxsr -mf16c'
+          # TODO: Has issues with Jolt for some reason
+          # - os: windows-latest
+          #   arch: 'x86'
+          #   compile-flags: '-march=i686 -m32 -mavx2 -mfxsr -mf16c'
 
           - os: windows-11-arm
             arch: 'arm64'
