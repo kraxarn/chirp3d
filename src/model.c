@@ -420,7 +420,6 @@ static bool load_model_data(model_t *model, const cgltf_data *gltf_data)
 		const cgltf_mesh *gltf_mesh = gltf_node->mesh;
 		if (gltf_mesh == nullptr)
 		{
-			SDL_LogWarn(LOG_CATEGORY_MODEL, "No mesh found in node '%s'!", node->name);
 			continue;
 		}
 
