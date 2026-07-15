@@ -17,10 +17,10 @@ static void update_physics(ecs_iter_t *iter)
 static void sync_physics(ecs_iter_t *iter)
 {
 	const physics_engine_t *physics_engine = ecs_field(iter, physics_engine_t, 0);
-	const physics_body_id_t *body_ids = ecs_field(iter, physics_body_id_t, 1);
-	projection_t *projections = ecs_field(iter, projection_t, 2);
-	position_t *positions = ecs_field(iter, position_t, 3);
-	rotation_t *rotations = ecs_field(iter, rotation_t, 4);
+	const physics_body_id_t *body_ids = ecs_field(iter, physics_body_id_t, 2);
+	projection_t *projections = ecs_field(iter, projection_t, 3);
+	position_t *positions = ecs_field(iter, position_t, 4);
+	rotation_t *rotations = ecs_field(iter, rotation_t, 5);
 
 	for (Sint32 i = 0; i < iter->count; i++)
 	{
@@ -57,10 +57,11 @@ void ecs_add_physics()
 		}),
 		.query.terms = {
 			(ecs_term_t){.id = EcsPhysicsEngine, .src.id = EcsEngine, .inout = EcsIn},
-			(ecs_term_t){.id = EcsPhysicsBody, .inout = EcsIn},
+			(ecs_term_t){.first.id = EcsChildOf, .second.name = "$instance"},
+			(ecs_term_t){.id = EcsPhysicsBody, .src.name = "$instance", .inout = EcsIn},
 			(ecs_term_t){.id = EcsProjection, .inout = EcsInOut},
-			(ecs_term_t){.id = EcsPosition, .inout = EcsOut},
-			(ecs_term_t){.id = EcsRotation, .inout = EcsOut},
+			(ecs_term_t){.id = EcsPosition, .src.name = "$instance", .inout = EcsOut},
+			(ecs_term_t){.id = EcsRotation, .src.name = "$instance", .inout = EcsOut},
 		},
 		.callback = sync_physics,
 	});
