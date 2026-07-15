@@ -39,6 +39,7 @@ args_t args_parse(const int argc, char **argv)
 		.prefer_low_power = OPT_NOT_SET,
 		.gpu_debug_mode = OPT_NOT_SET,
 		.log_priority = SDL_LOG_PRIORITY_INVALID,
+		.video_driver = nullptr,
 	};
 
 	for (int i = 0; i < argc; i++)
@@ -70,6 +71,11 @@ args_t args_parse(const int argc, char **argv)
 			{
 				SDL_LogError(LOG_CATEGORY_CORE, "Unknown priority: '%s'", argv[i]);
 			}
+		}
+
+		else if (SDL_strcmp(arg, "--video-driver") == 0 && i + 1 < argc)
+		{
+			args.video_driver = argv[++i];
 		}
 
 		else

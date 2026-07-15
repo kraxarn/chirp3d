@@ -32,6 +32,13 @@ typedef struct
 	 * Sets to global log priority to the specified level
 	 */
 	SDL_LogPriority log_priority;
+
+	/**
+	 * --video-driver wayland/x11/...
+	 *
+	 * Override the default video driver with the specified one
+	 */
+	const char *video_driver;
 } args_t;
 
 [[nodiscard]]

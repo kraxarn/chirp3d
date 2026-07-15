@@ -440,18 +440,16 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 #endif
 	);
 
-	// For use with RenderDoc
-#ifdef FORCE_X11
-	if (!SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11"))
+	if (args.video_driver != nullptr
+		&& !SDL_SetHint(SDL_HINT_VIDEO_DRIVER, args.video_driver))
 	{
-		return fatal_error("Failed to set X11 hint");
+		SDL_LogError(LOG_CATEGORY_CORE, "Failed to set hint: %s", SDL_GetError());
 	}
-#endif
 
 #ifndef NDEBUG
 	if (!SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1"))
 	{
-		SDL_LogWarn(LOG_CATEGORY_CORE, "Failed to enable screensaver: %s", SDL_GetError());
+		SDL_LogWarn(LOG_CATEGORY_CORE, "Failed to set hint: %s", SDL_GetError());
 	}
 #endif
 
