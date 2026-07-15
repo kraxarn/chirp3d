@@ -7,7 +7,7 @@
 args_t args_parse(const int argc, char **argv)
 {
 	args_t args = {
-		.prefer_low_power = false,
+		.prefer_low_power = OPT_NOT_SET,
 	};
 
 	for (int i = 0; i < argc; i++)
@@ -15,11 +15,11 @@ args_t args_parse(const int argc, char **argv)
 		const char *arg = argv[i];
 		if (SDL_strcmp(arg, "--prefer-low-power") == 0)
 		{
-			args.prefer_low_power = true;
+			args.prefer_low_power = OPT_ENABLE;
 		}
 		else if (SDL_strcmp(arg, "--no-prefer-low-power") == 0)
 		{
-			args.prefer_low_power = false;
+			args.prefer_low_power = OPT_DISABLE;
 		}
 		else
 		{

@@ -1,5 +1,14 @@
 #pragma once
 
+#include <SDL3/SDL_stdinc.h>
+
+typedef enum : Uint8
+{
+	OPT_NOT_SET, // Not explicitly set
+	OPT_DISABLE, // Explicitly disabled
+	OPT_ENABLE,  // Explicitly enabled
+} arg_option_t;
+
 typedef struct
 {
 	/**
@@ -7,7 +16,7 @@ typedef struct
 	 *
 	 * Create the GPU device with the "prefer low power" hint
 	 */
-	bool prefer_low_power;
+	arg_option_t prefer_low_power;
 } args_t;
 
 [[nodiscard]]
