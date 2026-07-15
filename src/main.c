@@ -881,10 +881,6 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	physics_destroy(ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsEngine));
 	script_engine_destroy();
 
-	// cImGui_ImplSDL3_Shutdown();
-	// cImGui_ImplSDLGPU3_Shutdown();
-	// ImGui_DestroyContext(nullptr);
-
 	SDL_Window *window = ecs_get_id_ptr(EcsWindow);
 	SDL_GPUDevice *gpu_device = ecs_get_id_ptr(EcsGpuDevice);
 	SDL_GPUGraphicsPipeline *pipeline = ecs_get_id_ptr(EcsGpuGraphicsPipeline);
