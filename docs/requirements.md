@@ -42,6 +42,7 @@ Minimum requirements that are verified to work.
 ## Linux (Vulkan)
 
 * Radeon RX 6000 series
+* Radeon Graphics (Raphael)
 
 ## macOS 15 (Metal)
 
