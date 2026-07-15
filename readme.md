@@ -12,6 +12,17 @@ Currently very early in development and not very usable quite yet.
 
 * No AI slop, all bugs were proudly created by me.
 
+# goals (non-final)
+
+* The entire engine should be lightweight, and smaller than 10 MB.
+* The engine should be directly native for each supported platform.
+
+# why c?
+
+* It's easier to interface with lower-level libraries.
+* It compiles superfast.
+* I like shooting myself in the foot :3
+
 # platform support
 
 * Linux and Android through Vulkan 1.0.
