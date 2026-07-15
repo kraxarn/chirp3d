@@ -401,7 +401,8 @@ static const char *log_category_name(const int category)
 	}
 }
 
-static void log(void *userdata, const int category, const SDL_LogPriority priority, const char *message)
+static void log_callback(void *userdata, const int category,
+	const SDL_LogPriority priority, const char *message)
 {
 	const char *category_name = log_category_name(category);
 
@@ -429,7 +430,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_WARN, COLOR_FG_YELLOW("warn  "));
 	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_ERROR, COLOR_FG_RED("error "));
 	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_CRITICAL, COLOR_FG_RED("fatal "));
-	SDL_SetLogOutputFunction(log, nullptr);
+	SDL_SetLogOutputFunction(log_callback, nullptr);
 
 	args_t args;
 	if (!args_parse(argc, argv, &args))
