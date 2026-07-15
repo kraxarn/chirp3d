@@ -67,10 +67,13 @@ static void update_keyboard_event(const SDL_KeyboardEvent event)
 	if (event.down)
 	{
 		const ecs_entity_t entity = keycode_entity(event.key, nullptr);
-		const input_state_t *current_state = ecs_get_id(ecs_world(), entity, EcsInputState);
-		if (current_state != nullptr && *current_state != STATE_UP)
+		if (ecs_is_alive(ecs_world(), entity))
 		{
-			return;
+			const input_state_t *current_state = ecs_get_id(ecs_world(), entity, EcsInputState);
+			if (current_state != nullptr && *current_state != STATE_UP)
+			{
+				return;
+			}
 		}
 	}
 
