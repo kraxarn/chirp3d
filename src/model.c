@@ -940,6 +940,13 @@ const char *model_node_name(const model_t *model, const size_t index)
 	return model->nodes[index].name;
 }
 
+matrix4x4_t model_node_world_transform(const model_t *model, const size_t index)
+{
+	SDL_assert(model != nullptr);
+	SDL_assert(index < model->node_count);
+	return model->nodes[index].world_transform;
+}
+
 vector3f_t model_node_translation(const model_t *model, const size_t index)
 {
 	SDL_assert(model != nullptr);

@@ -53,4 +53,7 @@ void model_draw_indexed(const model_t *model, size_t index,
 const char *model_node_name(const model_t *model, size_t index);
 
 [[nodiscard]]
+matrix4x4_t model_node_world_transform(const model_t *model, size_t index);
+
+[[nodiscard]]
 vector3f_t model_node_translation(const model_t *model, size_t index);

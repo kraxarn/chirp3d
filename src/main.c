@@ -27,6 +27,7 @@
 #include <SDL3/SDL_messagebox.h>
 #endif
 
+#include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
@@ -119,6 +120,9 @@ static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device,
 		return 0;
 	}
 
+	// TODO: Needed because data is fetched when we create an instance, without progressing the ecs
+	ecs_defer_suspend(ecs_world());
+
 	const ecs_entity_desc_t parent_desc = {
 		.name = "Model",
 	};
@@ -153,16 +157,19 @@ static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device,
 			sizeof(position_t), &position);
 	}
 
+	ecs_defer_resume(ecs_world());
 	return entity;
 }
 
-static ecs_entity_t create_instance(const ecs_entity_t entity)
+static ecs_entity_t create_instance(const ecs_entity_t model)
 {
+	SDL_assert(model != 0);
+
 	const ecs_entity_t instance = ecs_new(ecs_world());
 
 	char *instance_name = nullptr;
 	SDL_asprintf(&instance_name, "%s#%ld",
-		ecs_get_name(ecs_world(), entity),
+		ecs_get_name(ecs_world(), model),
 		instance
 	);
 	ecs_set_name(ecs_world(), instance, instance_name);
@@ -174,12 +181,28 @@ static ecs_entity_t create_instance(const ecs_entity_t entity)
 	const ecs_entity_t parent = ecs_entity_init(ecs_world(), &parent_desc);
 	ecs_add_pair(ecs_world(), instance, EcsChildOf, parent);
 
-	ecs_add_pair(ecs_world(), instance, EcsInstanceOf, entity);
+	ecs_add_pair(ecs_world(), instance, EcsInstanceOf, model);
 
-	// TODO: One projection per node
-	const projection_t projection = {.rebuild = true};
-	ecs_set_id(ecs_world(), instance, EcsProjection,
-		sizeof(projection_t), &projection);
+	ecs_iter_t iter = ecs_children(ecs_world(), model);
+	while (ecs_children_next(&iter))
+	{
+		for (Sint32 i = 0; i < iter.count; i++)
+		{
+			const ecs_entity_t child = iter.entities[i];
+
+			const ecs_entity_t node = ecs_new_w_pair(ecs_world(), EcsChildOf, instance);
+			char *node_name = nullptr;
+			SDL_asprintf(&node_name, "%s#%ld", ecs_get_name(ecs_world(), child), node);
+			ecs_set_name(ecs_world(), node, node_name);
+			SDL_free(node_name);
+
+			const projection_t projection = {.rebuild = true};
+			ecs_set_id(ecs_world(), node, EcsProjection,
+				sizeof(projection_t), &projection);
+
+			ecs_add_pair(ecs_world(), node, EcsInstanceOf, child);
+		}
+	}
 
 	return instance;
 }
@@ -683,16 +706,25 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(right_n, 0.25F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(up_n, -0.2F));
 
-	query("[none] chirp.InstanceOf($this, $model), $model == \"Model.blaster\","
-		"[out] chirp.Position, [out] chirp.Rotation, [out] chirp.Projection")
+	query(
+		"[none] chirp.InstanceOf($i, $m),"
+		"[none] $m == \"Model.blaster\","
+		"[out]  chirp.Position($i),"
+		"[out]  chirp.Rotation($i),"
+		"[none] ChildOf($n, $i),"
+		"[out]  chirp.Projection($n)")
 	{
-		*ecs_field(&iter, position_t, 2) = weapon_position;
-		*ecs_field(&iter, rotation_t, 3) = (rotation_t){
+		vector3f_t *positions = ecs_field(&iter, position_t, 2);
+		vector3f_t *rotations = ecs_field(&iter, rotation_t, 3);
+		projection_t *projections = ecs_field(&iter, projection_t, 5);
+
+		positions[0] = weapon_position;
+		rotations[0] = (rotation_t){
 			.x = SDL_asinf(forward_n.y),
 			.y = SDL_atan2f(-forward_n.z, forward_n.x) - (SDL_PI_F * 0.5F),
 			.z = 0.0F,
 		};
-		ecs_field(&iter, projection_t, 4)->rebuild = true;
+		projections[0].rebuild = true;
 	}
 
 	ecs_iter_t iter = ecs_query_iter(ecs_world(), state->status_query);
