@@ -427,7 +427,11 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	SDL_SetLogPriorityPrefix(SDL_LOG_PRIORITY_CRITICAL, COLOR_FG_RED("fatal "));
 	SDL_SetLogOutputFunction(log, nullptr);
 
-	const args_t args = args_parse(argc, argv);
+	args_t args;
+	if (!args_parse(argc, argv, &args))
+	{
+		return SDL_APP_SUCCESS;
+	}
 
 	if (args.log_priority == SDL_LOG_PRIORITY_INVALID)
 	{

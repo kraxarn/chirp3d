@@ -56,7 +56,7 @@ typedef struct
 } args_t;
 
 [[nodiscard]]
-args_t args_parse(int argc, char **argv);
+bool args_parse(int argc, char **argv, args_t *args);
 
 /**
  * Format enabled as "1" and disabled as "0"
