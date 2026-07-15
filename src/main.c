@@ -24,10 +24,6 @@
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
 
-#ifdef NDEBUG
-#include <SDL3/SDL_messagebox.h>
-#endif
-
 #include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
@@ -36,6 +32,7 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_log.h>
+#include <SDL3/SDL_messagebox.h>
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_stdinc.h>
@@ -45,13 +42,30 @@
 
 static constexpr auto mouse_sensitivity = 0.0015F;
 
+[[nodiscard]]
+static bool fatal_error_message_box()
+{
+	const args_t *args = ecs_get_id(ecs_world(), EcsArgs, EcsArgs);
+	if (args == nullptr || args->fatal_error_message_box == OPT_NOT_SET)
+	{
+#ifdef NDEBUG
+		return false;
+#else
+		return true;
+#endif
+	}
+	return args->fatal_error_message_box == OPT_ENABLE;
+}
+
 static SDL_AppResult fatal_error(const char *message)
 {
 	SDL_LogCritical(LOG_CATEGORY_CORE, "%s: %s", message, SDL_GetError());
-#ifdef NDEBUG
-	SDL_Window *window = ecs_get_id_ptr(EcsWindow);
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, message, SDL_GetError(), window);
-#endif
+	if (fatal_error_message_box())
+	{
+		SDL_Window *window = ecs_get_id_ptr(EcsWindow);
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			message, SDL_GetError(), window);
+	}
 	return SDL_APP_FAILURE;
 }
 
@@ -776,10 +790,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	{
 		const error_t *error = ecs_field(&iter, error_t, 0);
 		SDL_LogCritical(LOG_CATEGORY_CORE, "%s: %s", error->title, error->message);
-#ifdef NDEBUG
-		SDL_Window *window = ecs_get_id_ptr(EcsWindow);
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, error->title, error->message, window);
-#endif
+		if (fatal_error_message_box())
+		{
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+				error->title, error->message, window);
+		}
 		ecs_iter_fini(&iter);
 		return SDL_APP_FAILURE;
 	}

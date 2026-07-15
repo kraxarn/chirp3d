@@ -87,6 +87,15 @@ args_t args_parse(const int argc, char **argv)
 			args.allow_screensaver = OPT_DISABLE;
 		}
 
+		else if (SDL_strcmp(arg, "--fatal-error-message-box") == 0)
+		{
+			args.fatal_error_message_box = OPT_ENABLE;
+		}
+		else if (SDL_strcmp(arg, "--no-fatal-error-message-box") == 0)
+		{
+			args.fatal_error_message_box = OPT_DISABLE;
+		}
+
 		else
 		{
 			SDL_LogError(LOG_CATEGORY_CORE, "Unknown arg: '%s'", arg);

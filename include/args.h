@@ -42,8 +42,17 @@ typedef struct
 
 	/**
 	 * --allow-screensaver / --no-allow-screensaver
+	 *
+	 * Set the "allow screensaver" hint
 	 */
 	arg_option_t allow_screensaver;
+
+	/**
+	 * --fatal-error-message-box / --no-fatal-error-message-box
+	 *
+	 * Show a message box on fatal error
+	 */
+	arg_option_t fatal_error_message_box;
 } args_t;
 
 [[nodiscard]]
