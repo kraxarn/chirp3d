@@ -42,7 +42,7 @@ args_t args_parse(const int argc, char **argv)
 		.video_driver = nullptr,
 	};
 
-	for (int i = 0; i < argc; i++)
+	for (int i = 1; i < argc; i++)
 	{
 		const char *arg = argv[i];
 
