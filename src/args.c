@@ -78,6 +78,15 @@ args_t args_parse(const int argc, char **argv)
 			args.video_driver = argv[++i];
 		}
 
+		else if (SDL_strcmp(arg, "--allow-screensaver") == 0)
+		{
+			args.allow_screensaver = OPT_ENABLE;
+		}
+		else if (SDL_strcmp(arg, "--no-allow-screensaver") == 0)
+		{
+			args.allow_screensaver = OPT_DISABLE;
+		}
+
 		else
 		{
 			SDL_LogError(LOG_CATEGORY_CORE, "Unknown arg: '%s'", arg);
@@ -85,4 +94,22 @@ args_t args_parse(const int argc, char **argv)
 	}
 
 	return args;
+}
+
+const char *arg_option_str(const arg_option_t option)
+{
+	switch (option)
+	{
+		case OPT_NOT_SET:
+			return "-1";
+
+		case OPT_DISABLE:
+			return "0";
+
+		case OPT_ENABLE:
+			return "1";
+
+		default:
+			return "";
+	}
 }

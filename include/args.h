@@ -39,7 +39,18 @@ typedef struct
 	 * Override the default video driver with the specified one
 	 */
 	const char *video_driver;
+
+	/**
+	 * --allow-screensaver / --no-allow-screensaver
+	 */
+	arg_option_t allow_screensaver;
 } args_t;
 
 [[nodiscard]]
 args_t args_parse(int argc, char **argv);
+
+/**
+ * Format enabled as "1" and disabled as "0"
+ */
+[[nodiscard]]
+const char *arg_option_str(arg_option_t option);
