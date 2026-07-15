@@ -706,13 +706,47 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(right_n, 0.25F));
 	weapon_position = vector3f_add(weapon_position, vector3f_scale(up_n, -0.2F));
 
-	query(
-		"[none] chirp.InstanceOf($i, $m),"
-		"[none] $m == \"Model.blaster\","
-		"[out]  chirp.Position($i),"
-		"[out]  chirp.Rotation($i),"
-		"[none] ChildOf($n, $i),"
-		"[out]  chirp.Projection($n)")
+	static ecs_query_t *weapon_query = nullptr;
+	if (weapon_query == nullptr)
+	{
+		weapon_query = ecs_query_init(ecs_world(), &(ecs_query_desc_t){
+			.terms = {
+				(ecs_term_t){
+					.src.name = "$instance",
+					.first.id = EcsInstanceOf,
+					.second.name = "$model",
+					.inout = EcsInOutNone,
+				},
+				(ecs_term_t){
+					.src.name = "$model",
+					.first.id = EcsPredEq,
+					.second.id = EcsIsName,
+					.second.name = "Model.blaster",
+					.inout = EcsInOutNone,
+				},
+				(ecs_term_t){
+					.id = EcsPosition,
+					.src.name = "$instance",
+				},
+				(ecs_term_t){
+					.id = EcsRotation,
+					.src.name = "$instance",
+				},
+				(ecs_term_t){
+					.src.name = "$node",
+					.first.id = EcsChildOf,
+					.second.name = "$instance",
+				},
+				(ecs_term_t){
+					.id = EcsProjection,
+					.src.name = "$node",
+				},
+			},
+		});
+	}
+
+	ecs_iter_t iter = ecs_query_iter(ecs_world(), weapon_query);
+	while (ecs_query_next(&iter))
 	{
 		vector3f_t *positions = ecs_field(&iter, position_t, 2);
 		vector3f_t *rotations = ecs_field(&iter, rotation_t, 3);
@@ -727,7 +761,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		projections[0].rebuild = true;
 	}
 
-	ecs_iter_t iter = ecs_query_iter(ecs_world(), state->status_query);
+	iter = ecs_query_iter(ecs_world(), state->status_query);
 	if (ecs_query_next(&iter))
 	{
 		const error_t *error = ecs_field(&iter, error_t, 0);
