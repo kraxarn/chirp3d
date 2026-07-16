@@ -254,12 +254,6 @@ static ecs_entity_t reflect_string(const ecs_entity_t entity,
 
 #endif
 
-#define scope(name)	\
-	for (const ecs_entity_t mod = ecs_module_init(world, name, &(ecs_component_desc_t){}),	\
-		scope = ecs_set_scope(world, mod);													\
-		ecs_get_scope(world) == mod;														\
-		ecs_set_scope(world, scope))
-
 static void add_events()
 {
 	EcsOnMouseButton = entity("OnMouseButton");
@@ -315,7 +309,7 @@ static void add_input()
 
 static void module([[maybe_unused]] ecs_world_t *unused)
 {
-	scope("Chirp")
+	ecs_scope("Chirp")
 	{
 		EcsInstanceOf = entity("InstanceOf");
 
@@ -439,12 +433,12 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		create_pipeline();
 	}
 
-	scope("ChirpEvent")
+	ecs_scope("ChirpEvent")
 	{
 		add_events();
 	}
 
-	scope("ChirpInput")
+	ecs_scope("ChirpInput")
 	{
 		add_input();
 	};

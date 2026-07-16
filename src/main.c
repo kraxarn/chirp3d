@@ -485,12 +485,15 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 	ecs_create();
 
-	ecs_add_gpu();
-	ecs_add_window();
-	ecs_add_assets();
-	ecs_add_physics();
-	ecs_add_render();
-	ecs_add_script_engine();
+	ecs_scope("ChirpModule")
+	{
+		ecs_add_gpu();
+		ecs_add_window();
+		ecs_add_assets();
+		ecs_add_physics();
+		ecs_add_render();
+		ecs_add_script_engine();
+	}
 
 	ecs_set_id(ecs_world(), EcsArgs, EcsArgs,
 		sizeof(args_t), &args);
