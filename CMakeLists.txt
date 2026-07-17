@@ -72,3 +72,8 @@ if (TARGET SDL3-shared)
 		VERBATIM
 	)
 endif ()
+
+# Not all platforms define "NDEBUG"
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+	target_compile_definitions(${PROJECT_NAME} PRIVATE NDEBUG)
+endif ()
