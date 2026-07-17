@@ -33,7 +33,7 @@ jobs:
           version: '${{ matrix.os-version }}'
 
       - name: Install Dependencies
-        if: ${{ matrix.os-type != 'freebsd' }}
+        if: ${{ matrix.os-type == 'freebsd' }}
         run: pkg install -y git cmake gcc sdl3
 
       - name: Configure CMake
