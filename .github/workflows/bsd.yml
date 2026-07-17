@@ -26,6 +26,15 @@ jobs:
             os-version: '15.1'
             arch: 'arm64'
 
+          - os-type: 'openbsd'
+            os-version: '7.9'
+            arch: 'x86-64'
+            compile-flags: '-march=x86-64-v3'
+
+          - os-type: 'openbsd'
+            os-version: '7.9'
+            arch: 'arm64'
+
     steps:
       - uses: actions/checkout@v5
 
@@ -38,12 +47,13 @@ jobs:
 
       - name: Install Dependencies
         if: ${{ matrix.os-type == 'freebsd' }}
-        run: sudo pkg install -y git cmake llvm22 sdl3
+        run: sudo pkg install -y git cmake sdl3
+
+      - name: Install Dependencies
+        if: ${{ matrix.os-type == 'openbsd' }}
+        run: sudo pkg_add -l git cmake sdl3
 
       - name: Configure CMake
-        env:
-          CC: 'clang22'
-          CXX: 'clang++22'
         run: cmake -S . -B build -D ENABLE_TESTS=ON -D CMAKE_BUILD_TYPE=$BUILD_TYPE -D CMAKE_C_FLAGS="${{ matrix.compile-flags }}" -D CMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
 
       - name: Build
