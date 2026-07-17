@@ -1,0 +1,46 @@
+name: BSD
+
+on: [ push, pull_request ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    name: '${{ matrix.os-name }}-${{ matrix.arch }}'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: cpa.sh {0}
+
+    strategy:
+      matrix:
+        include:
+          - os-name: 'FreeBSD'
+            os-type: 'freebsd'
+            os-version: '15.1'
+            arch: 'x86-64'
+            compile-flags: '-march=x86-64-v3'
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Start VM
+        uses: cross-platform-actions/action@v1.3.0
+        with:
+          operating_system: '${{ matrix.os-name }}'
+          version: '${{ matrix.os-version }}'
+
+      - name: Install Dependencies
+        if: ${{ matrix.os-type != 'freebsd' }}
+        run: pkg install -y git cmake gcc sdl3
+
+      - name: Configure CMake
+        run: cmake -S . -B build -D ENABLE_TESTS=ON -D CMAKE_BUILD_TYPE=$BUILD_TYPE -D CMAKE_C_FLAGS="${{ matrix.compile-flags }}" -D CMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --extra-verbose --test-dir build/tests
