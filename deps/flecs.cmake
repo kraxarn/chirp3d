@@ -34,3 +34,11 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif ()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE flecs_static)
+
+# flecs doesn't natively support OpenBSD or NetBSD, but does support FreeBSD
+if (BSD AND NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+	target_compile_definitions(flecs_static PUBLIC
+		ECS_TARGET_FREEBSD
+		ECS_TARGET_POSIX
+	)
+endif ()
