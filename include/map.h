@@ -4,11 +4,6 @@
 
 #include <stddef.h>
 
-// I dunno, some compilers don't define it properly or something
-#ifndef nullptr_t
-typedef typeof(nullptr) nullptr_t;
-#endif
-
 typedef SDL_PropertiesID map_t;
 
 #define map_create   SDL_CreateProperties
