@@ -64,7 +64,7 @@ jobs:
 
       - name: Install Dependencies
         if: ${{ matrix.os-type == 'netbsd' }}
-        run: sudo pkgin -y install git cmake gcc SDL3
+        run: sudo pkgin -y install git cmake gcc15 SDL3
 
       - name: Configure CMake
         run: cmake -S . -B build -D ENABLE_TESTS=ON -D CMAKE_BUILD_TYPE=$BUILD_TYPE -D CMAKE_C_FLAGS="${{ matrix.compile-flags }}" -D CMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
