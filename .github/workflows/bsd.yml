@@ -35,6 +35,15 @@ jobs:
             os-version: '7.9'
             arch: 'arm64'
 
+          - os-type: 'netbsd'
+            os-version: '10.1'
+            arch: 'x86-64'
+            compile-flags: '-march=x86-64-v3'
+
+          - os-type: 'netbsd'
+            os-version: '10.1'
+            arch: 'arm64'
+
     steps:
       - uses: actions/checkout@v5
 
@@ -52,6 +61,10 @@ jobs:
       - name: Install Dependencies
         if: ${{ matrix.os-type == 'openbsd' }}
         run: sudo pkg_add -l git cmake sdl3
+
+      - name: Install Dependencies
+        if: ${{ matrix.os-type == 'netbsd' }}
+        run: sudo pkgin -y install git cmake SDL3
 
       - name: Configure CMake
         run: cmake -S . -B build -D ENABLE_TESTS=ON -D CMAKE_BUILD_TYPE=$BUILD_TYPE -D CMAKE_C_FLAGS="${{ matrix.compile-flags }}" -D CMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
