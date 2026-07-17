@@ -38,7 +38,7 @@ jobs:
 
       - name: Install Dependencies
         if: ${{ matrix.os-type == 'freebsd' }}
-        run: sudo pkg install -y git cmake gcc sdl3
+        run: sudo pkg install -y git cmake llvm22 sdl3
 
       - name: Configure CMake
         run: cmake -S . -B build -D ENABLE_TESTS=ON -D CMAKE_BUILD_TYPE=$BUILD_TYPE -D CMAKE_C_FLAGS="${{ matrix.compile-flags }}" -D CMAKE_CXX_FLAGS="${{ matrix.compile-flags }}"
