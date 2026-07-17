@@ -30,6 +30,7 @@ jobs:
         with:
           operating_system: '${{ matrix.os-type }}'
           version: '${{ matrix.os-version }}'
+          architecture: '${{ matrix.arch }}'
 
       - name: Install Dependencies
         if: ${{ matrix.os-type == 'freebsd' }}
