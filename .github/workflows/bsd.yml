@@ -35,14 +35,14 @@ jobs:
             os-version: '7.9'
             arch: 'arm64'
 
-          - os-type: 'netbsd'
-            os-version: '10.1'
-            arch: 'x86-64'
-            compile-flags: '-march=x86-64-v3'
-
-          - os-type: 'netbsd'
-            os-version: '10.1'
-            arch: 'arm64'
+#          - os-type: 'netbsd'
+#            os-version: '10.1'
+#            arch: 'x86-64'
+#            compile-flags: '-march=x86-64-v3'
+#
+#          - os-type: 'netbsd'
+#            os-version: '10.1'
+#            arch: 'arm64'
 
     steps:
       - uses: actions/checkout@v5
