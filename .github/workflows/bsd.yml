@@ -60,7 +60,7 @@ jobs:
 
       - name: Install Dependencies
         if: ${{ matrix.os-type == 'openbsd' }}
-        run: sudo pkg_add -l git cmake sdl3
+        run: sudo pkg_add -I git cmake sdl3
 
       - name: Install Dependencies
         if: ${{ matrix.os-type == 'netbsd' }}
