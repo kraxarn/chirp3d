@@ -7,7 +7,7 @@ env:
 
 jobs:
   build:
-    name: '${{ matrix.os-name }}-${{ matrix.arch }}'
+    name: '${{ matrix.os-type }}-${{ matrix.arch }}'
     runs-on: ubuntu-latest
 
     defaults:
@@ -17,8 +17,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os-name: 'FreeBSD'
-            os-type: 'freebsd'
+          - os-type: 'freebsd'
             os-version: '15.1'
             arch: 'x86-64'
             compile-flags: '-march=x86-64-v3'
@@ -29,7 +28,7 @@ jobs:
       - name: Start VM
         uses: cross-platform-actions/action@v1.3.0
         with:
-          operating_system: '${{ matrix.os-name }}'
+          operating_system: '${{ matrix.os-type }}'
           version: '${{ matrix.os-version }}'
 
       - name: Install Dependencies
