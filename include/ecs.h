@@ -34,6 +34,9 @@ typedef matrix4x4_t view_projection_t;
 typedef Sint32 py_vm_index_t;
 typedef matrix4x4_t world_transform_t;
 
+#define ecs_values_end (ecs_value_t){0,nullptr}
+#define ecs_ids_end (ecs_id_t)0
+
 typedef struct
 {
 	bool rebuild;
@@ -45,6 +48,11 @@ typedef struct
 	char *title;
 	char *message;
 } error_t;
+
+typedef struct
+{
+	char *name;
+} model_instance_t;
 
 typedef struct
 {
@@ -109,3 +117,4 @@ void ecs_add_gpu();
 void ecs_add_physics();
 void ecs_add_render();
 void ecs_add_script_engine();
+void ecs_add_models();

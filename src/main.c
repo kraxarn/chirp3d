@@ -8,6 +8,7 @@
 #include "model.h"
 #include "physics.h"
 #include "physicsconfig.h"
+#include "prefabs.h"
 #include "scriptengine.h"
 #include "systeminfo.h"
 #include "termcolors.h"
@@ -113,6 +114,7 @@ static bool query_cleanup(ecs_query_t *query)
 
 #define query(expr) _query(expr, _query_name(_d), _query_name(_q))
 
+[[deprecated]]
 static Uint16 fix_entity_name(const char *name)
 {
 	Uint16 changes = 0;
@@ -127,6 +129,7 @@ static Uint16 fix_entity_name(const char *name)
 	return changes;
 }
 
+[[deprecated]]
 static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device, const char *name)
 {
 	model_t model;
@@ -180,6 +183,7 @@ static ecs_entity_t load_model(const assets_t *assets, gpu_device_t *gpu_device,
 	return entity;
 }
 
+[[deprecated]]
 static ecs_entity_t create_instance(const ecs_entity_t model)
 {
 	SDL_assert(model != 0);
@@ -493,6 +497,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		ecs_add_physics();
 		ecs_add_render();
 		ecs_add_script_engine();
+		ecs_add_models();
 	}
 
 	ecs_set_id(ecs_world(), EcsArgs, EcsArgs,
