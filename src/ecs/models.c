@@ -140,6 +140,7 @@ static void instance_model(ecs_iter_t *iter)
 		if (load_model(name) == 0)
 		{
 			// Don't try to load indefinitely
+			SDL_free(name); // TODO: Maybe do this somewhere else
 			ecs_remove_id(ecs_world(), entity, EcsModelInstance);
 		}
 		return; // Deferred, I don't really like this, but it works
