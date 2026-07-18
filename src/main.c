@@ -676,10 +676,24 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			const ecs_entity_t bullet = ecs_lookup(ecs_world(), "Model.bullet");
 			const ecs_entity_t entity = create_instance(bullet);
 
-			position_t position = {};
-			query("[none] (chirp.InstanceOf, Model.blaster), [in] chirp.Position")
+			static ecs_query_t *position_query = nullptr;
+			if (position_query == nullptr)
 			{
-				position = *ecs_field(&iter, position_t, 1);
+				position_query = ecs_query_init(ecs_world(), &(ecs_query_desc_t){
+					.terms = {
+						(ecs_term_t){
+							.id = EcsPosition,
+							.src.id = ecs_lookup(ecs_world(), "Blaster"),
+						},
+					},
+				});
+			}
+
+			position_t position = {};
+			ecs_iter_t iter = ecs_query_iter(ecs_world(), position_query);
+			while (ecs_query_next(&iter)) // Should only have 1 match, but just to be sure
+			{
+				position = *ecs_field(&iter, position_t, 0);
 			}
 
 			ecs_set_id(ecs_world(), entity, EcsPosition,
