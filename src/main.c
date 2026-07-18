@@ -747,36 +747,24 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	{
 		weapon_query = ecs_query_init(ecs_world(), &(ecs_query_desc_t){
 			.terms = {
+				(ecs_term_t){.id = EcsPosition, .inout = EcsInOut},
+				(ecs_term_t){.id = EcsRotation, .inout = EcsInOut},
 				(ecs_term_t){
-					.src.name = "$instance",
-					.first.id = EcsInstanceOf,
-					.second.name = "$model",
+					.first.id = EcsPredEq,
+					.second = (ecs_term_ref_t){ .id = EcsIsName, .name = "Blaster"},
 					.inout = EcsInOutNone,
 				},
 				(ecs_term_t){
 					.src.name = "$model",
-					.first.id = EcsPredEq,
-					.second.id = EcsIsName,
-					.second.name = "Model.blaster",
-					.inout = EcsInOutNone,
-				},
-				(ecs_term_t){
-					.id = EcsPosition,
-					.src.name = "$instance",
-				},
-				(ecs_term_t){
-					.id = EcsRotation,
-					.src.name = "$instance",
+					.first.id = EcsChildOf,
+					.second.name = "$this",
 				},
 				(ecs_term_t){
 					.src.name = "$node",
 					.first.id = EcsChildOf,
-					.second.name = "$instance",
+					.second.name = "$model",
 				},
-				(ecs_term_t){
-					.id = EcsProjection,
-					.src.name = "$node",
-				},
+				(ecs_term_t){.id = EcsProjection, .src.name = "$node"},
 			},
 		});
 	}
@@ -784,8 +772,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 	ecs_iter_t iter = ecs_query_iter(ecs_world(), weapon_query);
 	while (ecs_query_next(&iter))
 	{
-		vector3f_t *positions = ecs_field(&iter, position_t, 2);
-		vector3f_t *rotations = ecs_field(&iter, rotation_t, 3);
+		vector3f_t *positions = ecs_field(&iter, position_t, 0);
+		vector3f_t *rotations = ecs_field(&iter, rotation_t, 1);
 		projection_t *projections = ecs_field(&iter, projection_t, 5);
 
 		positions[0] = weapon_position;
@@ -794,7 +782,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			.y = SDL_atan2f(-forward_n.z, forward_n.x) - (SDL_PI_F * 0.5F),
 			.z = 0.0F,
 		};
-		projections[0].rebuild = true;
+		projections[0].rebuild = true; // TODO: Maybe do this in an observer or something
 	}
 
 	iter = ecs_query_iter(ecs_world(), state->status_query);
