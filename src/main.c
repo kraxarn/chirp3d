@@ -262,21 +262,16 @@ static void build_scene(ecs_iter_t *iter)
 
 	// Blaster
 
-	const ecs_entity_t blaster = load_model(assets, gpu_device, "blaster");
-	if (blaster == 0)
-	{
-		SDL_LogError(LOG_CATEGORY_CORE, "Failed to load model: %s", SDL_GetError());
-		return;
-	}
-
-	const ecs_entity_t blaster_instance = create_instance(blaster);
+	const ecs_entity_t blaster = ecs_new(ecs_world());
+	ecs_set_id(ecs_world(), blaster, prefab_model("blaster"));
+	ecs_set_name(ecs_world(), blaster, "Blaster");
 
 	const rotation_t rotation = {
 		.x = 0.F,
 		.y = 90.F,
 		.z = 0.F,
 	};
-	ecs_set_id(ecs_world(), blaster_instance, EcsRotation,
+	ecs_set_id(ecs_world(), blaster, EcsRotation,
 		sizeof(rotation_t), &rotation);
 
 	const position_t position = {
@@ -284,7 +279,7 @@ static void build_scene(ecs_iter_t *iter)
 		.y = 1.F,
 		.z = -5.F,
 	};
-	ecs_set_id(ecs_world(), blaster_instance, EcsPosition,
+	ecs_set_id(ecs_world(), blaster, EcsPosition,
 		sizeof(position_t), &position);
 
 	// Bullet
