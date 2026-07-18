@@ -2,4 +2,7 @@
 
 #include "ecs.h"
 
-ecs_entity_t prefab_model_instance(const char *name);
+#define prefab_model(n)			\
+	EcsModelInstance,			\
+	sizeof(model_instance_t),	\
+	&(model_instance_t){.name = SDL_strdup(n) /* TODO: Memory leak */}
