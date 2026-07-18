@@ -126,7 +126,6 @@ static void instance_model(ecs_iter_t *iter)
 	// Only do one at a time for now, just to avoid
 	// handling for loading the same model multiple times
 	// (and to balance load or some other excuse)
-	// TODO: If we return after loading model, we can load all instances at once
 
 	SDL_assert(iter->count >= 1);
 
