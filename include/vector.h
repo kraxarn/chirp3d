@@ -52,6 +52,9 @@ vector2f_t vector2f_add(vector2f_t vec1, vector2f_t vec2);
 vector3f_t vector3f_zero();
 
 [[nodiscard]]
+bool vector3f_is_zero(vector3f_t vec);
+
+[[nodiscard]]
 vector3f_t vector3f_one();
 
 [[nodiscard]]

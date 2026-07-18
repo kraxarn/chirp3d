@@ -19,6 +19,13 @@ vector3f_t vector3f_zero()
 	};
 }
 
+bool vector3f_is_zero(const vector3f_t vec)
+{
+	return (bool) (vec.x == 0.F
+		&& vec.y == 0.F
+		&& vec.z == 0.F);
+}
+
 vector3f_t vector3f_one()
 {
 	return (vector3f_t){
