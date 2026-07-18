@@ -1,7 +1,6 @@
 #include "physics.h"
 #include "ecs.h"
 #include "ecs/components.h"
-#include "ecs/tags.h"
 
 #include "flecs.h"
 
@@ -17,10 +16,10 @@ static void update_physics(ecs_iter_t *iter)
 static void sync_physics(ecs_iter_t *iter)
 {
 	const physics_engine_t *physics_engine = ecs_field(iter, physics_engine_t, 0);
-	const physics_body_id_t *body_ids = ecs_field(iter, physics_body_id_t, 2);
-	projection_t *projections = ecs_field(iter, projection_t, 3);
-	position_t *positions = ecs_field(iter, position_t, 4);
-	rotation_t *rotations = ecs_field(iter, rotation_t, 5);
+	const physics_body_id_t *body_ids = ecs_field(iter, physics_body_id_t, 1);
+	position_t *positions = ecs_field(iter, position_t, 2);
+	rotation_t *rotations = ecs_field(iter, rotation_t, 3);
+	projection_t *projections = ecs_field(iter, projection_t, 6);
 
 	for (Sint32 i = 0; i < iter->count; i++)
 	{
@@ -33,7 +32,7 @@ static void sync_physics(ecs_iter_t *iter)
 			.z = jph_rotation.z,
 		};
 
-		projections[i].rebuild = true;
+		projections[i].rebuild = true; // TODO: Do this in observer or something
 	}
 }
 
@@ -56,12 +55,13 @@ void ecs_add_physics()
 			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_PHYSICS_SYNC))),
 		}),
 		.query.terms = {
-			(ecs_term_t){.id = EcsPhysicsEngine, .src.id = EcsEngine, .inout = EcsIn},
-			(ecs_term_t){.first.id = EcsChildOf, .second.name = "$instance"},
-			(ecs_term_t){.id = EcsPhysicsBody, .src.name = "$instance", .inout = EcsIn},
-			(ecs_term_t){.id = EcsProjection, .inout = EcsInOut},
-			(ecs_term_t){.id = EcsPosition, .src.name = "$instance", .inout = EcsOut},
-			(ecs_term_t){.id = EcsRotation, .src.name = "$instance", .inout = EcsOut},
+			(ecs_term_t){.id = EcsPhysicsEngine, .src.name = "$physics", .inout = EcsIn},
+			(ecs_term_t){.id = EcsPhysicsBody, .inout = EcsIn},
+			(ecs_term_t){.id = EcsPosition, .oper = EcsOptional, .inout = EcsInOut},
+			(ecs_term_t){.id = EcsRotation, .oper = EcsOptional, .inout = EcsInOut},
+			(ecs_term_t){.src.name = "$model", .first.id = EcsChildOf, .second.name = "$this"},
+			(ecs_term_t){.src.name = "$node", .first.id = EcsChildOf, .second.name = "$model"},
+			(ecs_term_t){.id = EcsProjection, .src.name = "$node", .inout = EcsInOut},
 		},
 		.callback = sync_physics,
 	});
