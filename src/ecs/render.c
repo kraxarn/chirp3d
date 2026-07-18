@@ -116,34 +116,34 @@ static void render_scene(ecs_iter_t *iter)
 }
 
 [[nodiscard]]
-static projection_t rebuild_model_projection(const matrix4x4_t *transform, const vector3f_t *scale,
-	const vector3f_t *rotation, const vector3f_t *position)
+static projection_t rebuild_model_projection(const matrix4x4_t transform, const vector3f_t scale,
+	const vector3f_t rotation, const vector3f_t position)
 {
 	projection_t projection = {
 		.rebuild = false,
-		.value = *transform,
+		.value = transform,
 	};
 
-	if (scale != nullptr)
+	if (!vector3f_is_zero(scale))
 	{
 		projection.value = matrix4x4_multiply(projection.value,
-			matrix4x4_create_scale(*scale));
+			matrix4x4_create_scale(scale));
 	}
 
-	if (rotation != nullptr)
+	if (!vector3f_is_zero(rotation))
 	{
 		projection.value = matrix4x4_multiply_n((matrix4x4_t[]){
 			projection.value,
-			matrix4x4_create_rotation_x(rotation->x),
-			matrix4x4_create_rotation_y(rotation->y),
-			matrix4x4_create_rotation_z(rotation->z),
+			matrix4x4_create_rotation_x(rotation.x),
+			matrix4x4_create_rotation_y(rotation.y),
+			matrix4x4_create_rotation_z(rotation.z),
 		}, 4);
 	}
 
-	if (position != nullptr)
+	if (!vector3f_is_zero(position))
 	{
 		projection.value = matrix4x4_multiply(projection.value,
-			matrix4x4_create_translation(*position));
+			matrix4x4_create_translation(position));
 	}
 
 	return projection;
@@ -155,8 +155,8 @@ static void render_model(ecs_iter_t *iter)
 	SDL_GPUCommandBuffer *command_buffer = *ecs_field(iter, gpu_command_buffer_t*, 1);
 	const matrix4x4_t view_proj = *ecs_field(iter, view_projection_t, 2);
 	projection_t *projections = ecs_field(iter, projection_t, 3);
-	const world_transform_t *world_transform = ecs_field(iter, world_transform_t, 9);
-	const model_t *model = ecs_field(iter, model_t, 11);
+	const world_transform_t *world_transform = ecs_field(iter, world_transform_t, 13);
+	const model_t *model = ecs_field(iter, model_t, 15);
 
 	for (Sint32 i = 0; i < iter->count; i++)
 	{
@@ -165,10 +165,21 @@ static void render_model(ecs_iter_t *iter)
 		// TODO: Maybe do this in pre-render?
 		if (projection->rebuild)
 		{
-			const vector3f_t *scale = ecs_field(iter, scale_t, 5);
-			const vector3f_t *rotation = ecs_field(iter, rotation_t, 6);
-			const vector3f_t *position = ecs_field(iter, position_t, 7);
-			*projection = rebuild_model_projection(world_transform, scale, rotation, position);
+#define deref(v) ((v) != nullptr ? *(v) : vector3f_zero())
+			const vector3f_t scale = vector3f_add(
+				deref(ecs_field(iter, scale_t, 5)), // model
+				deref(ecs_field(iter, scale_t, 9))  // entity
+			);
+			const vector3f_t rotation = vector3f_add(
+				deref(ecs_field(iter, rotation_t, 6)), // model
+				deref(ecs_field(iter, rotation_t, 10)) // entity
+			);
+			const vector3f_t position = vector3f_add(
+				deref(ecs_field(iter, position_t, 7)), // model
+				deref(ecs_field(iter, position_t, 11)) // entity
+			);
+#undef deref
+			*projection = rebuild_model_projection(*world_transform, scale, rotation, position);
 		}
 
 		model_draw_indexed(model, i, render_pass, command_buffer,
@@ -261,18 +272,91 @@ void ecs_add_render()
 			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_RENDER))),
 		}),
 		.query.terms = {
-			(ecs_term_t){.id = EcsGpuRenderPass, .src.name = "$grp", .inout = EcsIn},
-			(ecs_term_t){.id = EcsGpuCommandBuffer, .src.name = "$gcb", .inout = EcsIn},
-			(ecs_term_t){.id = EcsViewProjection, .src.name = "$vp", .inout = EcsIn},
-			(ecs_term_t){.id = EcsProjection, .src.name = "$this", .inout = EcsInOut},
-			(ecs_term_t){.first.id = EcsChildOf, .src.name = "$this", .second.name = "$i"},
-			(ecs_term_t){.id = EcsScale, .src.name = "$i", .oper = EcsOptional, .inout = EcsIn},
-			(ecs_term_t){.id = EcsRotation, .src.name = "$i", .oper = EcsOptional, .inout = EcsIn},
-			(ecs_term_t){.id = EcsPosition, .src.name = "$i", .oper = EcsOptional, .inout = EcsIn},
-			(ecs_term_t){.first.id = EcsInstanceOf, .src.name = "$this", .second.name = "$mn"},
-			(ecs_term_t){.id = EcsWorldTransform, .src.name = "$mn"},
-			(ecs_term_t){.first.id = EcsChildOf, .src.name = "$mn", .second.name = "$m"},
-			(ecs_term_t){.id = EcsModel, .src.name = "$m", .inout = EcsIn},
+			/* 0 */ (ecs_term_t){
+				.id = EcsGpuRenderPass,
+				.src.name = "$render_pass",
+				.inout = EcsIn,
+			},
+			/* 1 */ (ecs_term_t){
+				.id = EcsGpuCommandBuffer,
+				.src.name = "$command_buffer",
+				.inout = EcsIn,
+			},
+			/* 2 */ (ecs_term_t){
+				.id = EcsViewProjection,
+				.src.name = "$view_projection",
+				.inout = EcsIn,
+			},
+			/* 3 */ (ecs_term_t){
+				.id = EcsProjection,
+				.src.name = "$this",
+				.inout = EcsInOut,
+			},
+			/* 4 */ (ecs_term_t){
+				.second.name = "$model_instance",
+				.first.id = EcsChildOf,
+				.src.name = "$this",
+			},
+			/* 5 */ (ecs_term_t){
+				.id = EcsScale,
+				.src.name = "$model_instance",
+				.oper = EcsOptional,
+				.inout = EcsIn,
+			},
+			/* 6 */(ecs_term_t){
+				.id = EcsRotation,
+				.src.name = "$model_instance",
+				.oper = EcsOptional,
+				.inout = EcsIn,
+			},
+			/* 7 */(ecs_term_t){
+				.id = EcsPosition,
+				.src.name = "$model_instance",
+				.oper = EcsOptional,
+				.inout = EcsIn,
+			},
+			/* 8 */ (ecs_term_t){
+				.second.name = "$entity",
+				.first.id = EcsChildOf,
+				.src.name = "$model_instance",
+			},
+			/* 9 */ (ecs_term_t){
+				.id = EcsScale,
+				.src.name = "$entity",
+				.oper = EcsOptional,
+				.inout = EcsIn,
+			},
+			/* 10 */ (ecs_term_t){
+				.id = EcsRotation,
+				.src.name = "$entity",
+				.oper = EcsOptional,
+				.inout = EcsIn,
+			},
+			/* 11 */ (ecs_term_t){
+				.id = EcsPosition,
+				.src.name = "$entity",
+				.oper = EcsOptional,
+				.inout = EcsIn,
+			},
+			/* 12 */ (ecs_term_t){
+				.second.name = "$model_node",
+				.first.id = EcsInstanceOf,
+				.src.name = "$this",
+			},
+			/* 13 */ (ecs_term_t){
+				.id = EcsWorldTransform,
+				.src.name = "$model_node",
+			},
+			/* 14 */ (ecs_term_t){
+				.second.name = "$model",
+				.first.id = EcsChildOf,
+				.src.name = "$model_node",
+			},
+			/* 15 */ (ecs_term_t){
+				.id = EcsModel,
+				.src.name = "$model",
+				.inout = EcsIn,
+			},
 		},
 		.callback = render_model,
 	});
