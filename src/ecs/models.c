@@ -36,7 +36,7 @@ static Uint16 fix_entity_name(const char *name)
 
 static ecs_entity_t load_model(const char *name)
 {
-	SDL_LogInfo(LOG_CATEGORY_ECS, "Loading model: '%s'", name); // TODO: Debug
+	SDL_LogDebug(LOG_CATEGORY_ECS, "Loading model: '%s'", name);
 
 	const assets_t *assets = ecs_get_id(ecs_world(), EcsEngine, EcsAssets);
 	SDL_GPUDevice *gpu_device = *((SDL_GPUDevice**) ecs_get_mut_id(ecs_world(), EcsEngine, EcsGpuDevice));
@@ -86,7 +86,7 @@ static ecs_entity_t load_model(const char *name)
 
 static void create_instance(const ecs_entity_t entity, const ecs_entity_t model)
 {
-	SDL_LogInfo(LOG_CATEGORY_ECS, "Creating new instance of model '%s'", // TODO: Debug
+	SDL_LogDebug(LOG_CATEGORY_ECS, "Creating new instance of model '%s'",
 		ecs_get_name(ecs_world(), model));
 
 	const ecs_entity_t instance = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
