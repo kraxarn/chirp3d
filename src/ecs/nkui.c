@@ -31,8 +31,8 @@ void ecs_add_nkui()
 {
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
 		.query.terms = {
-			(ecs_term_t){.id = EcsWindow},
-			(ecs_term_t){.id = EcsGpuDevice},
+			(ecs_term_t){.id = EcsWindow, .inout = EcsIn},
+			(ecs_term_t){.id = EcsGpuDevice, .inout = EcsIn},
 		},
 		.events = {EcsOnSet},
 		.callback = init,
