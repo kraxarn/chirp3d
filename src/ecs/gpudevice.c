@@ -16,6 +16,8 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_properties.h>
 
+#include <stddef.h>
+
 [[nodiscard]]
 static bool debug_mode(const arg_option_t option)
 {

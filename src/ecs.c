@@ -3,9 +3,10 @@
 #include "assets.h"
 #include "camera.h"
 #include "ecsosapi.h"
-#include "input.h"
 #include "logcategory.h"
+#include "model.h"
 #include "mousebutton.h"
+#include "nkui.h"
 #include "physics.h"
 #include "physicsconfig.h"
 #include "windowconfig.h"
@@ -18,9 +19,8 @@
 
 #include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_cpuinfo.h>
-#include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_log.h>
-#include <SDL3/SDL_video.h>
+#include <SDL3/SDL_stdinc.h>
 
 static ecs_world_t *world = nullptr;
 static ecs_entity_t phases[PHASE_COUNT];
@@ -152,14 +152,18 @@ static void create_pipeline()
 	const ecs_entity_t pipeline = ecs_pipeline_init(world, &pipeline_desc);
 	ecs_set_pipeline(world, pipeline);
 
+	phases[PHASE_UPDATE_BEGIN] = phase("UpdateBegin");
 	phases[PHASE_UPDATE] = phase("Update");
+	phases[PHASE_UPDATE_END] = phase("UpdateEnd");
 	phases[PHASE_PHYSICS_UPDATE] = phase("PhysicsUpdate");
 	phases[PHASE_PHYSICS_SYNC] = phase("PhysicsSync");
 	phases[PHASE_RENDER_BEGIN] = phase("RenderBegin");
 	phases[PHASE_RENDER] = phase("Render");
 	phases[PHASE_RENDER_END] = phase("RenderEnd");
 
-	phase_depend(PHASE_PHYSICS_UPDATE, PHASE_UPDATE);
+	phase_depend(PHASE_UPDATE, PHASE_UPDATE_BEGIN);
+	phase_depend(PHASE_UPDATE_END, PHASE_UPDATE);
+	phase_depend(PHASE_PHYSICS_UPDATE, PHASE_UPDATE_END);
 	phase_depend(PHASE_PHYSICS_SYNC, PHASE_PHYSICS_UPDATE);
 	phase_depend(PHASE_RENDER_BEGIN, PHASE_PHYSICS_SYNC);
 	phase_depend(PHASE_RENDER, PHASE_RENDER_BEGIN);
@@ -337,8 +341,7 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		EcsPosition = component("Position", position_t);
 		EcsScale = component("Scale", scale_t);
 		EcsProjection = component("Projection", projection_t);
-		EcsImGuiContext = component("ImGuiContext", imgui_context_t*);
-		EcsImGuiDrawData = component("ImGuiDrawData", imgui_draw_data_t);
+		EcsNkContext = component("NkContext", nk_context_t);
 		EcsVertexShader = component("VertexShader", vertex_shader_t*);
 		EcsFragmentShader = component("FragmentShader", fragment_shader_t*);
 		EcsClearColor = component("ClearColor", clear_color_t);

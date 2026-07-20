@@ -6,6 +6,7 @@
 #include "input.h"
 #include "logcategory.h"
 #include "model.h"
+#include "nkui.h"
 #include "physics.h"
 #include "physicsconfig.h"
 #include "prefabs.h"
@@ -18,9 +19,7 @@
 #include "ecs/events.h"
 #include "ecs/tags.h"
 
-#include "dcimgui.h"
 #include "flecs.h"
-#include "backends/dcimgui_impl_sdl3.h"
 
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -493,6 +492,7 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		ecs_add_render();
 		ecs_add_script_engine();
 		ecs_add_models();
+		ecs_add_nkui();
 	}
 
 	ecs_set_id(ecs_world(), EcsArgs, EcsArgs,
@@ -841,6 +841,13 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 	if (event_type == SDL_EVENT_QUIT)
 	{
 		return SDL_APP_SUCCESS;
+	}
+
+	nk_context_t *nk_context = ecs_get_mut_id(ecs_world(),
+		EcsNkContext, EcsNkContext);
+	if (nk_context != nullptr)
+	{
+		nkui_handle_event(nk_context, event);
 	}
 
 	if (event_type == SDL_EVENT_MOUSE_BUTTON_DOWN

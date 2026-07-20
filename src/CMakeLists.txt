@@ -1,6 +1,5 @@
 add_subdirectory(ecs)
 add_subdirectory(py)
-add_subdirectory(ui)
 
 target_sources(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/args.c"
@@ -12,7 +11,6 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/ecs.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ecsosapi.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/fileassets.c"
-	"${CMAKE_CURRENT_SOURCE_DIR}/font.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/gpudevicedriver.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/gpudriver.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/gpushaderformat.c"
@@ -26,6 +24,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/matrix.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/model.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/mousebutton.c"
+	"${CMAKE_CURRENT_SOURCE_DIR}/nkui.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/physics.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/physicsconfig.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/resources.c"

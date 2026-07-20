@@ -34,9 +34,7 @@ include(deps/cgltf.cmake)
 include(deps/microui.cmake)
 include(deps/flecs.cmake)
 include(deps/pocketpy.cmake)
-
-include(deps/imgui.cmake)
-include(deps/dcimgui.cmake)
+include(deps/nuklear.cmake)
 
 include(resources.cmake)
 

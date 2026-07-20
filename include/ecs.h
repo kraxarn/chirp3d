@@ -3,13 +3,14 @@
 #include "matrix.h"
 #include "vector.h"
 
-#include "dcimgui.h"
-
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_init.h>
+#include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_stdinc.h>
 
+// TODO: Maybe just include flecs here directly?
 typedef struct ecs_world_t ecs_world_t;
+typedef struct ecs_iter_t ecs_iter_t;
 typedef Uint64 ecs_id_t;
 typedef Uint64 ecs_entity_t;
 
@@ -25,8 +26,6 @@ typedef vector2f_t swapchain_texture_size_t;
 typedef vector3f_t rotation_t;
 typedef vector3f_t position_t;
 typedef vector3f_t scale_t;
-typedef ImGuiContext imgui_context_t;
-typedef ImDrawData imgui_draw_data_t;
 typedef SDL_GPUShader vertex_shader_t;
 typedef SDL_GPUShader fragment_shader_t;
 typedef SDL_FColor clear_color_t;
@@ -67,7 +66,9 @@ typedef struct
 
 typedef enum : Uint8
 {
+	PHASE_UPDATE_BEGIN,   // TODO
 	PHASE_UPDATE,         // Update game logic
+	PHASE_UPDATE_END,     // TODO
 	PHASE_PHYSICS_UPDATE, // Update/tick physics engine
 	PHASE_PHYSICS_SYNC,   // Sync physics engine changes to entities
 	PHASE_RENDER_BEGIN,   // Begin rendering
@@ -111,7 +112,7 @@ void *ecs_get_id_ptr(ecs_id_t component);
 		ecs_observer_init(ecs_world(), o + i);
 
 void ecs_add_assets();
-void ecs_add_imgui();
+void ecs_add_nkui();
 void ecs_add_window();
 void ecs_add_gpu();
 void ecs_add_physics();

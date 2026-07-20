@@ -1,28 +1,31 @@
 #include "camera.h"
 #include "ecs.h"
+#include "logcategory.h"
 #include "math.h"
 #include "model.h"
+#include "nkui.h"
+#include "vector.h"
 #include "ecs/components.h"
 #include "ecs/entities.h"
 #include "ecs/tags.h"
 
-#include "dcimgui.h"
-#include "backends/dcimgui_impl_sdlgpu3.h"
-
 #include "flecs.h"
 
 #include <SDL3/SDL_assert.h>
+#include <SDL3/SDL_error.h>
 #include <SDL3/SDL_gpu.h>
-#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_log.h>
+#include <SDL3/SDL_pixels.h>
+#include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
 
 static void begin_render(ecs_iter_t *iter)
 {
 	SDL_Window *window = *ecs_field(iter, window_t*, 0);
 	SDL_GPUDevice *device = *ecs_field(iter, gpu_device_t*, 1);
-	SDL_FColor clear_color = *ecs_field(iter, clear_color_t, 2);
+	const SDL_FColor clear_color = *ecs_field(iter, clear_color_t, 2);
 	SDL_GPUTexture *depth_texture = *ecs_field(iter, depth_texture_t*, 3);
-	ImDrawData *imgui_draw_data = ecs_field(iter, imgui_draw_data_t, 4);
+	nk_context_t *nk_context = ecs_field(iter, nk_context_t, 4);
 	SDL_GPUGraphicsPipeline *pipeline = *ecs_field(iter, gpu_graphics_pipeline_t*, 5);
 	SDL_GPUCommandBuffer **command_buffer = ecs_field(iter, gpu_command_buffer_t*, 6);
 	SDL_GPURenderPass **render_pass = ecs_field(iter, gpu_render_pass_t*, 7);
@@ -34,6 +37,12 @@ static void begin_render(ecs_iter_t *iter)
 	{
 		ecs_set_error("Command buffer error", SDL_GetError());
 		return;
+	}
+
+	if (nk_context != nullptr // TODO: Move to own system?
+		&& !nkui_render_upload(nk_context, device, *command_buffer))
+	{
+		SDL_LogError(LOG_CATEGORY_UI, "Failed to prepare UI: %s", SDL_GetError());
 	}
 
 	Uint32 swapchain_texture_width = 0;
@@ -53,11 +62,6 @@ static void begin_render(ecs_iter_t *iter)
 	if (*swapchain_texture == nullptr)
 	{
 		return;
-	}
-
-	if (imgui_draw_data != nullptr) // TODO: Move to own system
-	{
-		cImGui_ImplSDLGPU3_PrepareDrawData(imgui_draw_data, *command_buffer);
 	}
 
 	const SDL_GPUColorTargetInfo color_target_info = {
@@ -192,6 +196,8 @@ static void end_render(ecs_iter_t *iter)
 	SDL_GPURenderPass *render_pass = *ecs_field(iter, gpu_render_pass_t*, 0);
 	SDL_GPUCommandBuffer *command_buffer = *ecs_field(iter, gpu_command_buffer_t*, 1);
 	SDL_GPUTexture *swapchain_texture = *ecs_field(iter, swapchain_texture_t*, 2);
+	nk_context_t *nk_context = ecs_field(iter, nk_context_t, 3);
+	SDL_Window *window = *ecs_field(iter, SDL_Window*, 4);
 
 	if (command_buffer == nullptr)
 	{
@@ -201,6 +207,12 @@ static void end_render(ecs_iter_t *iter)
 
 	if (swapchain_texture != nullptr)
 	{
+		if (nk_context != nullptr // TODO: Move to own system?
+			&& !nkui_render_draw(nk_context, window, command_buffer, render_pass))
+		{
+			SDL_LogError(LOG_CATEGORY_UI, "Failed to render UI: %s", SDL_GetError());
+		}
+
 		SDL_EndGPURenderPass(render_pass);
 	}
 
@@ -228,7 +240,7 @@ void ecs_add_render()
 			(ecs_term_t){.id = EcsGpuDevice, .inout = EcsIn},
 			(ecs_term_t){.id = EcsClearColor, .inout = EcsIn},
 			(ecs_term_t){.id = EcsDepthTexture, .inout = EcsIn, .oper = EcsOptional},
-			(ecs_term_t){.id = EcsImGuiDrawData, .inout = EcsIn, .oper = EcsOptional},
+			(ecs_term_t){.id = EcsNkContext, .inout = EcsInOut, .oper = EcsOptional},
 			(ecs_term_t){.id = EcsGpuGraphicsPipeline, .inout = EcsIn},
 			(ecs_term_t){.id = EcsGpuCommandBuffer, .inout = EcsOut},
 			(ecs_term_t){.id = EcsGpuRenderPass, .inout = EcsOut},
@@ -370,6 +382,8 @@ void ecs_add_render()
 			(ecs_term_t){.id = EcsGpuRenderPass, .inout = EcsIn},
 			(ecs_term_t){.id = EcsGpuCommandBuffer, .inout = EcsIn},
 			(ecs_term_t){.id = EcsSwapchainTexture, .inout = EcsIn, .oper = EcsOptional},
+			(ecs_term_t){.id = EcsNkContext, .inout = EcsInOut, .oper = EcsOptional},
+			(ecs_term_t){.id = EcsWindow, .inout = EcsIn, .oper = EcsOptional},
 		},
 		.callback = end_render,
 	});
