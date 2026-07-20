@@ -843,11 +843,11 @@ SDL_AppResult SDL_AppEvent([[maybe_unused]] void *appstate, SDL_Event *event)
 		return SDL_APP_SUCCESS;
 	}
 
-	nk_context_t *nk_context = ecs_get_mut_id(ecs_world(),
+	nkui_context_t *nkui_context = ecs_get_mut_id(ecs_world(),
 		EcsNkContext, EcsNkContext);
-	if (nk_context != nullptr)
+	if (nkui_context != nullptr)
 	{
-		nkui_handle_event(nk_context, event);
+		nkui_handle_event(nkui_context, event);
 	}
 
 	if (event_type == SDL_EVENT_MOUSE_BUTTON_DOWN

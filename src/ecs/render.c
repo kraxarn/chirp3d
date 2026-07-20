@@ -25,7 +25,7 @@ static void begin_render(ecs_iter_t *iter)
 	SDL_GPUDevice *device = *ecs_field(iter, gpu_device_t*, 1);
 	const SDL_FColor clear_color = *ecs_field(iter, clear_color_t, 2);
 	SDL_GPUTexture *depth_texture = *ecs_field(iter, depth_texture_t*, 3);
-	nk_context_t *nk_context = ecs_field(iter, nk_context_t, 4);
+	nkui_context_t *nkui_context = ecs_field(iter, nkui_context_t, 4);
 	SDL_GPUGraphicsPipeline *pipeline = *ecs_field(iter, gpu_graphics_pipeline_t*, 5);
 	SDL_GPUCommandBuffer **command_buffer = ecs_field(iter, gpu_command_buffer_t*, 6);
 	SDL_GPURenderPass **render_pass = ecs_field(iter, gpu_render_pass_t*, 7);
@@ -39,8 +39,8 @@ static void begin_render(ecs_iter_t *iter)
 		return;
 	}
 
-	if (nk_context != nullptr // TODO: Move to own system?
-		&& !nkui_render_upload(nk_context, device, *command_buffer))
+	if (nkui_context != nullptr // TODO: Move to own system?
+		&& !nkui_render_upload(nkui_context, device, *command_buffer))
 	{
 		SDL_LogError(LOG_CATEGORY_UI, "Failed to prepare UI: %s", SDL_GetError());
 	}
@@ -196,7 +196,7 @@ static void end_render(ecs_iter_t *iter)
 	SDL_GPURenderPass *render_pass = *ecs_field(iter, gpu_render_pass_t*, 0);
 	SDL_GPUCommandBuffer *command_buffer = *ecs_field(iter, gpu_command_buffer_t*, 1);
 	SDL_GPUTexture *swapchain_texture = *ecs_field(iter, swapchain_texture_t*, 2);
-	nk_context_t *nk_context = ecs_field(iter, nk_context_t, 3);
+	nkui_context_t *nkui_context = ecs_field(iter, nkui_context_t, 3);
 	SDL_Window *window = *ecs_field(iter, SDL_Window*, 4);
 
 	if (command_buffer == nullptr)
@@ -207,8 +207,8 @@ static void end_render(ecs_iter_t *iter)
 
 	if (swapchain_texture != nullptr)
 	{
-		if (nk_context != nullptr // TODO: Move to own system?
-			&& !nkui_render_draw(nk_context, window, command_buffer, render_pass))
+		if (nkui_context != nullptr // TODO: Move to own system?
+			&& !nkui_render_draw(nkui_context, window, command_buffer, render_pass))
 		{
 			SDL_LogError(LOG_CATEGORY_UI, "Failed to render UI: %s", SDL_GetError());
 		}

@@ -369,7 +369,7 @@ static const char *convert_result_string(const nk_convert_result_t result)
 	}
 }
 
-bool nkui_render_upload(nk_context_t *context, SDL_GPUDevice *device,
+bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 	SDL_GPUCommandBuffer *command_buffer)
 {
 	struct nk_buffer nk_vertex_buffer;
@@ -377,7 +377,7 @@ bool nkui_render_upload(nk_context_t *context, SDL_GPUDevice *device,
 	nk_buffer_init_fixed(&nk_vertex_buffer, vertex_data, max_vertex_buffer);
 	nk_buffer_init_fixed(&nk_element_buffer, element_data, max_element_buffer);
 
-	const nk_convert_result_t result = nk_convert(context, &buffer,
+	const nk_convert_result_t result = nk_convert(&context->nk, &buffer,
 		&nk_vertex_buffer, &nk_element_buffer,
 		&(nk_convert_config_t){
 			.vertex_layout = (nk_draw_vertex_layout_element_t[]){
@@ -493,7 +493,7 @@ bool nkui_render_upload(nk_context_t *context, SDL_GPUDevice *device,
 	return true;
 }
 
-bool nkui_render_draw(nk_context_t *context, SDL_Window *window,
+bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 	SDL_GPUCommandBuffer *command_buffer, SDL_GPURenderPass *render_pass)
 {
 	if (vertex_buffer == nullptr
@@ -541,7 +541,7 @@ bool nkui_render_draw(nk_context_t *context, SDL_Window *window,
 	const nk_draw_command_t *command;
 	Uint32 offset = 0;
 
-	nk_draw_foreach(command, context, &buffer) // TODO: while?
+	nk_draw_foreach(command, &context->nk, &buffer) // TODO: while?
 	{
 		if (command->elem_count == 0)
 		{
@@ -574,7 +574,7 @@ bool nkui_render_draw(nk_context_t *context, SDL_Window *window,
 		offset += command->elem_count;
 	}
 
-	nk_clear(context);
+	nk_clear(&context->nk);
 	return true;
 }
 
@@ -608,9 +608,9 @@ bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nk_context_t *context)
 	return true;
 }
 
-void nkui_deinit(nk_context_t *context, SDL_GPUDevice *device)
+void nkui_deinit(nkui_context_t *context, SDL_GPUDevice *device)
 {
-	nk_free(context);
+	nk_free(&context->nk);
 	nk_buffer_free(&buffer);
 
 	SDL_free(vertex_data);
@@ -623,7 +623,7 @@ void nkui_deinit(nk_context_t *context, SDL_GPUDevice *device)
 	SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
 }
 
-void nkui_handle_event(nk_context_t *context, const SDL_Event *event)
+void nkui_handle_event(nkui_context_t *context, const SDL_Event *event)
 {
 	const SDL_EventType event_type = event->type;
 
@@ -638,93 +638,93 @@ void nkui_handle_event(nk_context_t *context, const SDL_Event *event)
 
 		if (key == SDLK_LSHIFT || key == SDLK_RSHIFT)
 		{
-			nk_input_key(context, NK_KEY_SHIFT, key_down);
+			nk_input_key(&context->nk, NK_KEY_SHIFT, key_down);
 		}
 		else if (key == SDLK_DELETE)
 		{
-			nk_input_key(context, NK_KEY_DEL, key_down);
+			nk_input_key(&context->nk, NK_KEY_DEL, key_down);
 		}
 		else if (key == SDLK_RETURN)
 		{
-			nk_input_key(context, NK_KEY_ENTER, key_down);
+			nk_input_key(&context->nk, NK_KEY_ENTER, key_down);
 		}
 		else if (key == SDLK_TAB)
 		{
-			nk_input_key(context, NK_KEY_TAB, key_down);
+			nk_input_key(&context->nk, NK_KEY_TAB, key_down);
 		}
 		else if (key == SDLK_BACKSPACE)
 		{
-			nk_input_key(context, NK_KEY_BACKSPACE, key_down);
+			nk_input_key(&context->nk, NK_KEY_BACKSPACE, key_down);
 		}
 		else if (key == SDLK_HOME)
 		{
-			nk_input_key(context, NK_KEY_TEXT_START, key_down);
-			nk_input_key(context, NK_KEY_SCROLL_START, key_down);
+			nk_input_key(&context->nk, NK_KEY_TEXT_START, key_down);
+			nk_input_key(&context->nk, NK_KEY_SCROLL_START, key_down);
 		}
 		else if (key == SDLK_END)
 		{
-			nk_input_key(context, NK_KEY_TEXT_END, key_down);
-			nk_input_key(context, NK_KEY_SCROLL_END, key_down);
+			nk_input_key(&context->nk, NK_KEY_TEXT_END, key_down);
+			nk_input_key(&context->nk, NK_KEY_SCROLL_END, key_down);
 		}
 		else if (key == SDLK_PAGEDOWN)
 		{
-			nk_input_key(context, NK_KEY_SCROLL_DOWN, key_down);
+			nk_input_key(&context->nk, NK_KEY_SCROLL_DOWN, key_down);
 		}
 		else if (key == SDLK_PAGEUP)
 		{
-			nk_input_key(context, NK_KEY_SCROLL_UP, key_down);
+			nk_input_key(&context->nk, NK_KEY_SCROLL_UP, key_down);
 		}
 		else if (key == SDLK_A)
 		{
-			nk_input_key(context, NK_KEY_TEXT_SELECT_ALL,
+			nk_input_key(&context->nk, NK_KEY_TEXT_SELECT_ALL,
 				(bool) (key_down && ctrl_down));
 		}
 		else if (key == SDLK_Z)
 		{
-			nk_input_key(context, NK_KEY_TEXT_UNDO,
+			nk_input_key(&context->nk, NK_KEY_TEXT_UNDO,
 				(bool) (key_down && ctrl_down));
 		}
 		else if (key == SDLK_R)
 		{
-			nk_input_key(context, NK_KEY_TEXT_REDO,
+			nk_input_key(&context->nk, NK_KEY_TEXT_REDO,
 				(bool) (key_down && ctrl_down));
 		}
 		else if (key == SDLK_C)
 		{
-			nk_input_key(context, NK_KEY_COPY,
+			nk_input_key(&context->nk, NK_KEY_COPY,
 				(bool) (key_down && ctrl_down));
 		}
 		else if (key == SDLK_V)
 		{
-			nk_input_key(context, NK_KEY_PASTE,
+			nk_input_key(&context->nk, NK_KEY_PASTE,
 				(bool) (key_down && ctrl_down));
 		}
 		else if (key == SDLK_X)
 		{
-			nk_input_key(context, NK_KEY_CUT,
+			nk_input_key(&context->nk, NK_KEY_CUT,
 				(bool) (key_down && ctrl_down));
 		}
 		else if (key == SDLK_B)
 		{
-			nk_input_key(context, NK_KEY_TEXT_LINE_START,
+			nk_input_key(&context->nk, NK_KEY_TEXT_LINE_START,
 				(bool) (key_down && ctrl_down));
 		}
 		else if (key == SDLK_E)
 		{
-			nk_input_key(context, NK_KEY_TEXT_LINE_END,
+			nk_input_key(&context->nk, NK_KEY_TEXT_LINE_END,
 				(bool) (key_down && ctrl_down));
 		}
 		else if (key == SDLK_UP)
 		{
-			nk_input_key(context, NK_KEY_UP, key_down);
+			nk_input_key(&context->nk, NK_KEY_UP, key_down);
 		}
 		else if (key == SDLK_DOWN)
 		{
-			nk_input_key(context, NK_KEY_DOWN, key_down);
+			nk_input_key(&context->nk, NK_KEY_DOWN, key_down);
 		}
 		else if (key == SDLK_ESCAPE)
 		{
-			nk_input_key(context, NK_KEY_TEXT_RESET_MODE, key_down);
+			nk_input_key(&context->nk, NK_KEY_TEXT_RESET_MODE, key_down);
 		}
 		else if (key == SDLK_INSERT)
 		{
@@ -735,33 +735,33 @@ void nkui_handle_event(nk_context_t *context, const SDL_Event *event)
 
 			if (insert_toggle)
 			{
-				nk_input_key(context, NK_KEY_TEXT_INSERT_MODE, key_down);
+				nk_input_key(&context->nk, NK_KEY_TEXT_INSERT_MODE, key_down);
 			}
 			else
 			{
-				nk_input_key(context, NK_KEY_TEXT_REPLACE_MODE, key_down);
+				nk_input_key(&context->nk, NK_KEY_TEXT_REPLACE_MODE, key_down);
 			}
 		}
 		else if (key == SDLK_LEFT)
 		{
 			if (ctrl_down)
 			{
-				nk_input_key(context, NK_KEY_TEXT_WORD_LEFT, key_down);
+				nk_input_key(&context->nk, NK_KEY_TEXT_WORD_LEFT, key_down);
 			}
 			else
 			{
-				nk_input_key(context, NK_KEY_LEFT, key_down);
+				nk_input_key(&context->nk, NK_KEY_LEFT, key_down);
 			}
 		}
 		else if (SDLK_RIGHT)
 		{
 			if (ctrl_down)
 			{
-				nk_input_key(context, NK_KEY_TEXT_WORD_RIGHT, key_down);
+				nk_input_key(&context->nk, NK_KEY_TEXT_WORD_RIGHT, key_down);
 			}
 			else
 			{
-				nk_input_key(context, NK_KEY_RIGHT, key_down);
+				nk_input_key(&context->nk, NK_KEY_RIGHT, key_down);
 			}
 		}
 
@@ -780,26 +780,26 @@ void nkui_handle_event(nk_context_t *context, const SDL_Event *event)
 		{
 			if (event->button.clicks > 1)
 			{
-				nk_input_button(context, NK_BUTTON_DOUBLE, cursor_x, cursor_y, down);
+				nk_input_button(&context->nk, NK_BUTTON_DOUBLE, cursor_x, cursor_y, down);
 			}
 
-			nk_input_button(context, NK_BUTTON_LEFT, cursor_x, cursor_y, down);
+			nk_input_button(&context->nk, NK_BUTTON_LEFT, cursor_x, cursor_y, down);
 		}
 		else if (button == SDL_BUTTON_MIDDLE)
 		{
-			nk_input_button(context, NK_BUTTON_MIDDLE, cursor_x, cursor_y, down);
+			nk_input_button(&context->nk, NK_BUTTON_MIDDLE, cursor_x, cursor_y, down);
 		}
 		else if (button == SDL_BUTTON_RIGHT)
 		{
-			nk_input_button(context, NK_BUTTON_RIGHT, cursor_x, cursor_y, down);
+			nk_input_button(&context->nk, NK_BUTTON_RIGHT, cursor_x, cursor_y, down);
 		}
 		else if (button == SDL_BUTTON_X1)
 		{
-			nk_input_button(context, NK_BUTTON_X1, cursor_x, cursor_y, down);
+			nk_input_button(&context->nk, NK_BUTTON_X1, cursor_x, cursor_y, down);
 		}
 		else if (button == SDL_BUTTON_X2)
 		{
-			nk_input_button(context, NK_BUTTON_X2, cursor_x, cursor_y, down);
+			nk_input_button(&context->nk, NK_BUTTON_X2, cursor_x, cursor_y, down);
 		}
 
 		return;
@@ -807,10 +807,10 @@ void nkui_handle_event(nk_context_t *context, const SDL_Event *event)
 
 	if (event_type == SDL_EVENT_MOUSE_MOTION)
 	{
-		context->input.mouse.pos.x = event->motion.x;
-		context->input.mouse.pos.y = event->motion.y;
-		context->input.mouse.delta.x = context->input.mouse.pos.x - context->input.mouse.prev.x;
-		context->input.mouse.delta.y = context->input.mouse.pos.y - context->input.mouse.prev.y;
+		context->nk.input.mouse.pos.x = event->motion.x;
+		context->nk.input.mouse.pos.y = event->motion.y;
+		context->nk.input.mouse.delta.x = context->nk.input.mouse.pos.x - context->nk.input.mouse.prev.x;
+		context->nk.input.mouse.delta.y = context->nk.input.mouse.pos.y - context->nk.input.mouse.prev.y;
 		return;
 	}
 
@@ -825,12 +825,12 @@ void nkui_handle_event(nk_context_t *context, const SDL_Event *event)
 		nk_glyph glyph;
 		SDL_memcpy(glyph, event->text.text, len);
 
-		nk_input_glyph(context, glyph);
+		nk_input_glyph(&context->nk, glyph);
 		return;
 	}
 
 	if (event_type == SDL_EVENT_MOUSE_WHEEL)
 	{
-		nk_input_scroll(context, nk_vec2(event->wheel.x, event->wheel.y));
+		nk_input_scroll(&context->nk, nk_vec2(event->wheel.x, event->wheel.y));
 	}
 }

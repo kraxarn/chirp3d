@@ -12,10 +12,9 @@
 #define NK_INCLUDE_FONT_BAKING
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_KEYSTATE_BASED_INPUT
+#define NK_INCLUDE_STANDARD_BOOL
 
 #define NK_MEMCPY SDL_memcpy
-
-#define NK_INCLUDE_STANDARD_BOOL
 
 #include "nuklear.h"
 
@@ -32,14 +31,19 @@ typedef struct nk_draw_command nk_draw_command_t;
 
 typedef enum nk_convert_result nk_convert_result_t;
 
+typedef struct
+{
+	nk_context_t nk;
+} nkui_context_t;
+
 bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nk_context_t *context);
 
-void nkui_deinit(nk_context_t *context, SDL_GPUDevice *device);
+void nkui_deinit(nkui_context_t *context, SDL_GPUDevice *device);
 
-void nkui_handle_event(nk_context_t *context, const SDL_Event *event);
+void nkui_handle_event(nkui_context_t *context, const SDL_Event *event);
 
-bool nkui_render_upload(nk_context_t *context, SDL_GPUDevice *device,
+bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 	SDL_GPUCommandBuffer *command_buffer);
 
-bool nkui_render_draw(nk_context_t *context, SDL_Window *window,
+bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 	SDL_GPUCommandBuffer *command_buffer, SDL_GPURenderPass *render_pass);
