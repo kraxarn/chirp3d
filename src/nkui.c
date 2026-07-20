@@ -542,7 +542,7 @@ bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 	const nk_draw_command_t *command;
 	Uint32 offset = 0;
 
-	nk_draw_foreach(command, &context->nk, &buffer) // TODO: while?
+	nk_draw_foreach(command, &context->nk, &buffer)
 	{
 		if (command->elem_count == 0)
 		{
