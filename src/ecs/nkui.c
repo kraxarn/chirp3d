@@ -27,6 +27,18 @@ static void init(ecs_iter_t *iter)
 		sizeof(nkui_context_t), &context);
 }
 
+static void end_input(ecs_iter_t *iter)
+{
+	nkui_context_t *context = ecs_field(iter, nkui_context_t, 0);
+	nk_input_end(&context->nk);
+}
+
+static void begin_input(ecs_iter_t *iter)
+{
+	nkui_context_t *context = ecs_field(iter, nkui_context_t, 0);
+	nk_input_begin(&context->nk);
+}
+
 void ecs_add_nkui()
 {
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
@@ -36,5 +48,27 @@ void ecs_add_nkui()
 		},
 		.events = {EcsOnSet},
 		.callback = init,
+	});
+
+	ecs_system_init(ecs_world(), &(ecs_system_desc_t){
+		.entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
+			.name = "NkEndInput",
+			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_UPDATE_BEGIN))),
+		}),
+		.query.terms = {
+			(ecs_term_t){.id = EcsNkContext, .inout = EcsInOut},
+		},
+		.callback = end_input,
+	});
+
+	ecs_system_init(ecs_world(), &(ecs_system_desc_t){
+		.entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
+			.name = "NkBeginInput",
+			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_UPDATE_END))),
+		}),
+		.query.terms = {
+			(ecs_term_t){.id = EcsNkContext, .inout = EcsInOut},
+		},
+		.callback = begin_input,
 	});
 }
