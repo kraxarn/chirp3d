@@ -13,7 +13,7 @@
 static void init(ecs_iter_t *iter)
 {
 	SDL_Window *window = *ecs_field(iter, SDL_Window*, 0);
-	SDL_GPUDevice *device = *ecs_field(iter, SDL_GPUDevice*, 0);
+	SDL_GPUDevice *device = *ecs_field(iter, SDL_GPUDevice*, 1);
 
 	nkui_context_t context;
 	if (!nkui_init(window, device, &context))
