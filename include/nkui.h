@@ -34,9 +34,13 @@ typedef enum nk_convert_result nk_convert_result_t;
 typedef struct
 {
 	nk_context_t nk;
+
+	SDL_GPUGraphicsPipeline *pipeline;
+	SDL_GPUSampler *sampler;
+	SDL_GPUTexture *font_texture;
 } nkui_context_t;
 
-bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nk_context_t *context);
+bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t *context);
 
 void nkui_deinit(nkui_context_t *context, SDL_GPUDevice *device);
 

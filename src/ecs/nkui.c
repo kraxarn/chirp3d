@@ -15,7 +15,7 @@ static void init(ecs_iter_t *iter)
 	SDL_Window *window = *ecs_field(iter, SDL_Window*, 0);
 	SDL_GPUDevice *device = *ecs_field(iter, SDL_GPUDevice*, 0);
 
-	nk_context_t context;
+	nkui_context_t context;
 	if (!nkui_init(window, device, &context))
 	{
 		SDL_LogError(LOG_CATEGORY_UI, "Failed to load UI: %s",
@@ -24,7 +24,7 @@ static void init(ecs_iter_t *iter)
 	}
 
 	ecs_set_id(ecs_world(), EcsNkContext, EcsNkContext,
-		sizeof(nk_context_t), &context);
+		sizeof(nkui_context_t), &context);
 }
 
 void ecs_add_nkui()

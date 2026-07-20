@@ -34,10 +34,6 @@
 
 // TODO: Maybe move these to context
 
-static SDL_GPUGraphicsPipeline *pipeline = nullptr;
-static SDL_GPUSampler *sampler = nullptr;
-static SDL_GPUTexture *font_texture = nullptr;
-
 static SDL_GPUBuffer *vertex_buffer = nullptr;
 static SDL_GPUBuffer *index_buffer = nullptr;
 static Uint32 vertex_buffer_size = 0;
@@ -62,7 +58,8 @@ typedef struct
 
 #define texture_format() SDL_GetGPUSwapchainTextureFormat(device, window)
 
-static bool create_pipeline(SDL_Window *window, SDL_GPUDevice *device)
+[[nodiscard]]
+static SDL_GPUGraphicsPipeline *create_pipeline(SDL_Window *window, SDL_GPUDevice *device)
 {
 	SDL_IOStream *vertex_source;
 	SDL_IOStream *fragment_source;
@@ -85,7 +82,8 @@ static bool create_pipeline(SDL_Window *window, SDL_GPUDevice *device)
 			break;
 
 		default:
-			return SDL_SetError("No shader");
+			SDL_SetError("No shader");
+			return nullptr;
 	}
 
 	SDL_GPUShader *vertex_shader = load_shader(device, vertex_source,
@@ -93,7 +91,7 @@ static bool create_pipeline(SDL_Window *window, SDL_GPUDevice *device)
 
 	if (vertex_shader == nullptr)
 	{
-		return false;
+		return nullptr;
 	}
 
 	SDL_GPUShader *fragment_shader = load_shader(device, fragment_source,
@@ -102,10 +100,10 @@ static bool create_pipeline(SDL_Window *window, SDL_GPUDevice *device)
 	if (fragment_shader == nullptr)
 	{
 		SDL_ReleaseGPUShader(device, vertex_shader);
-		return false;
+		return nullptr;
 	}
 
-	pipeline = SDL_CreateGPUGraphicsPipeline(device, &(SDL_GPUGraphicsPipelineCreateInfo){
+	SDL_GPUGraphicsPipeline *pipeline = SDL_CreateGPUGraphicsPipeline(device, &(SDL_GPUGraphicsPipelineCreateInfo){
 		.vertex_shader = vertex_shader,
 		.fragment_shader = fragment_shader,
 		.vertex_input_state.num_vertex_attributes = 3,
@@ -155,12 +153,13 @@ static bool create_pipeline(SDL_Window *window, SDL_GPUDevice *device)
 	SDL_ReleaseGPUShader(device, vertex_shader);
 	SDL_ReleaseGPUShader(device, fragment_shader);
 
-	return pipeline != nullptr;
+	return pipeline;
 }
 
-static bool create_sampler(SDL_GPUDevice *device)
+[[nodiscard]]
+static SDL_GPUSampler *create_sampler(SDL_GPUDevice *device)
 {
-	sampler = SDL_CreateGPUSampler(device, &(SDL_GPUSamplerCreateInfo){
+	return SDL_CreateGPUSampler(device, &(SDL_GPUSamplerCreateInfo){
 		.min_filter = SDL_GPU_FILTER_LINEAR,
 		.mag_filter = SDL_GPU_FILTER_LINEAR,
 		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
@@ -168,8 +167,6 @@ static bool create_sampler(SDL_GPUDevice *device)
 		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
 		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
 	});
-
-	return sampler != nullptr;
 }
 
 static bool create_data_buffers()
@@ -250,13 +247,13 @@ static nk_font_atlas_t font_stash_begin()
 	return font_atlas;
 }
 
-static bool font_stash_end(SDL_GPUDevice *device, nk_context_t *context, nk_font_atlas_t *font_atlas)
+static bool font_stash_end(nkui_context_t *context, SDL_GPUDevice *device, nk_font_atlas_t *font_atlas)
 {
 	int width = 0;
 	int height = 0;
 	const void *image = nk_font_atlas_bake(font_atlas, &width, &height, NK_FONT_ATLAS_RGBA32);
 
-	font_texture = SDL_CreateGPUTexture(device, &(SDL_GPUTextureCreateInfo){
+	context->font_texture = SDL_CreateGPUTexture(device, &(SDL_GPUTextureCreateInfo){
 		.type = SDL_GPU_TEXTURETYPE_2D,
 		.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
 		.width = width,
@@ -265,6 +262,10 @@ static bool font_stash_end(SDL_GPUDevice *device, nk_context_t *context, nk_font
 		.num_levels = 1,
 		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
 	});
+	if (context->font_texture == nullptr)
+	{
+		return false;
+	}
 
 	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(device,
 		&(SDL_GPUTransferBufferCreateInfo){
@@ -274,7 +275,7 @@ static bool font_stash_end(SDL_GPUDevice *device, nk_context_t *context, nk_font
 	);
 	if (transfer_buffer == nullptr)
 	{
-		SDL_ReleaseGPUTexture(device, font_texture);
+		SDL_ReleaseGPUTexture(device, context->font_texture);
 		return false;
 	}
 
@@ -292,7 +293,7 @@ static bool font_stash_end(SDL_GPUDevice *device, nk_context_t *context, nk_font
 			.pixels_per_row = width,
 			.rows_per_layer = height,
 		}, &(SDL_GPUTextureRegion){
-			.texture = font_texture,
+			.texture = context->font_texture,
 			.w = width,
 			.h = height,
 			.d = 1,
@@ -303,16 +304,16 @@ static bool font_stash_end(SDL_GPUDevice *device, nk_context_t *context, nk_font
 	SDL_SubmitGPUCommandBuffer(cmd);
 	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
 
-	nk_font_atlas_end(font_atlas, nk_handle_ptr(font_texture), &null_texture);
+	nk_font_atlas_end(font_atlas, nk_handle_ptr(context->font_texture), &null_texture);
 	if (font_atlas->default_font)
 	{
-		nk_style_set_font(context, &font_atlas->default_font->handle);
+		nk_style_set_font(&context->nk, &font_atlas->default_font->handle);
 	}
 
 	return true;
 }
 
-static bool load_font(SDL_Window *window, SDL_GPUDevice *device, nk_context_t *context)
+static bool load_font(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t *context)
 {
 	const float scale = SDL_max(SDL_GetWindowDisplayScale(window), 1.F);
 
@@ -341,8 +342,8 @@ static bool load_font(SDL_Window *window, SDL_GPUDevice *device, nk_context_t *c
 	}
 
 	font->handle.height /= scale;
-	nk_style_set_font(context, &font->handle);
-	return font_stash_end(device, context, &font_atlas);
+	nk_style_set_font(&context->nk, &font->handle);
+	return font_stash_end(context, device, &font_atlas);
 }
 
 static const char *convert_result_string(const nk_convert_result_t result)
@@ -502,7 +503,7 @@ bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 		return true; // Nothing to render
 	}
 
-	SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
+	SDL_BindGPUGraphicsPipeline(render_pass, context->pipeline);
 
 	SDL_BindGPUVertexBuffers(render_pass, 0, (SDL_GPUBufferBinding[]){
 		(SDL_GPUBufferBinding){
@@ -558,13 +559,13 @@ bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 		SDL_GPUTexture *texture = command->texture.ptr;
 		if (texture == nullptr)
 		{
-			texture = font_texture;
+			texture = context->font_texture;
 		}
 
 		SDL_BindGPUFragmentSamplers(render_pass, 0, (SDL_GPUTextureSamplerBinding[]){
 			(SDL_GPUTextureSamplerBinding){
 				.texture = texture,
-				.sampler = sampler,
+				.sampler = context->sampler,
 			},
 		}, 1);
 
@@ -578,27 +579,37 @@ bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 	return true;
 }
 
-bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nk_context_t *context)
+bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t *context)
 {
 	const nk_allocator_t allocator = default_allocator();
 
-	if (!nk_init(context, &allocator, nullptr))
+	if (!nk_init(&context->nk, &allocator, nullptr))
 	{
 		return false;
 	}
 
 	nk_buffer_init(&buffer, &allocator, NK_BUFFER_DEFAULT_INITIAL_SIZE);
 
-	if (!create_pipeline(window, device)
-		|| !create_sampler(device)
-		|| !create_data_buffers())
+	context->pipeline = create_pipeline(window, device);
+	if (context->pipeline == nullptr)
 	{
 		return false;
 	}
 
-	context->clip.copy = clipboard_copy;
-	context->clip.paste = clipboard_paste;
-	context->clip.userdata = nk_handle_ptr(nullptr);
+	context->sampler = create_sampler(device);
+	if (context->sampler == nullptr)
+	{
+		return false;
+	}
+
+	if (!create_data_buffers())
+	{
+		return false;
+	}
+
+	context->nk.clip.copy = clipboard_copy;
+	context->nk.clip.paste = clipboard_paste;
+	context->nk.clip.userdata = nk_handle_ptr(nullptr);
 
 	if (!load_font(window, device, context))
 	{
@@ -618,9 +629,9 @@ void nkui_deinit(nkui_context_t *context, SDL_GPUDevice *device)
 
 	SDL_ReleaseGPUBuffer(device, vertex_buffer);
 	SDL_ReleaseGPUBuffer(device, index_buffer);
-	SDL_ReleaseGPUTexture(device, font_texture);
-	SDL_ReleaseGPUSampler(device, sampler);
-	SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
+	SDL_ReleaseGPUTexture(device, context->font_texture);
+	SDL_ReleaseGPUSampler(device, context->sampler);
+	SDL_ReleaseGPUGraphicsPipeline(device, context->pipeline);
 }
 
 void nkui_handle_event(nkui_context_t *context, const SDL_Event *event)
