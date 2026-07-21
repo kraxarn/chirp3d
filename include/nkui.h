@@ -28,8 +28,14 @@ typedef struct nk_draw_null_texture nk_draw_null_texture_t;
 typedef struct nk_convert_config nk_convert_config_t;
 typedef struct nk_draw_vertex_layout_element nk_draw_vertex_layout_element_t;
 typedef struct nk_draw_command nk_draw_command_t;
+typedef struct nk_colorf nk_colorf_t;
+typedef struct nk_color nk_color_t;
+typedef struct nk_rect nk_rect_t;
+typedef struct nk_style nk_style_t;
+typedef struct nk_style_item nk_style_item_t;
 
 typedef enum nk_convert_result nk_convert_result_t;
+typedef enum nk_panel_flags nk_panel_flags_t;
 
 typedef struct
 {

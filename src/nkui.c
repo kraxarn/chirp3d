@@ -580,6 +580,59 @@ bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 	return true;
 }
 
+static void set_default_theme(nk_context_t *ctx)
+{
+	// https://lospec.com/palette-list/oil-6
+	const nk_color_t palette[] = {
+		nk_rgb(0xfb, 0xf5, 0xef), // Brightest
+		nk_rgb(0xf2, 0xd3, 0xab),
+		nk_rgb(0xc6, 0x9f, 0xa5),
+		nk_rgb(0x8b, 0x6d, 0x9c),
+		nk_rgb(0x49, 0x4d, 0x7e),
+		nk_rgb(0x27, 0x27, 0x44), // Darkest
+	};
+
+	const nk_color_t invalid = nk_rgb(0xFF, 0x00, 0xFF);
+
+	const nk_color_t theme[] = {
+		[NK_COLOR_TEXT] = palette[0],
+		[NK_COLOR_WINDOW] = palette[5],
+		[NK_COLOR_HEADER] = invalid,
+		[NK_COLOR_BORDER] = palette[4],
+		[NK_COLOR_BUTTON] = invalid,
+		[NK_COLOR_BUTTON_HOVER] = invalid,
+		[NK_COLOR_BUTTON_ACTIVE] = invalid,
+		[NK_COLOR_TOGGLE] = invalid,
+		[NK_COLOR_TOGGLE_HOVER] = invalid,
+		[NK_COLOR_TOGGLE_CURSOR] = invalid,
+		[NK_COLOR_SELECT] = invalid,
+		[NK_COLOR_SELECT_ACTIVE] = invalid,
+		[NK_COLOR_SLIDER] = invalid,
+		[NK_COLOR_SLIDER_CURSOR] = invalid,
+		[NK_COLOR_SLIDER_CURSOR_HOVER] = invalid,
+		[NK_COLOR_SLIDER_CURSOR_ACTIVE] = invalid,
+		[NK_COLOR_PROPERTY] = invalid,
+		[NK_COLOR_EDIT] = invalid,
+		[NK_COLOR_EDIT_CURSOR] = invalid,
+		[NK_COLOR_COMBO] = invalid,
+		[NK_COLOR_CHART] = invalid,
+		[NK_COLOR_CHART_COLOR] = invalid,
+		[NK_COLOR_CHART_COLOR_HIGHLIGHT] = invalid,
+		[NK_COLOR_SCROLLBAR] = invalid,
+		[NK_COLOR_SCROLLBAR_CURSOR] = invalid,
+		[NK_COLOR_SCROLLBAR_CURSOR_HOVER] = invalid,
+		[NK_COLOR_SCROLLBAR_CURSOR_ACTIVE] = invalid,
+		[NK_COLOR_TAB_HEADER] = invalid,
+		[NK_COLOR_KNOB] = invalid,
+		[NK_COLOR_KNOB_CURSOR] = invalid,
+		[NK_COLOR_KNOB_CURSOR_HOVER] = invalid,
+		[NK_COLOR_KNOB_CURSOR_ACTIVE] = invalid,
+	};
+	static_assert(SDL_arraysize(theme) == NK_COLOR_COUNT);
+
+	nk_style_from_table(ctx, theme);
+}
+
 bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t *context)
 {
 	const nk_allocator_t allocator = default_allocator();
@@ -588,6 +641,8 @@ bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t *contex
 	{
 		return false;
 	}
+
+	set_default_theme(&context->nk);
 
 	nk_buffer_init(&context->command_buffer, &allocator, NK_BUFFER_DEFAULT_INITIAL_SIZE);
 
