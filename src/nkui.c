@@ -355,13 +355,13 @@ static const char *convert_result_string(const nk_convert_result_t result)
 bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 	SDL_GPUCommandBuffer *command_buffer)
 {
-	struct nk_buffer nk_vertex_buffer;
-	struct nk_buffer nk_element_buffer;
-	nk_buffer_init_fixed(&nk_vertex_buffer, context->vertex_data, max_vertex_buffer);
-	nk_buffer_init_fixed(&nk_element_buffer, context->element_data, max_element_buffer);
+	struct nk_buffer vertex_buffer;
+	struct nk_buffer element_buffer;
+	nk_buffer_init_fixed(&vertex_buffer, context->vertex_data, max_vertex_buffer);
+	nk_buffer_init_fixed(&element_buffer, context->element_data, max_element_buffer);
 
 	const nk_convert_result_t result = nk_convert(&context->nk, &context->command_buffer,
-		&nk_vertex_buffer, &nk_element_buffer,
+		&vertex_buffer, &element_buffer,
 		&(nk_convert_config_t){
 			.vertex_layout = (nk_draw_vertex_layout_element_t[]){
 				(nk_draw_vertex_layout_element_t){
@@ -379,7 +379,7 @@ bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 					.format = NK_FORMAT_R32G32B32A32_FLOAT,
 					.offset = offsetof(nkui_vertex_t, color),
 				},
-				NK_VERTEX_LAYOUT_END,
+				{NK_VERTEX_LAYOUT_END},
 			},
 			.vertex_size = sizeof(nkui_vertex_t),
 			.vertex_alignment = alignof(nkui_vertex_t),
@@ -387,7 +387,7 @@ bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 			.circle_segment_count = 22,
 			.curve_segment_count = 22,
 			.arc_segment_count = 22,
-			.global_alpha = 1.0f,
+			.global_alpha = 1.f,
 			.shape_AA = NK_ANTI_ALIASING_OFF,
 			.line_AA = NK_ANTI_ALIASING_OFF,
 		}
@@ -398,8 +398,8 @@ bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 		return SDL_SetError("%s", convert_result_string(result));
 	}
 
-	const Uint32 vertex_size = (Uint32) nk_vertex_buffer.needed;
-	const Uint32 element_size = (Uint32) nk_element_buffer.needed;
+	const Uint32 vertex_size = (Uint32) vertex_buffer.needed;
+	const Uint32 element_size = (Uint32) element_buffer.needed;
 
 	if (vertex_size == 0 || element_size == 0)
 	{
@@ -471,6 +471,19 @@ bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 		false
 	);
 
+	SDL_UploadToGPUBuffer(copy_pass,
+		&(SDL_GPUTransferBufferLocation){
+			.transfer_buffer = transfer_buffer,
+			.offset = vertex_size,
+		},
+		&(SDL_GPUBufferRegion){
+			.buffer = context->index_buffer,
+			.offset = 0,
+			.size = element_size,
+		},
+		false
+	);
+
 	SDL_EndGPUCopyPass(copy_pass);
 	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
 
@@ -494,6 +507,11 @@ bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 			.offset = 0,
 		},
 	}, 1);
+
+	SDL_BindGPUIndexBuffer(render_pass, &(SDL_GPUBufferBinding){
+		.buffer = context->index_buffer,
+		.offset = 0,
+	}, SDL_GPU_INDEXELEMENTSIZE_16BIT);
 
 	int width;
 	int height;
@@ -522,7 +540,7 @@ bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 		}, sizeof(matrix4x4_t)
 	);
 
-	const nk_draw_command_t *command;
+	const nk_draw_command_t *command = nullptr;
 	Uint32 offset = 0;
 
 	nk_draw_foreach(command, &context->nk, &context->command_buffer)
