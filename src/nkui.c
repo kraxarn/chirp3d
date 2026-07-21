@@ -40,7 +40,7 @@ typedef struct
 	vector2f_t position;
 	vector2f_t uv;
 	nk_colorf_t color;
-} vertex_t;
+} nkui_vertex_t;
 
 #define texture_format() SDL_GetGPUSwapchainTextureFormat(device, window)
 
@@ -97,23 +97,23 @@ static SDL_GPUGraphicsPipeline *create_pipeline(SDL_Window *window, SDL_GPUDevic
 			(SDL_GPUVertexAttribute){
 				.location = 0,
 				.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-				.offset = offsetof(vertex_t, position),
+				.offset = offsetof(nkui_vertex_t, position),
 			},
 			(SDL_GPUVertexAttribute){
 				.location = 1,
 				.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-				.offset = offsetof(vertex_t, uv),
+				.offset = offsetof(nkui_vertex_t, uv),
 			},
 			(SDL_GPUVertexAttribute){
 				.location = 2,
 				.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
-				.offset = offsetof(vertex_t, color),
+				.offset = offsetof(nkui_vertex_t, color),
 			},
 		},
 		.vertex_input_state.num_vertex_buffers = 1,
 		.vertex_input_state.vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription){
 			.slot = 0,
-			.pitch = sizeof(vertex_t),
+			.pitch = sizeof(nkui_vertex_t),
 			.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
 		},
 		.rasterizer_state = (SDL_GPURasterizerState){
@@ -369,22 +369,22 @@ bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 				(nk_draw_vertex_layout_element_t){
 					.attribute = NK_VERTEX_POSITION,
 					.format = NK_FORMAT_FLOAT,
-					.offset = offsetof(vertex_t, position),
+					.offset = offsetof(nkui_vertex_t, position),
 				},
 				(nk_draw_vertex_layout_element_t){
 					.attribute = NK_VERTEX_TEXCOORD,
 					.format = NK_FORMAT_FLOAT,
-					.offset = offsetof(vertex_t, uv),
+					.offset = offsetof(nkui_vertex_t, uv),
 				},
 				(nk_draw_vertex_layout_element_t){
 					.attribute = NK_VERTEX_COLOR,
 					.format = NK_FORMAT_R32G32B32A32_FLOAT,
-					.offset = offsetof(vertex_t, color),
+					.offset = offsetof(nkui_vertex_t, color),
 				},
 				NK_VERTEX_LAYOUT_END,
 			},
-			.vertex_size = sizeof(vertex_t),
-			.vertex_alignment = alignof(vertex_t),
+			.vertex_size = sizeof(nkui_vertex_t),
+			.vertex_alignment = alignof(nkui_vertex_t),
 			.tex_null = context->null_texture,
 			.circle_segment_count = 22,
 			.curve_segment_count = 22,
