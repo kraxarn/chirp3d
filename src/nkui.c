@@ -11,6 +11,8 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_video.h>
 
+#include <stddef.h>
+
 // >.<
 #define STBTT_ifloor(x)   ((int)SDL_floor(x))
 #define STBTT_iceil(x)    ((int)SDL_ceil(x))
@@ -29,17 +31,6 @@
 
 #define NK_IMPLEMENTATION
 #include "nkui.h"
-
-#include <stddef.h>
-
-// TODO: Maybe move these to context
-
-static nk_buffer_t buffer = {0};
-static nk_draw_null_texture_t null_texture = {0};
-
-static void *vertex_data = nullptr;
-static void *element_data = nullptr;
-static bool insert_toggle = false;
 
 static constexpr size_t max_vertex_buffer = 512u * 1024u;
 static constexpr size_t max_element_buffer = 128u * 1024u;
@@ -164,12 +155,10 @@ static SDL_GPUSampler *create_sampler(SDL_GPUDevice *device)
 	});
 }
 
-static bool create_data_buffers()
+static void create_data_buffers(void **vertex_data, void **element_data)
 {
-	vertex_data = SDL_malloc(max_vertex_buffer);
-	element_data = SDL_malloc(max_element_buffer);
-
-	return (bool) (vertex_data != nullptr && element_data != nullptr);
+	*vertex_data = SDL_malloc(max_vertex_buffer);
+	*element_data = SDL_malloc(max_element_buffer);
 }
 
 static void *nkui_alloc([[maybe_unused]] nk_handle userdata,
@@ -299,7 +288,7 @@ static bool font_stash_end(nkui_context_t *context, SDL_GPUDevice *device, nk_fo
 	SDL_SubmitGPUCommandBuffer(cmd);
 	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
 
-	nk_font_atlas_end(font_atlas, nk_handle_ptr(context->font_texture), &null_texture);
+	nk_font_atlas_end(font_atlas, nk_handle_ptr(context->font_texture), &context->null_texture);
 	if (font_atlas->default_font)
 	{
 		nk_style_set_font(&context->nk, &font_atlas->default_font->handle);
@@ -370,10 +359,10 @@ bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 {
 	struct nk_buffer nk_vertex_buffer;
 	struct nk_buffer nk_element_buffer;
-	nk_buffer_init_fixed(&nk_vertex_buffer, vertex_data, max_vertex_buffer);
-	nk_buffer_init_fixed(&nk_element_buffer, element_data, max_element_buffer);
+	nk_buffer_init_fixed(&nk_vertex_buffer, context->vertex_data, max_vertex_buffer);
+	nk_buffer_init_fixed(&nk_element_buffer, context->element_data, max_element_buffer);
 
-	const nk_convert_result_t result = nk_convert(&context->nk, &buffer,
+	const nk_convert_result_t result = nk_convert(&context->nk, &context->command_buffer,
 		&nk_vertex_buffer, &nk_element_buffer,
 		&(nk_convert_config_t){
 			.vertex_layout = (nk_draw_vertex_layout_element_t[]){
@@ -396,7 +385,7 @@ bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 			},
 			.vertex_size = sizeof(vertex_t),
 			.vertex_alignment = alignof(vertex_t),
-			.tex_null = null_texture,
+			.tex_null = context->null_texture,
 			.circle_segment_count = 22,
 			.curve_segment_count = 22,
 			.arc_segment_count = 22,
@@ -464,8 +453,8 @@ bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 		return false;
 	}
 
-	SDL_memcpy(transfer_data, vertex_data, vertex_size);
-	SDL_memcpy(transfer_data + vertex_size, element_data, element_size);
+	SDL_memcpy(transfer_data, context->vertex_data, vertex_size);
+	SDL_memcpy(transfer_data + vertex_size, context->element_data, element_size);
 
 	SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
 
@@ -538,7 +527,7 @@ bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 	const nk_draw_command_t *command;
 	Uint32 offset = 0;
 
-	nk_draw_foreach(command, &context->nk, &buffer)
+	nk_draw_foreach(command, &context->nk, &context->command_buffer)
 	{
 		if (command->elem_count == 0)
 		{
@@ -584,12 +573,14 @@ bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t *contex
 		return false;
 	}
 
-	nk_buffer_init(&buffer, &allocator, NK_BUFFER_DEFAULT_INITIAL_SIZE);
+	nk_buffer_init(&context->command_buffer, &allocator, NK_BUFFER_DEFAULT_INITIAL_SIZE);
 
 	context->vertex_buffer = nullptr;
 	context->index_buffer = nullptr;
 	context->vertex_buffer_size = 0;
 	context->index_buffer_size = 0;
+
+	context->insert_toggle = false;
 
 	context->pipeline = create_pipeline(window, device);
 	if (context->pipeline == nullptr)
@@ -603,7 +594,8 @@ bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t *contex
 		return false;
 	}
 
-	if (!create_data_buffers())
+	create_data_buffers(&context->vertex_data, &context->element_data);
+	if (context->vertex_data == nullptr || context->element_data == nullptr)
 	{
 		return false;
 	}
@@ -623,10 +615,10 @@ bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t *contex
 void nkui_deinit(nkui_context_t *context, SDL_GPUDevice *device)
 {
 	nk_free(&context->nk);
-	nk_buffer_free(&buffer);
+	nk_buffer_free(&context->command_buffer);
 
-	SDL_free(vertex_data);
-	SDL_free(element_data);
+	SDL_free(context->vertex_data);
+	SDL_free(context->element_data);
 
 	SDL_ReleaseGPUBuffer(device, context->vertex_buffer);
 	SDL_ReleaseGPUBuffer(device, context->index_buffer);
@@ -742,10 +734,10 @@ void nkui_handle_event(nkui_context_t *context, const SDL_Event *event)
 		{
 			if (key_down)
 			{
-				insert_toggle = (bool) !insert_toggle;
+				context->insert_toggle = (bool) !context->insert_toggle;
 			}
 
-			if (insert_toggle)
+			if (context->insert_toggle)
 			{
 				nk_input_key(&context->nk, NK_KEY_TEXT_INSERT_MODE, key_down);
 			}

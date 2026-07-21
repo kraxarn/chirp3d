@@ -43,6 +43,13 @@ typedef struct
 	SDL_GPUBuffer *index_buffer;
 	Uint32 vertex_buffer_size;
 	Uint32 index_buffer_size;
+
+	nk_buffer_t command_buffer;
+	nk_draw_null_texture_t null_texture;
+
+	void *vertex_data;
+	void *element_data;
+	bool insert_toggle;
 } nkui_context_t;
 
 bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t *context);
