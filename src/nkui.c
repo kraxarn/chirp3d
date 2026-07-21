@@ -42,8 +42,6 @@ typedef struct
 	nk_colorf_t color;
 } nkui_vertex_t;
 
-#define texture_format() SDL_GetGPUSwapchainTextureFormat(device, window)
-
 [[nodiscard]]
 static SDL_GPUGraphicsPipeline *create_pipeline(SDL_Window *window, SDL_GPUDevice *device)
 {
@@ -124,7 +122,7 @@ static SDL_GPUGraphicsPipeline *create_pipeline(SDL_Window *window, SDL_GPUDevic
 		.target_info.num_color_targets = 1,
 		.target_info.color_target_descriptions = (SDL_GPUColorTargetDescription[]){
 			(SDL_GPUColorTargetDescription){
-				.format = texture_format(),
+				.format = SDL_GetGPUSwapchainTextureFormat(device, window),
 				.blend_state.enable_blend = true,
 				.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
 				.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
