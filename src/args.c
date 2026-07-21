@@ -1,6 +1,7 @@
 #include "args.h"
 #include "logcategory.h"
 
+#include <SDL3/SDL_cpuinfo.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
@@ -28,6 +29,16 @@ static void print_help()
 		SDL_strlcat(video_drivers, SDL_GetVideoDriver(i), video_drivers_len);
 	}
 	SDL_strlcat(video_drivers, "]", video_drivers_len);
+
+	const int cpu_cores = SDL_GetNumLogicalCPUCores();
+
+	constexpr size_t threads_len = 24;
+	char threads[threads_len];
+	SDL_snprintf(threads, threads_len, "--threads [1-%d]", cpu_cores);
+
+	constexpr size_t task_threads_len = 24;
+	char task_threads[task_threads_len];
+	SDL_snprintf(task_threads, task_threads_len, "--task-threads [1-%d]", cpu_cores);
 
 	const arg_command_t commands[] = {
 		(arg_command_t){
@@ -57,6 +68,14 @@ static void print_help()
 		(arg_command_t){
 			.command = "--(no-)fatal-error-message-box",
 			.description = "Show a message box on fatal error",
+		},
+		(arg_command_t){
+			.command = threads,
+			.description = "Set number of threads to use",
+		},
+		(arg_command_t){
+			.command = task_threads,
+			.description = "Set number of task threads to use",
 		},
 	};
 
@@ -115,6 +134,8 @@ bool args_parse(const int argc, char **argv, args_t *args)
 		.gpu_debug_mode = OPT_NOT_SET,
 		.log_priority = SDL_LOG_PRIORITY_INVALID,
 		.video_driver = nullptr,
+		.threads = 0,
+		.task_threads = 0,
 	};
 
 	for (int i = 1; i < argc; i++)
@@ -175,6 +196,15 @@ bool args_parse(const int argc, char **argv, args_t *args)
 		else if (SDL_strcmp(arg, "--no-fatal-error-message-box") == 0)
 		{
 			args->fatal_error_message_box = OPT_DISABLE;
+		}
+
+		else if (SDL_strcmp(arg, "--worker-threads") == 0 && i + 1 < argc)
+		{
+			args->threads = SDL_atoi(argv[++i]);
+		}
+		else if (SDL_strcmp(arg, "--worker-task-threads") == 0 && i + 1 < argc)
+		{
+			args->task_threads = SDL_atoi(argv[++i]);
 		}
 
 		else

@@ -53,6 +53,20 @@ typedef struct
 	 * Show a message box on fatal error
 	 */
 	arg_option_t fatal_error_message_box;
+
+	/**
+	 * --threads [0-]
+	 *
+	 * Enable ECS threads and set number of worker threads
+	 */
+	Sint32 threads;
+
+	/**
+	 * --task-threads [0-]
+	 *
+	 * Enable ECS task threads and set number of worker task threads
+	 */
+	Sint32 task_threads;
 } args_t;
 
 [[nodiscard]]

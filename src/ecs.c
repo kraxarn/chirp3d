@@ -455,12 +455,27 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 
 static void on_init_set([[maybe_unused]] ecs_iter_t *iter)
 {
+	const args_t *args = ecs_field(iter, args_t, 1);
+
 	ecs_os_api_t os_api = ecs_os_api_create();
 	ecs_os_set_api(&os_api);
 
-	const int cores = SDL_GetNumLogicalCPUCores();
-	ecs_set_threads(world, cores);
-	SDL_LogDebug(LOG_CATEGORY_ECS, "Using %d threads", cores);
+	if (args->threads > 0)
+	{
+		ecs_set_threads(world, args->threads);
+		SDL_LogInfo(LOG_CATEGORY_ECS, "Using %d threads", args->threads);
+	}
+	else if (args->task_threads > 0)
+	{
+		ecs_set_task_threads(world, args->task_threads);
+		SDL_LogInfo(LOG_CATEGORY_ECS, "Using %d task threads", args->task_threads);
+	}
+	else
+	{
+		const int cores = SDL_GetNumLogicalCPUCores();
+		ecs_set_threads(world, cores);
+		SDL_LogInfo(LOG_CATEGORY_ECS, "Using %d threads", cores);
+	}
 
 #ifdef FLECS_REST
 	ecs_singleton_set(world, EcsRest, {0});
@@ -486,7 +501,8 @@ void ecs_create()
 	// SDL has to initialise before we set up OS-specific stuff
 	ecs_observer_init(world, &(ecs_observer_desc_t){
 		.query.terms = {
-			(ecs_term_t){.id = EcsInit}
+			(ecs_term_t){.id = EcsInit, .src.id = EcsEngine, .inout = EcsInOutNone},
+			(ecs_term_t){.id = EcsArgs, .src.id = EcsArgs, .inout = EcsIn},
 		},
 		.events = {EcsOnSet},
 		.callback = on_init_set,
