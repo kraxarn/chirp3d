@@ -41,8 +41,8 @@ static void *vertex_data = nullptr;
 static void *element_data = nullptr;
 static bool insert_toggle = false;
 
-static constexpr size_t max_vertex_buffer = (size_t) (512 * 1024);
-static constexpr size_t max_element_buffer = (size_t) (128 * 1024);
+static constexpr size_t max_vertex_buffer = 512u * 1024u;
+static constexpr size_t max_element_buffer = 128u * 1024u;
 
 typedef struct
 {
