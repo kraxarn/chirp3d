@@ -38,6 +38,11 @@ typedef struct
 	SDL_GPUGraphicsPipeline *pipeline;
 	SDL_GPUSampler *sampler;
 	SDL_GPUTexture *font_texture;
+
+	SDL_GPUBuffer *vertex_buffer;
+	SDL_GPUBuffer *index_buffer;
+	Uint32 vertex_buffer_size;
+	Uint32 index_buffer_size;
 } nkui_context_t;
 
 bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t *context);

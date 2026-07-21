@@ -34,11 +34,6 @@
 
 // TODO: Maybe move these to context
 
-static SDL_GPUBuffer *vertex_buffer = nullptr;
-static SDL_GPUBuffer *index_buffer = nullptr;
-static Uint32 vertex_buffer_size = 0;
-static Uint32 index_buffer_size = 0;
-
 static nk_buffer_t buffer = {0};
 static nk_draw_null_texture_t null_texture = {0};
 
@@ -424,29 +419,30 @@ bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 		return true;
 	}
 
-	if (vertex_buffer_size < vertex_size)
+	if (context->vertex_buffer_size < vertex_size)
 	{
-		SDL_ReleaseGPUBuffer(device, vertex_buffer);
+		SDL_ReleaseGPUBuffer(device, context->vertex_buffer);
 
-		vertex_buffer_size = vertex_size * 2;
-		vertex_buffer = SDL_CreateGPUBuffer(device, &(SDL_GPUBufferCreateInfo){
+		context->vertex_buffer_size = vertex_size * 2;
+		context->vertex_buffer = SDL_CreateGPUBuffer(device, &(SDL_GPUBufferCreateInfo){
 			.usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-			.size = vertex_buffer_size,
+			.size = context->vertex_buffer_size,
 		});
 	}
 
-	if (index_buffer_size < element_size)
+	if (context->index_buffer_size < element_size)
 	{
-		SDL_ReleaseGPUBuffer(device, index_buffer);
+		SDL_ReleaseGPUBuffer(device, context->index_buffer);
 
-		index_buffer_size = element_size * 2;
-		index_buffer = SDL_CreateGPUBuffer(device, &(SDL_GPUBufferCreateInfo){
+		context->index_buffer_size = element_size * 2;
+		context->index_buffer = SDL_CreateGPUBuffer(device, &(SDL_GPUBufferCreateInfo){
 			.usage = SDL_GPU_BUFFERUSAGE_INDEX,
-			.size = index_buffer_size,
+			.size = context->index_buffer_size,
 		});
 	}
 
-	if (vertex_buffer == nullptr || index_buffer == nullptr)
+	if (context->vertex_buffer == nullptr
+		|| context->index_buffer == nullptr)
 	{
 		return false;
 	}
@@ -481,7 +477,7 @@ bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 			.offset = 0,
 		},
 		&(SDL_GPUBufferRegion){
-			.buffer = vertex_buffer,
+			.buffer = context->vertex_buffer,
 			.offset = 0,
 			.size = vertex_size,
 		},
@@ -497,8 +493,8 @@ bool nkui_render_upload(nkui_context_t *context, SDL_GPUDevice *device,
 bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 	SDL_GPUCommandBuffer *command_buffer, SDL_GPURenderPass *render_pass)
 {
-	if (vertex_buffer == nullptr
-		|| index_buffer == nullptr)
+	if (context->vertex_buffer == nullptr
+		|| context->index_buffer == nullptr)
 	{
 		return true; // Nothing to render
 	}
@@ -507,7 +503,7 @@ bool nkui_render_draw(nkui_context_t *context, SDL_Window *window,
 
 	SDL_BindGPUVertexBuffers(render_pass, 0, (SDL_GPUBufferBinding[]){
 		(SDL_GPUBufferBinding){
-			.buffer = vertex_buffer,
+			.buffer = context->vertex_buffer,
 			.offset = 0,
 		},
 	}, 1);
@@ -590,6 +586,11 @@ bool nkui_init(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t *contex
 
 	nk_buffer_init(&buffer, &allocator, NK_BUFFER_DEFAULT_INITIAL_SIZE);
 
+	context->vertex_buffer = nullptr;
+	context->index_buffer = nullptr;
+	context->vertex_buffer_size = 0;
+	context->index_buffer_size = 0;
+
 	context->pipeline = create_pipeline(window, device);
 	if (context->pipeline == nullptr)
 	{
@@ -627,8 +628,8 @@ void nkui_deinit(nkui_context_t *context, SDL_GPUDevice *device)
 	SDL_free(vertex_data);
 	SDL_free(element_data);
 
-	SDL_ReleaseGPUBuffer(device, vertex_buffer);
-	SDL_ReleaseGPUBuffer(device, index_buffer);
+	SDL_ReleaseGPUBuffer(device, context->vertex_buffer);
+	SDL_ReleaseGPUBuffer(device, context->index_buffer);
 	SDL_ReleaseGPUTexture(device, context->font_texture);
 	SDL_ReleaseGPUSampler(device, context->sampler);
 	SDL_ReleaseGPUGraphicsPipeline(device, context->pipeline);
