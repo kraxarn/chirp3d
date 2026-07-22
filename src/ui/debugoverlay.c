@@ -70,12 +70,16 @@ static void draw_physics_info(nk_context_t *ctx, const physics_engine_t *physics
 void draw_debug_overlay(ecs_iter_t *iter)
 {
 	nk_context_t *ctx = &ecs_field(iter, nkui_context_t, 0)->nk;
-	const EcsWorldSummary *world_summary = ecs_field(iter, EcsWorldSummary, 1);
-	const camera_t *camera = ecs_field(iter, camera_t, 2);
-	const physics_engine_t *physics_engine = ecs_field(iter, physics_engine_t, 3);
-	const physics_body_id_t player_body_id = *ecs_field(iter, physics_body_id_t, 4);
-	SDL_Window *window = *ecs_field(iter, SDL_Window*, 5);
-	SDL_GPUDevice *device = *ecs_field(iter, SDL_GPUDevice*, 6);
+	const camera_t *camera = ecs_field(iter, camera_t, 1);
+	const physics_engine_t *physics_engine = ecs_field(iter, physics_engine_t, 2);
+	const physics_body_id_t player_body_id = *ecs_field(iter, physics_body_id_t, 3);
+	SDL_Window *window = *ecs_field(iter, SDL_Window*, 4);
+	SDL_GPUDevice *device = *ecs_field(iter, SDL_GPUDevice*, 5);
+
+#ifdef FLECS_STATS
+	const EcsWorldSummary *world_summary = ecs_get_id(ecs_world(),
+		EcsWorld, ecs_id(EcsWorldSummary));
+#endif
 
 	constexpr auto padding = 16.F;
 	constexpr auto alpha = 0.75F;
@@ -94,11 +98,14 @@ void draw_debug_overlay(ecs_iter_t *iter)
 	static double fps = 0.0;
 	static Uint32 fps_timestamp = 0;
 
+	// TODO: Use app_state_t fps
+#ifdef FLECS_STATS
 	if (fps == 0.0 || world_summary->uptime != fps_timestamp)
 	{
 		fps = world_summary->fps;
 		fps_timestamp = world_summary->uptime;
 	}
+#endif
 
 	nk_style_t *style = &ctx->style;
 	nk_style_item_t *window_style = &style->window.fixed_background;
@@ -130,6 +137,7 @@ void draw_debug_overlay(ecs_iter_t *iter)
 	}
 	nk_end(ctx);
 
+#ifdef FLECS_STATS
 	if (nk_begin(ctx, "World overlay", (nk_rect_t){
 		.w = 300.F,
 		.h = 150.F,
@@ -164,6 +172,7 @@ void draw_debug_overlay(ecs_iter_t *iter)
 			world_summary->command_count_frame);
 	}
 	nk_end(ctx);
+#endif
 
 	if (!SDL_GetWindowRelativeMouseMode(window))
 	{
@@ -211,8 +220,10 @@ void draw_debug_overlay(ecs_iter_t *iter)
 			nk_label(ctx, "Date", NK_TEXT_LEFT);
 			nk_label(ctx, __DATE__ " " __TIME__, NK_TEXT_LEFT);
 
+#ifdef FLECS_STATS
 			nk_label(ctx, "Compiler", NK_TEXT_LEFT);
 			nk_label(ctx, world_summary->build_info.compiler, NK_TEXT_LEFT);
+#endif
 
 			nk_label(ctx, "Type", NK_TEXT_LEFT);
 			nk_label(ctx, ENGINE_BUILD_TYPE, NK_TEXT_LEFT);

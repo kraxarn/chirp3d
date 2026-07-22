@@ -558,7 +558,6 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		}),
 		.query.terms = {
 			(ecs_term_t){.id = EcsNkContext, .src.id = EcsNkContext, .inout = EcsIn},
-			(ecs_term_t){.id = ecs_id(EcsWorldSummary), .src.id = EcsWorld, .inout = EcsIn},
 			(ecs_term_t){.id = EcsCamera, .src.id = EcsEngine, .inout = EcsIn},
 			(ecs_term_t){.id = EcsPhysicsEngine, .src.id = EcsEngine, .inout = EcsIn},
 			(ecs_term_t){.id = EcsPhysicsBody, .src.name = "$player_body", .inout = EcsIn},
