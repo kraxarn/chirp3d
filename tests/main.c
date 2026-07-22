@@ -1,6 +1,6 @@
 #include "tests.h"
 
-#include <stdlib.h>
+#include <SDL3/SDL_stdinc.h>
 
 int main(const int argc, char **argv)
 {
@@ -9,7 +9,7 @@ int main(const int argc, char **argv)
 		return 1;
 	}
 
-	switch (strtol(argv[1], nullptr, 10))
+	switch (SDL_strtol(argv[1], nullptr, 10))
 	{
 		case 1:
 			test_array();
