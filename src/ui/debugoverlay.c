@@ -189,13 +189,33 @@ void draw_debug_overlay(ecs_iter_t *iter)
 
 		if (nk_begin(ctx, "System info", (nk_rect_t){
 			.x = window_x,
-			.y = (padding * 2) + 40,
+			.y = (padding * 2.F) + 40.F,
 			.w = window_width,
-			.h = 210,
+			.h = 210.F,
 		}, NK_WINDOW_BORDER | NK_WINDOW_TITLE))
 		{
 			nk_layout_row(ctx, NK_DYNAMIC, row_height, 2, (float[]){0.3F, 0.7F});
 			draw_system_info(ctx, device);
+		}
+		nk_end(ctx);
+
+		if (nk_begin(ctx, "Build info", (nk_rect_t){
+			.x = window_x,
+			.y = (padding * 3.F) + 40.F + 210.F,
+			.w = window_width,
+			.h = 120.F,
+		}, NK_WINDOW_BORDER | NK_WINDOW_TITLE))
+		{
+			nk_layout_row(ctx, NK_DYNAMIC, row_height, 2, (float[]){0.3F, 0.7F});
+
+			nk_label(ctx, "Date", NK_TEXT_LEFT);
+			nk_label(ctx, __DATE__ " " __TIME__, NK_TEXT_LEFT);
+
+			nk_label(ctx, "Compiler", NK_TEXT_LEFT);
+			nk_label(ctx, world_summary->build_info.compiler, NK_TEXT_LEFT);
+
+			nk_label(ctx, "Type", NK_TEXT_LEFT);
+			nk_label(ctx, ENGINE_BUILD_TYPE, NK_TEXT_LEFT);
 		}
 		nk_end(ctx);
 	}

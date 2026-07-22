@@ -22,6 +22,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 	ENGINE_NAME="${PROJECT_NAME}"
 	ENGINE_VERSION="${PROJECT_VERSION}"
 	ENGINE_IDENTIFIER="com.kraxarn.${PROJECT_NAME}"
+	ENGINE_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
 )
 
 include(deps/sdl3.cmake)
