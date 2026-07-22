@@ -1,5 +1,6 @@
 add_subdirectory(ecs)
 add_subdirectory(py)
+add_subdirectory(ui)
 
 target_sources(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/args.c"
