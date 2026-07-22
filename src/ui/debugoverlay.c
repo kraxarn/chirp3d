@@ -130,6 +130,41 @@ void draw_debug_overlay(ecs_iter_t *iter)
 	}
 	nk_end(ctx);
 
+	if (nk_begin(ctx, "World overlay", (nk_rect_t){
+		.w = 300.F,
+		.h = 150.F,
+		.x = padding,
+		.y = (padding * 2) + 180.F,
+	}, NK_WINDOW_BORDER))
+	{
+		nk_layout_row(ctx, NK_DYNAMIC, row_height, 2, (float[]){0.4F, 0.6F});
+
+		nk_label(ctx, "Entities", NK_TEXT_LEFT);
+		nk_labelf(ctx, NK_TEXT_LEFT, "%ld",
+			world_summary->entity_count);
+
+		nk_label(ctx, "Tables", NK_TEXT_LEFT);
+		nk_labelf(ctx, NK_TEXT_LEFT, "%ld",
+			world_summary->table_count);
+
+		nk_label(ctx, "Systems", NK_TEXT_LEFT);
+		nk_labelf(ctx, NK_TEXT_LEFT, "%ld",
+			world_summary->systems_ran_frame);
+
+		nk_label(ctx, "Observers", NK_TEXT_LEFT);
+		nk_labelf(ctx, NK_TEXT_LEFT, "%ld",
+			world_summary->observers_ran_frame);
+
+		nk_label(ctx, "Queries", NK_TEXT_LEFT);
+		nk_labelf(ctx, NK_TEXT_LEFT, "%ld",
+			world_summary->queries_ran_frame);
+
+		nk_label(ctx, "Commands", NK_TEXT_LEFT);
+		nk_labelf(ctx, NK_TEXT_LEFT, "%ld",
+			world_summary->command_count_frame);
+	}
+	nk_end(ctx);
+
 	if (!SDL_GetWindowRelativeMouseMode(window))
 	{
 		int width = 0;
