@@ -1,282 +1,169 @@
 #include "ui/debugoverlay.h"
-#include "appstate.h"
 #include "audiodriver.h"
 #include "camera.h"
 #include "ecs.h"
 #include "gpudevicedriver.h"
+#include "nkui.h"
 #include "physics.h"
-#include "physicsconfig.h"
 #include "systeminfo.h"
 #include "videodriver.h"
-#include "ecs/components.h"
-#include "ecs/tags.h"
 
-#include "dcimgui.h"
 #include "flecs.h"
 
+#include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_audio.h>
 #include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
 
-typedef enum [[clang::flag_enum]] debug_overlay_elements_t
+static void draw_system_info(nk_context_t *ctx, SDL_GPUDevice *device)
 {
-	DEBUG_OVERLAY_DELTA   = 1 << 0,
-	DEBUG_OVERLAY_SYSTEM  = 1 << 1,
-	DEBUG_OVERLAY_CAMERA  = 1 << 2,
-	DEBUG_OVERLAY_PHYSICS = 1 << 3,
-} debug_overlay_elements_t;
+	nk_label(ctx, "Platform", NK_TEXT_LEFT);
+	nk_label(ctx, system_info_platform(), NK_TEXT_LEFT);
 
-static void draw_delta(const float delta)
-{
-	constexpr auto ms_s = 1'000.F;
+	nk_label(ctx, "CPU", NK_TEXT_LEFT);
+	nk_label(ctx, system_info_cpu_name(), NK_TEXT_LEFT);
 
-	ImGui_TableNextColumn();
-	ImGui_Text("Delta");
-	ImGui_TableNextColumn();
-	ImGui_Text("%.2f ms", delta * ms_s);
+	nk_label(ctx, "GPU", NK_TEXT_LEFT);
+	nk_label(ctx, system_info_gpu_name(device), NK_TEXT_LEFT);
+
+	nk_label(ctx, "Driver", NK_TEXT_LEFT);
+	nk_label(ctx, system_info_gpu_driver(device), NK_TEXT_LEFT);
+
+	nk_label(ctx, "Video", NK_TEXT_LEFT);
+	nk_label(ctx, video_driver_display_name(SDL_GetCurrentVideoDriver()), NK_TEXT_LEFT);
+
+	nk_label(ctx, "Audio", NK_TEXT_LEFT);
+	nk_label(ctx, audio_driver_display_name(SDL_GetCurrentAudioDriver()), NK_TEXT_LEFT);
+
+	nk_label(ctx, "Renderer", NK_TEXT_LEFT);
+	nk_label(ctx, gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(device)), NK_TEXT_LEFT);
 }
 
-static void draw_system_info(SDL_GPUDevice *device)
+static void draw_camera_info(nk_context_t *ctx, const camera_t *camera)
 {
-	ImGui_TableNextColumn();
-	ImGui_Text("Platform");
-	ImGui_TableNextColumn();
-	ImGui_Text("%s", system_info_platform());
-
-	ImGui_TableNextColumn();
-	ImGui_Text("CPU");
-	ImGui_TableNextColumn();
-	ImGui_Text("%s", system_info_cpu_name());
-
-	ImGui_TableNextColumn();
-	ImGui_Text("GPU");
-	ImGui_TableNextColumn();
-	ImGui_Text("%s", system_info_gpu_name(device));
-
-	ImGui_TableNextColumn();
-	ImGui_Text("Driver");
-	ImGui_TableNextColumn();
-	ImGui_Text("%s", system_info_gpu_driver(device));
-
-	ImGui_TableNextColumn();
-	ImGui_Text("Video");
-	ImGui_TableNextColumn();
-	ImGui_Text("%s", video_driver_display_name(SDL_GetCurrentVideoDriver()));
-
-	ImGui_TableNextColumn();
-	ImGui_Text("Audio");
-	ImGui_TableNextColumn();
-	ImGui_Text("%s", audio_driver_display_name(SDL_GetCurrentAudioDriver()));
-
-	ImGui_TableNextColumn();
-	ImGui_Text("Renderer");
-	ImGui_TableNextColumn();
-	ImGui_Text("%s", gpu_device_driver_display_name(SDL_GetGPUDeviceDriver(device)));
-}
-
-static void draw_camera_info(const camera_t *camera)
-{
-	ImGui_TableNextColumn();
-	ImGui_Text("Camera");
-	ImGui_TableNextColumn();
-	ImGui_Text("%-6.2f %-6.2f %-6.2f",
+	nk_label(ctx, "Camera", NK_TEXT_LEFT);
+	nk_labelf(ctx, NK_TEXT_LEFT, "%-6.2f %-6.2f %-6.2f",
 		camera->position.x, camera->position.y, camera->position.z);
 
-	ImGui_TableNextColumn();
-	ImGui_Text("Target");
-	ImGui_TableNextColumn();
-	ImGui_Text("%-6.2f %-6.2f %-6.2f",
+	nk_label(ctx, "Target", NK_TEXT_LEFT);
+	nk_labelf(ctx, NK_TEXT_LEFT, "%-6.2f %-6.2f %-6.2f",
 		camera->target.x, camera->target.y, camera->target.z);
 }
 
-static void draw_physics_info(const physics_engine_t *physics_engine,
+static void draw_physics_info(nk_context_t *ctx, const physics_engine_t *physics_engine,
 	const physics_body_id_t body_id)
 {
 	const vector3f_t position = physics_body_position(physics_engine, body_id);
 	const vector3f_t velocity = physics_body_linear_velocity(physics_engine, body_id);
 
-	ImGui_TableNextColumn();
-	ImGui_Text("Position");
-	ImGui_TableNextColumn();
-	ImGui_Text("%-6.2f %-6.2f %-6.2f", position.x, position.y, position.z);
+	nk_label(ctx, "Position", NK_TEXT_LEFT);
+	nk_labelf(ctx, NK_TEXT_LEFT, "%-6.2f %-6.2f %-6.2f",
+		position.x, position.y, position.z);
 
-	ImGui_TableNextColumn();
-	ImGui_Text("Velocity");
-	ImGui_TableNextColumn();
-	ImGui_Text("%-6.2f %-6.2f %-6.2f", velocity.x, velocity.y, velocity.z);
+	nk_label(ctx, "Velocity", NK_TEXT_LEFT);
+	nk_labelf(ctx, NK_TEXT_LEFT, "%-6.2f %-6.2f %-6.2f",
+		velocity.x, velocity.y, velocity.z);
 }
 
-static void menu_element_item(const char *label,
-	debug_overlay_elements_t *elements, const debug_overlay_elements_t element)
+void draw_debug_overlay(ecs_iter_t *iter)
 {
-	const bool selected = (*elements & element) > 0;
-	if (ImGui_MenuItemEx(label, nullptr, selected, true))
-	{
-		*elements ^= element;
-	}
-}
-
-static void show_physics_properties(bool *open,
-	const physics_engine_t *engine, physics_config_t *config)
-{
-	constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse;
-
-	ImGui_SetNextWindowBgAlpha(0.75F);
-
-	ImGui_Begin("physics properties", open, flags);
-	{
-		constexpr auto min_value = 0.F;
-		constexpr auto max_value = 1'000.F;
-
-		ImGui_SliderFloatEx("Move speed", &config->move_speed,
-			min_value, max_value, "%.f", ImGuiSliderFlags_None);
-
-		ImGui_SliderFloatEx("Max move speed", &config->max_move_speed,
-			min_value, max_value, "%.f", ImGuiSliderFlags_None);
-
-		if (ImGui_SliderFloatEx("Gravity", &config->gravity_y,
-			min_value, max_value, "%.f", ImGuiSliderFlags_None))
-		{
-			const vector3f_t gravity = {.y = -config->gravity_y};
-			physics_set_gravity(engine, gravity);
-		}
-
-		ImGui_SliderFloatEx("Jump speed", &config->jump_speed,
-			min_value, max_value, "%.f", ImGuiSliderFlags_None);
-
-		if (ImGui_Button("Reset to default values"))
-		{
-			*config = physics_config_create_default();
-		}
-	}
-	ImGui_End();
-}
-
-void draw_debug_overlay(app_state_t *state)
-{
-	static auto open = true;
-	static auto physics_open = false;
-
-#ifndef IMGUI_DISABLE_DEMO_WINDOWS
-	static auto demo_open = false;
-#endif
-
-#ifdef NDEBUG
-	static debug_overlay_elements_t elements = 0;
-#else
-	static debug_overlay_elements_t elements = DEBUG_OVERLAY_CAMERA | DEBUG_OVERLAY_PHYSICS;
-#endif
-
-#ifndef IMGUI_DISABLE_DEMO_WINDOWS
-	if (demo_open)
-	{
-		ImGui_ShowDemoWindow(&demo_open);
-	}
-#endif
-
-	if (physics_open)
-	{
-		const physics_engine_t *physics_engine = ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsEngine);
-		physics_config_t *physics_config = ecs_get_mut_id(ecs_world(), EcsEngine, EcsPhysicsConfig);
-		show_physics_properties(&physics_open, physics_engine, physics_config);
-	}
+	nk_context_t *ctx = &ecs_field(iter, nkui_context_t, 0)->nk;
+	const EcsWorldSummary *world_summary = ecs_field(iter, EcsWorldSummary, 1);
+	const camera_t *camera = ecs_field(iter, camera_t, 2);
+	const physics_engine_t *physics_engine = ecs_field(iter, physics_engine_t, 3);
+	const physics_body_id_t player_body_id = *ecs_field(iter, physics_body_id_t, 4);
+	SDL_Window *window = *ecs_field(iter, SDL_Window*, 5);
+	SDL_GPUDevice *device = *ecs_field(iter, SDL_GPUDevice*, 6);
 
 	constexpr auto padding = 16.F;
-	constexpr auto alpha = 0.35F;
+	constexpr auto alpha = 0.75F;
+	constexpr auto row_height = 18.F;
 
-	constexpr ImGuiWindowFlags window_flags =
-		ImGuiWindowFlags_NoDecoration
-		| ImGuiWindowFlags_AlwaysAutoResize
-		| ImGuiWindowFlags_NoSavedSettings
-		| ImGuiWindowFlags_NoFocusOnAppearing
-		| ImGuiWindowFlags_NoNav
-		| ImGuiWindowFlags_NoMove;
-
-	const ImGuiViewport *viewport = ImGui_GetMainViewport();
-	const ImVec2 pos = {
-		.x = viewport->WorkPos.x + padding,
-		.y = viewport->WorkPos.y + padding,
+	const nk_rect_t window_bounds = {
+		.x = padding,
+		.y = padding,
+		.w = 300.F,
+		.h = 180.F,
 	};
-	ImGui_SetNextWindowPos(pos, ImGuiCond_Always);
 
-	ImGui_SetNextWindowBgAlpha(alpha);
+	constexpr nk_panel_flags_t window_flags =
+		NK_WINDOW_BORDER;
 
-	if (ImGui_Begin("debug_overlay", &open, window_flags))
+	static double fps = 0.0;
+	static Uint32 fps_timestamp = 0;
+
+	if (fps == 0.0 || world_summary->uptime != fps_timestamp)
 	{
-		ImGui_PushFontFloat(ImGui_GetFont(), 18.F);
+		fps = world_summary->fps;
+		fps_timestamp = world_summary->uptime;
+	}
+
+	nk_style_t *style = &ctx->style;
+	nk_style_item_t *window_style = &style->window.fixed_background;
+
+	SDL_assert(window_style->type == NK_STYLE_ITEM_COLOR);
+	nk_color_t color = window_style->data.color;
+	color.a = (nk_byte) ((float) color.a * alpha);
+
+	nk_style_push_style_item(ctx, window_style, nk_style_item_color(color));
+
+	if (nk_begin(ctx, "Debug overlay", window_bounds, window_flags))
+	{
+		constexpr auto ms_s = 1'000.F;
 
 #ifndef NDEBUG
-		ImGui_Text("- debug mode -");
-		ImGui_Text("%s %s", ENGINE_NAME, ENGINE_VERSION); // NOLINT(*-include-cleaner)
+		nk_layout_row_dynamic(ctx, row_height, 1);
+		nk_label(ctx, "- debug mode -", NK_TEXT_CENTERED);
+		nk_label(ctx, ENGINE_NAME " " ENGINE_VERSION, NK_TEXT_LEFT);
 #endif
 
-		if (ImGui_BeginTable("table_debug", 2, ImGuiTableFlags_None))
-		{
-			ImGui_TableNextColumn();
-			ImGui_Text("FPS");
-			ImGui_TableNextColumn();
-			ImGui_Text("%u", state->fps);
+		nk_layout_row(ctx, NK_DYNAMIC, row_height, 2, (float[]){0.3F, 0.7F});
 
-			if ((elements & DEBUG_OVERLAY_DELTA) > 0)
-			{
-				draw_delta(state->dt);
-			}
+		nk_label(ctx, "FPS", NK_TEXT_LEFT);
+		nk_labelf(ctx, NK_TEXT_LEFT, "%3.0f (%5.2f ms)",
+			fps, iter->delta_time * ms_s);
 
-			if ((elements & DEBUG_OVERLAY_SYSTEM) > 0)
-			{
-				SDL_GPUDevice *gpu_device = ecs_get_id_ptr(EcsGpuDevice);
-				draw_system_info(gpu_device);
-			}
-
-			if ((elements & DEBUG_OVERLAY_CAMERA) > 0)
-			{
-				const camera_t *camera = ecs_get_id(ecs_world(), EcsEngine, EcsCamera);
-				draw_camera_info(camera);
-			}
-
-			if ((elements & DEBUG_OVERLAY_PHYSICS) > 0)
-			{
-				const physics_engine_t *physics_engine = ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsEngine);
-				const ecs_entity_t player_entity = ecs_lookup(ecs_world(), "Player");
-				const physics_body_id_t *player_body_id = ecs_get_id(ecs_world(), player_entity, EcsPhysicsBody);
-				draw_physics_info(physics_engine, *player_body_id);
-			}
-
-			ImGui_EndTable();
-		}
-
-		if (ImGui_BeginPopupContextWindow())
-		{
-			menu_element_item("Delta time",
-				&elements, DEBUG_OVERLAY_DELTA);
-
-			menu_element_item("System info",
-				&elements, DEBUG_OVERLAY_SYSTEM);
-
-			menu_element_item("Camera positions",
-				&elements, DEBUG_OVERLAY_CAMERA);
-
-			menu_element_item("Player physics",
-				&elements, DEBUG_OVERLAY_PHYSICS);
-
-			ImGui_Separator();
-
-#ifndef IMGUI_DISABLE_DEMO_WINDOWS
-			if (ImGui_MenuItemEx("ImGui demo", nullptr, demo_open, true))
-			{
-				demo_open = (int) demo_open == 0;
-			}
-#endif
-
-			if (ImGui_MenuItemEx("Physics properties", nullptr, physics_open, true))
-			{
-				physics_open = (int) physics_open == 0;
-			}
-
-			ImGui_EndPopup();
-		}
-
-		ImGui_PopFont();
+		draw_camera_info(ctx, camera);
+		draw_physics_info(ctx, physics_engine, player_body_id);
 	}
-	ImGui_End();
+	nk_end(ctx);
+
+	if (!SDL_GetWindowRelativeMouseMode(window))
+	{
+		int width = 0;
+		SDL_GetWindowSize(window, &width, nullptr);
+
+		constexpr float window_width = 300;
+		const float window_x = (float) width - window_width - padding;
+
+		if (nk_begin(ctx, "Debug lock info", (nk_rect_t){
+				.x = window_x,
+				.y = padding,
+				.w = window_width,
+				.h = 40.F,
+			}, NK_WINDOW_BORDER
+		))
+		{
+			nk_layout_row_dynamic(ctx, row_height, 1);
+			nk_labelf(ctx, NK_TEXT_CENTERED, "Press %s to lock cursor",
+				SDL_GetKeyName(SDLK_ESCAPE));
+		}
+		nk_end(ctx);
+
+		if (nk_begin(ctx, "System info", (nk_rect_t){
+			.x = window_x,
+			.y = (padding * 2) + 40,
+			.w = window_width,
+			.h = 210,
+		}, NK_WINDOW_BORDER | NK_WINDOW_TITLE))
+		{
+			nk_layout_row(ctx, NK_DYNAMIC, row_height, 2, (float[]){0.3F, 0.7F});
+			draw_system_info(ctx, device);
+		}
+		nk_end(ctx);
+	}
+
+	nk_style_pop_style_item(ctx);
 }

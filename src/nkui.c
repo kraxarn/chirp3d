@@ -597,7 +597,7 @@ static void set_default_theme(nk_context_t *ctx)
 	const nk_color_t theme[] = {
 		[NK_COLOR_TEXT] = palette[0],
 		[NK_COLOR_WINDOW] = palette[5],
-		[NK_COLOR_HEADER] = invalid,
+		[NK_COLOR_HEADER] = palette[4],
 		[NK_COLOR_BORDER] = palette[4],
 		[NK_COLOR_BUTTON] = invalid,
 		[NK_COLOR_BUTTON_HOVER] = invalid,

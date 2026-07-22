@@ -341,7 +341,7 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		EcsPosition = component("Position", position_t);
 		EcsScale = component("Scale", scale_t);
 		EcsProjection = component("Projection", projection_t);
-		EcsNkContext = component("NkContext", nk_context_t);
+		EcsNkContext = component("NkContext", nkui_context_t);
 		EcsVertexShader = component("VertexShader", vertex_shader_t*);
 		EcsFragmentShader = component("FragmentShader", fragment_shader_t*);
 		EcsClearColor = component("ClearColor", clear_color_t);

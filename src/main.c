@@ -18,6 +18,7 @@
 #include "ecs/entities.h"
 #include "ecs/events.h"
 #include "ecs/tags.h"
+#include "ui/debugoverlay.h"
 
 #include "flecs.h"
 
@@ -339,28 +340,18 @@ static void build_scene(ecs_iter_t *iter)
 	physics_optimize(physics_engine);
 }
 
-static void lock_cursor(ecs_iter_t *iter)
-{
-	const SDL_MouseButtonEvent *event = ecs_field(iter, SDL_MouseButtonEvent, 0);
-	if (event->button != SDL_BUTTON_LEFT)
-	{
-		return;
-	}
-
-	SDL_Window *window = *ecs_field(iter, window_t*, 1);
-	SDL_SetWindowRelativeMouseMode(window, true);
-}
-
-static void unlock_cursor(ecs_iter_t *iter)
+static void toggle_lock_cursor(ecs_iter_t *iter)
 {
 	const SDL_KeyboardEvent *event = ecs_field(iter, SDL_KeyboardEvent, 0);
-	if (event->key != SDLK_ESCAPE)
+	if (event->key != SDLK_ESCAPE || !event->down)
 	{
 		return;
 	}
 
 	SDL_Window *window = *ecs_field(iter, window_t*, 1);
-	SDL_SetWindowRelativeMouseMode(window, false);
+
+	const bool enabled = SDL_GetWindowRelativeMouseMode(window);
+	SDL_SetWindowRelativeMouseMode(window, (bool) !enabled);
 }
 
 static void set_default_metadata()
@@ -553,20 +544,34 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
 		.query.terms = {
-			(ecs_term_t){.id = EcsMouseButtonEvent, .inout = EcsIn},
-			(ecs_term_t){.id = EcsWindow, .src.name = "$window", .inout = EcsIn},
-		},
-		.events = {EcsOnMouseButton},
-		.callback = lock_cursor,
-	});
-
-	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
-		.query.terms = {
 			(ecs_term_t){.id = EcsKeyboardEvent, .inout = EcsIn},
 			(ecs_term_t){.id = EcsWindow, .src.name = "$window", .inout = EcsIn},
 		},
 		.events = {EcsOnKey},
-		.callback = unlock_cursor,
+		.callback = toggle_lock_cursor,
+	});
+
+	ecs_system_init(ecs_world(), &(ecs_system_desc_t){
+		.entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
+			.name = "DrawUi",
+			.add = ecs_ids(ecs_dependson(ecs_phase(PHASE_UPDATE))),
+		}),
+		.query.terms = {
+			(ecs_term_t){.id = EcsNkContext, .src.id = EcsNkContext, .inout = EcsIn},
+			(ecs_term_t){.id = ecs_id(EcsWorldSummary), .src.id = EcsWorld, .inout = EcsIn},
+			(ecs_term_t){.id = EcsCamera, .src.id = EcsEngine, .inout = EcsIn},
+			(ecs_term_t){.id = EcsPhysicsEngine, .src.id = EcsEngine, .inout = EcsIn},
+			(ecs_term_t){.id = EcsPhysicsBody, .src.name = "$player_body", .inout = EcsIn},
+			(ecs_term_t){.id = EcsWindow, .src.id = EcsEngine, .inout = EcsInOut},
+			(ecs_term_t){.id = EcsGpuDevice, .src.id = EcsEngine, .inout = EcsInOut},
+			(ecs_term_t){
+				.first.id = EcsPredEq,
+				.src.name = "$player_body",
+				.second = (ecs_term_ref_t){.id = EcsIsName, .name = "Player"},
+				.inout = EcsInOutNone,
+			},
+		},
+		.callback = draw_debug_overlay,
 	});
 
 	// NOTE: Returning from here will call a default SDL_Init if not already called
