@@ -17,6 +17,18 @@
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
 
+#define STR_(x) #x
+#define STR(x)  STR_(x)
+
+// Currently, only Clang and GCC are supported
+#ifdef __clang__
+#define COMPILER_INFO ("Clang " __clang_version__)
+#elifdef __GNUC__
+#define COMPILER_INFO ("GCC " STR(__GNUC__) "." STR(__GNUC_MINOR__) "." STR(__GNUC_PATCHLEVEL__))
+#else
+#define COMPILER_INFO "Unknown"
+#endif
+
 static void draw_system_info(nk_context_t *ctx, SDL_GPUDevice *device)
 {
 	nk_label(ctx, "Platform", NK_TEXT_LEFT);
@@ -220,10 +232,8 @@ void draw_debug_overlay(ecs_iter_t *iter)
 			nk_label(ctx, "Date", NK_TEXT_LEFT);
 			nk_label(ctx, __DATE__ " " __TIME__, NK_TEXT_LEFT);
 
-#ifdef FLECS_STATS
 			nk_label(ctx, "Compiler", NK_TEXT_LEFT);
-			nk_label(ctx, world_summary->build_info.compiler, NK_TEXT_LEFT);
-#endif
+			nk_label(ctx, COMPILER_INFO, NK_TEXT_LEFT);
 
 			nk_label(ctx, "Type", NK_TEXT_LEFT);
 			nk_label(ctx, ENGINE_BUILD_TYPE, NK_TEXT_LEFT);
