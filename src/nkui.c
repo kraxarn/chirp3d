@@ -316,7 +316,7 @@ static bool load_font(SDL_Window *window, SDL_GPUDevice *device, nkui_context_t 
 	}
 
 	struct nk_font *font = nk_font_atlas_add_from_memory(&font_atlas,
-		font_data, font_size, 15.F * scale, &font_config);
+		font_data, font_size, 16.F * scale, &font_config);
 
 	if (font == nullptr)
 	{
