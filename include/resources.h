@@ -2,8 +2,6 @@
 
 #include <SDL3/SDL_iostream.h>
 
-[[nodiscard]] SDL_IOStream *res_font_monogram_ttf();
-[[nodiscard]] SDL_IOStream *res_font_maple_mono_nl_regular_ttf();
 [[nodiscard]] SDL_IOStream *res_font_cousine_ttf();
 
 [[nodiscard]] SDL_IOStream *res_shader_default_vert_dxil();

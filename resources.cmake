@@ -2,8 +2,6 @@ set(RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
 	# Fonts
-	FONT_MONOGRAM_TTF_PATH="${RESOURCE_DIR}/fonts/monogram.ttf"                            # TODO: Remove
-	FONT_MAPLE_MONO_NL_REGULAR_TTF_PATH="${maple_font_SOURCE_DIR}/MapleMonoNL-Regular.ttf" # TODO: Remove
 	FONT_COUSINE_TTF_PATH="${nuklear_SOURCE_DIR}/extra_font/Cousine-Regular.ttf"
 	# Shaders
 	SHADER_DEFAULT_VERT_DXIL_PATH="${RESOURCE_DIR}/shaders/dxil/default.vert.dxil"
