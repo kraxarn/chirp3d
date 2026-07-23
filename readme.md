@@ -27,7 +27,7 @@ Currently very early in development and not very usable quite yet.
 
 * Linux (x86_64, aarch64) and Android (armeabi-v7a, arm64-v8a) through Vulkan 1.0.
 * macOS (x86_64, arm64) and iOS through Metal, or Vulkan 1.0 using MoltenVK.
-* Windows (~~x86~~, x86_64, arm64) through Direct3D 12 (FL 11_0, RBT 2), or Vulkan 1.0.
+* Windows (x86, x86_64, arm64) through Direct3D 12 (FL 11_0, RBT 2), or Vulkan 1.0.
 
 # compiler support
 
