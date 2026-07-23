@@ -16,7 +16,7 @@ jobs:
         include:
           - os: windows-latest
             arch: 'x86_64'
-            compile-flags: '-march=x86-64-v3'
+            compile-flags: '-march=x86-64'
 
           - os: windows-latest
             arch: 'x86'
