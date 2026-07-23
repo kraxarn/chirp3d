@@ -4,8 +4,20 @@ Most of these aren't tested, but "should work" according to their respective spe
 
 ## CPU
 
-* [Intel Haswell (4000)](https://en.wikipedia.org/wiki/Haswell_(microarchitecture))
-* [AMD Excavator (Athlon X4)](https://en.wikipedia.org/wiki/Excavator_(microarchitecture))
+Technically, SSE2/NEON support is only required by the pre-built binaries.
+The engine can be compiled without it, and it *should* work.
+
+### x86 (SSE2)
+
+* [Intel Pentium 4](https://en.wikipedia.org/wiki/Pentium_4)
+* [AMD Opteron](https://en.wikipedia.org/wiki/Opteron)
+
+### x86-64 (SSE2)
+
+* [Any :)](https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels)
+
+### AArch64 (NEON)
+
 * [ARM Cortex-R](https://en.wikipedia.org/wiki/ARM_architecture_family#Advanced_SIMD_(Neon))
 
 ## Linux (Vulkan)
