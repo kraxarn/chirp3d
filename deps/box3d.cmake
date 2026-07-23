@@ -6,9 +6,15 @@ FetchContent_Declare(box3d
 )
 
 set(BOX3D_SANITIZE OFF)
-set(BOX3D_DISABLE_SIMD OFF)
 set(BOX3D_COMPILE_WARNING_AS_ERROR OFF)
 set(BOX3D_DOUBLE_PRECISION OFF)
+
+if (CMAKE_ANDROID_ARCH_ABI STREQUAL "armeabi-v7a")
+	set(BOX3D_DISABLE_SIMD ON)
+else ()
+	set(BOX3D_DISABLE_SIMD OFF)
+endif ()
+
 
 message(STATUS "Downloading box3d")
 FetchContent_MakeAvailable(box3d)
