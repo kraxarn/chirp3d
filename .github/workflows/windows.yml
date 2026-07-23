@@ -20,7 +20,7 @@ jobs:
 
           - os: windows-latest
             arch: 'x86'
-            compile-flags: '-march=i686 -m32 -msse2'
+            compile-flags: '-march=i686 -m32 -msse2 -mfxsr'
 
           - os: windows-11-arm
             arch: 'arm64'
