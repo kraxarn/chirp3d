@@ -1,7 +1,7 @@
 #include "camera.h"
+#include "degutil.h"
 #include "ecs.h"
 #include "logcategory.h"
-#include "math.h"
 #include "model.h"
 #include "nkui.h"
 #include "vector.h"

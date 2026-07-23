@@ -1,4 +1,4 @@
-#include "math.h"
+#include "degutil.h"
 
 #include <SDL3/SDL_stdinc.h>
 
