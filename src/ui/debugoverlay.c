@@ -4,11 +4,13 @@
 #include "ecs.h"
 #include "gpudevicedriver.h"
 #include "nkui.h"
-#include "physics.h"
 #include "systeminfo.h"
 #include "videodriver.h"
 
 #include "flecs.h"
+#include "box3d/box3d.h"
+#include "box3d/id.h"
+#include "box3d/math_functions.h"
 
 #include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_audio.h>
@@ -16,9 +18,6 @@
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
-
-#define STR_(x) #x
-#define STR(x)  STR_(x)
 
 static void draw_system_info(nk_context_t *ctx, SDL_GPUDevice *device)
 {
@@ -55,11 +54,10 @@ static void draw_camera_info(nk_context_t *ctx, const camera_t *camera)
 		camera->target.x, camera->target.y, camera->target.z);
 }
 
-static void draw_physics_info(nk_context_t *ctx, const physics_engine_t *physics_engine,
-	const physics_body_id_t body_id)
+static void draw_physics_info(nk_context_t *ctx, const b3BodyId body_id)
 {
-	const vector3f_t position = physics_body_position(physics_engine, body_id);
-	const vector3f_t velocity = physics_body_linear_velocity(physics_engine, body_id);
+	const b3Vec3 position = b3Body_GetPosition(body_id);
+	const b3Vec3 velocity = b3Body_GetLinearVelocity(body_id);
 
 	nk_label(ctx, "Position", NK_TEXT_LEFT);
 	nk_labelf(ctx, NK_TEXT_LEFT, "%-6.2f %-6.2f %-6.2f",
@@ -74,10 +72,9 @@ void draw_debug_overlay(ecs_iter_t *iter)
 {
 	nk_context_t *ctx = &ecs_field(iter, nkui_context_t, 0)->nk;
 	const camera_t *camera = ecs_field(iter, camera_t, 1);
-	const physics_engine_t *physics_engine = ecs_field(iter, physics_engine_t, 2);
-	const physics_body_id_t player_body_id = *ecs_field(iter, physics_body_id_t, 3);
-	SDL_Window *window = *ecs_field(iter, SDL_Window*, 4);
-	SDL_GPUDevice *device = *ecs_field(iter, SDL_GPUDevice*, 5);
+	const b3BodyId player_body_id = *ecs_field(iter, b3BodyId, 2);
+	SDL_Window *window = *ecs_field(iter, SDL_Window*, 3);
+	SDL_GPUDevice *device = *ecs_field(iter, SDL_GPUDevice*, 4);
 
 #ifdef FLECS_STATS
 	const EcsWorldSummary *world_summary = ecs_get_id(ecs_world(),
@@ -136,7 +133,7 @@ void draw_debug_overlay(ecs_iter_t *iter)
 			fps, iter->delta_time * ms_s);
 
 		draw_camera_info(ctx, camera);
-		draw_physics_info(ctx, physics_engine, player_body_id);
+		draw_physics_info(ctx, player_body_id);
 	}
 	nk_end(ctx);
 

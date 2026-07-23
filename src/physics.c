@@ -1,267 +1,127 @@
 #include "physics.h"
-#include "jphutils.h"
 #include "logcategory.h"
 
-#include "joltc.h"
+#include "box3d/base.h"
+#include "box3d/box3d.h"
+#include "box3d/id.h"
+#include "box3d/types.h"
 
 #include <SDL3/SDL_assert.h>
+#include <SDL3/SDL_cpuinfo.h>
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_timer.h>
+#include <SDL3/SDL_thread.h>
 
-typedef enum broad_phase_layers_t: JPH_BroadPhaseLayer
+typedef struct
 {
-	BP_LAYER_NON_MOVING = 0,
-	BP_LAYER_MOVING     = 1,
-	BP_LAYER_COUNT      = 2,
-} broad_phase_layers_t;
+	b3TaskCallback *callback;
+	void *context;
+} task_info_t;
 
-static void on_trace(const char *message)
+static void b3_log(const char *message)
 {
 	SDL_LogInfo(LOG_CATEGORY_PHYSICS, "%s", message);
 }
 
-static bool on_assert(const char *expression, const char *message, const char *file, const uint32_t line)
+static int b3_assert(const char *condition,
+	const char *filename, const int line_number)
 {
-	// TODO: I dunno if this works
-	SDL_AssertData data = {
-		.trigger_count = 1,
-		.condition = message,
-		.filename = file,
-		.linenum = (int) line,
-		.function = "JPH_TraceHandler",
+	SDL_AssertData assert_data = {
+		.always_ignore = false,
+		.trigger_count = 0,
+		.condition = condition,
+		.filename = filename,
+		.linenum = line_number,
+		.function = nullptr,
 		.next = nullptr,
 	};
-	SDL_ReportAssertion(&data, expression, file, (int) line);
-	return true;
-}
 
-bool physics_create(physics_engine_t *engine)
-{
-	if (!JPH_Init())
+	const SDL_AssertState sdl_assert_state = SDL_ReportAssertion(&assert_data,
+		assert_data.function, assert_data.filename, assert_data.linenum);
+
+	if (sdl_assert_state == SDL_ASSERTION_RETRY)
 	{
-		SDL_SetError("JPH initialisation failed");
-		return false;
+		return 0;
 	}
 
-	JPH_SetTraceHandler(on_trace);
-	JPH_SetAssertFailureHandler(on_assert);
-
-	engine->num_bodies = 0;
-	engine->job_system = JPH_JobSystemThreadPool_Create(nullptr);
-
-	JPH_ObjectLayerPairFilter *obj_filter = JPH_ObjectLayerPairFilterTable_Create(OBJ_LAYER_COUNT);
-	JPH_ObjectLayerPairFilterTable_EnableCollision(obj_filter,
-		OBJ_LAYER_STATIC, OBJ_LAYER_DYNAMIC
-	);
-	JPH_ObjectLayerPairFilterTable_EnableCollision(obj_filter,
-		OBJ_LAYER_DYNAMIC, OBJ_LAYER_STATIC
-	);
-
-	JPH_BroadPhaseLayerInterface *bp_interface = JPH_BroadPhaseLayerInterfaceTable_Create(
-		OBJ_LAYER_COUNT, BP_LAYER_COUNT
-	);
-	JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(bp_interface,
-		OBJ_LAYER_STATIC, BP_LAYER_NON_MOVING
-	);
-	JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(bp_interface,
-		OBJ_LAYER_DYNAMIC, BP_LAYER_MOVING
-	);
-
-	JPH_ObjectVsBroadPhaseLayerFilter *layer_filter = JPH_ObjectVsBroadPhaseLayerFilterTable_Create(
-		bp_interface, BP_LAYER_COUNT,
-		obj_filter, OBJ_LAYER_COUNT
-	);
-
-	const JPH_PhysicsSystemSettings settings = {
-		.maxBodies = max_bodies,
-		.numBodyMutexes = num_body_mutexes,
-		.maxBodyPairs = max_body_pairs,
-		.maxContactConstraints = max_contact_constraints,
-		.broadPhaseLayerInterface = bp_interface,
-		.objectLayerPairFilter = obj_filter,
-		.objectVsBroadPhaseLayerFilter = layer_filter,
-	};
-	engine->physics_system = JPH_PhysicsSystem_Create(&settings);
-
-	engine->body_interface = JPH_PhysicsSystem_GetBodyInterface(engine->physics_system);
-
-	return true;
-}
-
-void physics_destroy(const physics_engine_t *engine)
-{
-	if (engine == nullptr)
+	if (sdl_assert_state == SDL_ASSERTION_BREAK)
 	{
-		return;
+		SDL_AssertBreakpoint();
 	}
 
-	for (size_t i = 0; i < engine->num_bodies; i++)
+	return 1;
+}
+
+static int task_fn(void *data)
+{
+	const task_info_t *info = data;
+	info->callback(info->context);
+	SDL_free(data);
+	return 0;
+}
+
+static void *enqueue_task(b3TaskCallback *task, void *task_context,
+	[[maybe_unused]] void *user_context, const char *task_name)
+{
+	// SDL uses a different signature than Box3D expects :/
+	task_info_t *info = SDL_malloc(sizeof(task_info_t));
+	info->callback = task;
+	info->context = task_context;
+
+	SDL_Thread *thread = SDL_CreateThread(task_fn, task_name, info);
+	if (thread == nullptr)
 	{
-		JPH_BodyInterface_RemoveAndDestroyBody(engine->body_interface, engine->bodies[i]);
+		// TODO: Fatal error?
+		SDL_LogError(LOG_CATEGORY_PHYSICS,
+			"Failed to create thread: %s", SDL_GetError());
 	}
 
-	JPH_JobSystem_Destroy(engine->job_system);
-	JPH_PhysicsSystem_Destroy(engine->physics_system);
-	JPH_Shutdown();
+	return thread;
 }
 
-void physics_optimize(const physics_engine_t *engine)
+static void finish_task(void *task, [[maybe_unused]] void *context)
 {
-	const Uint32 start = SDL_GetTicks();
+	SDL_Thread *thread = task;
 
-	JPH_PhysicsSystem_OptimizeBroadPhase(engine->physics_system);
-
-	const Uint32 end = SDL_GetTicks();
-	SDL_LogDebug(LOG_CATEGORY_PHYSICS, "Optimised broad phase in %u ms", end - start);
-}
-
-bool physics_update(const physics_engine_t *engine, const float delta)
-{
-	constexpr auto collision_steps = 1;
-
-	const JPH_PhysicsUpdateError error = JPH_PhysicsSystem_Update(engine->physics_system,
-		delta, collision_steps, engine->job_system);
-
-	switch (error)
+	int status = -1;
+	SDL_WaitThread(thread, &status);
+	if (status != 0)
 	{
-		case JPH_PhysicsUpdateError_None:
-			return true;
-
-		case JPH_PhysicsUpdateError_ManifoldCacheFull:
-			return SDL_SetError("The manifest cache is full");
-
-		case JPH_PhysicsUpdateError_BodyPairCacheFull:
-			return SDL_SetError("The body pair cache is full");
-
-		case JPH_PhysicsUpdateError_ContactConstraintsFull:
-			return SDL_SetError("The contact constraints buffer is full");
-
-		default:
-			return SDL_SetError("Unknown error");
+		// TODO: Fatal error?
+		SDL_LogError(LOG_CATEGORY_PHYSICS,
+			"Failed to wait for thread to finish: %d", status);
 	}
 }
 
-void physics_set_gravity(const physics_engine_t *engine, const vector3f_t gravity)
+void physics_ctor(void *ptr, const Sint32 count,
+	[[maybe_unused]] const ecs_type_info_t *type_info)
 {
-	JPH_PhysicsSystem_SetGravity(engine->physics_system, jph_vec3(&gravity));
+	SDL_assert(count == 1);
+	SDL_assert(b3GetWorldCount() == 0);
+
+	b3SetLogFcn(b3_log);
+	b3SetAssertFcn(b3_assert);
+
+	b3WorldDef world_def = b3DefaultWorldDef();
+
+	// TODO: Do we want to respect --threads here?
+	world_def.workerCount = SDL_GetNumLogicalCPUCores();
+	world_def.enqueueTask = enqueue_task;
+	world_def.finishTask = finish_task;
+
+	b3WorldId *world = ptr;
+	*world = b3CreateWorld(&world_def);
+	SDL_assert(world->index1 != 0);
+
+	// Should be the same as world_def.workerCount
+	SDL_LogInfo(LOG_CATEGORY_PHYSICS, "Using %d workers",
+		b3World_GetWorkerCount(*world));
 }
 
-[[nodiscard]]
-static JPH_BodyCreationSettings *create_body_settings(const body_config_t *config, const JPH_Shape *shape)
+void physics_dtor(void *ptr, const Sint32 count,
+	[[maybe_unused]] const ecs_type_info_t *type_info)
 {
-	return JPH_BodyCreationSettings_Create3(
-		shape, jph_vec3(&config->position), nullptr,
-		jph_motion_type(config->motion_type), config->layer
-	);
-}
-
-static JPH_BodyID add_body(physics_engine_t *engine, const JPH_BodyCreationSettings *settings, const bool activate)
-{
-	const JPH_Activation activation = jph_activation(activate);
-	const JPH_BodyID body = JPH_BodyInterface_CreateAndAddBody(engine->body_interface, settings, activation);
-	engine->bodies[engine->num_bodies++] = body;
-	return body;
-}
-
-physics_body_id_t physics_add_box(physics_engine_t *engine, const box_config_t *config)
-{
-	JPH_BoxShape *shape = JPH_BoxShape_Create(jph_vec3(&config->half_extents), JPH_DEFAULT_CONVEX_RADIUS);
-	JPH_BodyCreationSettings *settings = create_body_settings(&config->body, (JPH_Shape*) shape);
-
-	if (config->friction != 0.F)
-	{
-		JPH_BodyCreationSettings_SetFriction(settings, config->friction);
-	}
-
-	const JPH_BodyID body_id = add_body(engine, settings, config->body.activate);
-	JPH_BodyCreationSettings_Destroy(settings);
-	return body_id;
-}
-
-physics_body_id_t physics_add_sphere(physics_engine_t *engine, const sphere_config_t *config)
-{
-	JPH_SphereShape *shape = JPH_SphereShape_Create(config->radius);
-	JPH_BodyCreationSettings *settings = create_body_settings(&config->body, (JPH_Shape*) shape);
-
-	const JPH_BodyID body_id = add_body(engine, settings, config->body.activate);
-	JPH_BodyCreationSettings_Destroy(settings);
-	return body_id;
-}
-
-physics_body_id_t physics_add_capsule(physics_engine_t *engine, const capsule_config_t *config)
-{
-	JPH_CapsuleShape *shape = JPH_CapsuleShape_Create(config->half_height, config->radius);
-	JPH_BodyCreationSettings *settings = create_body_settings(&config->body, (JPH_Shape*) shape);
-
-	if (config->allowed_dof != 0)
-	{
-		JPH_BodyCreationSettings_SetAllowedDOFs(settings, jph_allowed_dof(config->allowed_dof));
-	}
-
-	if (config->max_linear_velocity != 0.F)
-	{
-		JPH_BodyCreationSettings_SetMaxLinearVelocity(settings, config->max_linear_velocity);
-	}
-
-	const JPH_BodyID body_id = add_body(engine, settings, config->body.activate);
-	JPH_BodyCreationSettings_Destroy(settings);
-	return body_id;
-}
-
-physics_body_id_t physics_add_cylinder(physics_engine_t *engine, const cylinder_config_t *config)
-{
-	JPH_CylinderShape *shape = JPH_CylinderShape_Create(config->half_height, config->radius);
-	JPH_BodyCreationSettings *settings = create_body_settings(&config->body, (JPH_Shape*) shape);
-
-	const JPH_BodyID body_id = add_body(engine, settings, config->body.activate);
-	JPH_BodyCreationSettings_Destroy(settings);
-	return body_id;
-}
-
-vector3f_t physics_body_position(const physics_engine_t *engine, const physics_body_id_t body_id)
-{
-	vector3f_t position;
-	JPH_BodyInterface_GetPosition(engine->body_interface, body_id, jph_vec3(&position));
-	return position;
-}
-
-void physics_body_set_position(const physics_engine_t *engine, const physics_body_id_t body_id,
-	vector3f_t position, const bool activate)
-{
-	JPH_BodyInterface_SetPosition(engine->body_interface, body_id, jph_vec3(&position), jph_activation(activate));
-}
-
-vector4f_t physics_body_rotation(const physics_engine_t *engine, const physics_body_id_t body_id)
-{
-	vector4f_t rotation;
-	JPH_BodyInterface_GetRotation(engine->body_interface, body_id, jph_quat(&rotation));
-	return rotation;
-}
-
-void physics_body_set_rotation(const physics_engine_t *engine, const physics_body_id_t body_id,
-	vector4f_t rotation, const bool activate)
-{
-	JPH_BodyInterface_SetRotation(engine->body_interface, body_id,
-		jph_quat(&rotation), jph_activation(activate));
-}
-
-vector3f_t physics_body_linear_velocity(const physics_engine_t *engine, const physics_body_id_t body_id)
-{
-	vector3f_t velocity;
-	JPH_BodyInterface_GetLinearVelocity(engine->body_interface, body_id, jph_vec3(&velocity));
-	return velocity;
-}
-
-void physics_body_set_linear_velocity(const physics_engine_t *engine,
-	const physics_body_id_t body_id, const vector3f_t velocity)
-{
-	JPH_BodyInterface_SetLinearVelocity(engine->body_interface, body_id, jph_vec3(&velocity));
-}
-
-void physics_body_add_linear_velocity(const physics_engine_t *engine,
-	const physics_body_id_t body_id, vector3f_t velocity)
-{
-	JPH_BodyInterface_AddLinearVelocity(engine->body_interface, body_id, jph_vec3(&velocity));
+	SDL_assert(count == 1);
+	b3DestroyWorld(*(b3WorldId*) ptr);
 }

@@ -16,6 +16,7 @@
 #include "ecs/tags.h"
 
 #include "flecs.h"
+#include "box3d/id.h"
 
 #include <SDL3/SDL_assert.h>
 #include <SDL3/SDL_cpuinfo.h>
@@ -185,7 +186,8 @@ static ecs_entity_t entity(const char *name)
 
 [[nodiscard]]
 static ecs_id_t component_impl(const char *name, const char *symbol,
-	const ecs_size_t size, const ecs_size_t alignment)
+	const ecs_size_t size, const ecs_size_t alignment,
+	const ecs_xtor_t ctor, const ecs_xtor_t dtor)
 {
 	const ecs_entity_desc_t entity_desc = {
 		.use_low_id = true,
@@ -205,7 +207,8 @@ static ecs_id_t component_impl(const char *name, const char *symbol,
 	SDL_assert(component != 0);
 
 	const ecs_type_hooks_t hooks = {
-		.ctor = ctor_zero,
+		.ctor = ctor,
+		.dtor = dtor,
 	};
 	ecs_set_hooks_id(world, component, &hooks);
 
@@ -213,7 +216,10 @@ static ecs_id_t component_impl(const char *name, const char *symbol,
 }
 
 #define component(name, symbol)	\
-	component_impl(name, #symbol, ECS_SIZEOF(symbol), ECS_ALIGNOF(symbol))
+	component_impl(name, #symbol, ECS_SIZEOF(symbol), ECS_ALIGNOF(symbol), ctor_zero, nullptr)
+
+#define component_xtor(name, symbol, ctor, dtor)	\
+	component_impl(name, #symbol, ECS_SIZEOF(symbol), ECS_ALIGNOF(symbol), ctor, dtor)
 
 static ecs_entity_t tag(const char *name)
 {
@@ -334,9 +340,9 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 		EcsSwapchainTextureSize = component("SwapchainTextureSize", swapchain_texture_size_t);
 		EcsCamera = component("Camera", camera_t);
 		EcsPhysicsConfig = component("PhysicsConfig", physics_config_t);
-		EcsPhysicsEngine = component("PhysicsEngine", physics_engine_t);
+		EcsPhysicsWorld = component_xtor("PhysicsWorld", b3WorldId, physics_ctor, physics_dtor);
+		EcsPhysicsBody = component("PhysicsBody", b3BodyId);
 		EcsModel = component("Model", model_t);
-		EcsPhysicsBody = component("PhysicsBody", physics_body_id_t);
 		EcsRotation = component("Rotation", rotation_t);
 		EcsPosition = component("Position", position_t);
 		EcsScale = component("Scale", scale_t);
@@ -389,8 +395,15 @@ static void module([[maybe_unused]] ecs_world_t *unused)
 			(ecs_member_t){.name = "jump_speed", .type = ecs_id(ecs_f32_t)},
 		);
 
+		reflect(EcsPhysicsWorld,
+			(ecs_member_t){.name = "index", .type = ecs_id(ecs_u16_t)},
+			(ecs_member_t){.name = "generation", .type = ecs_id(ecs_u16_t)},
+		);
+
 		reflect(EcsPhysicsBody,
-			(ecs_member_t){.name = "id", .type = ecs_id(ecs_u32_t)},
+			(ecs_member_t){.name = "index", .type = ecs_id(ecs_i32_t)},
+			(ecs_member_t){.name = "world", .type = ecs_id(ecs_u16_t)},
+			(ecs_member_t){.name = "generation", .type = ecs_id(ecs_u16_t)},
 		);
 
 		reflect(EcsRotation,

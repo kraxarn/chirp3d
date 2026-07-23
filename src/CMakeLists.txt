@@ -17,7 +17,6 @@ target_sources(${PROJECT_NAME} PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/gpushaderformat.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/image.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/input.c"
-	"${CMAKE_CURRENT_SOURCE_DIR}/jphutils.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/json.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/main.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/map.c"

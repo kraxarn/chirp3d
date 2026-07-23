@@ -2,12 +2,12 @@
 #include "args.h"
 #include "assets.h"
 #include "camera.h"
+#include "cast.h"
 #include "ecs.h"
 #include "input.h"
 #include "logcategory.h"
 #include "model.h"
 #include "nkui.h"
-#include "physics.h"
 #include "physicsconfig.h"
 #include "prefabs.h"
 #include "scriptengine.h"
@@ -21,6 +21,11 @@
 #include "ui/debugoverlay.h"
 
 #include "flecs.h"
+#include "box3d/box3d.h"
+#include "box3d/collision.h"
+#include "box3d/id.h"
+#include "box3d/math_functions.h"
+#include "box3d/types.h"
 
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -240,9 +245,8 @@ static void build_scene(ecs_iter_t *iter)
 {
 	const assets_t *assets = ecs_field(iter, assets_t, 0);
 	SDL_GPUDevice *gpu_device = *ecs_field(iter, gpu_device_t*, 1);
-	physics_engine_t *physics_engine = ecs_field(iter, physics_engine_t, 2);
+	b3WorldId physics_world = *ecs_field(iter, b3WorldId, 2);
 	const physics_config_t *physics_config = ecs_field(iter, physics_config_t, 3);
-	const camera_t *camera = ecs_field(iter, camera_t, 4);
 
 	ecs_observer_init(ecs_world(), &(ecs_observer_desc_t){
 		.query.terms = {
@@ -299,45 +303,32 @@ static void build_scene(ecs_iter_t *iter)
 
 	// Physics
 
-	const auto floor_size = (vector3f_t){.x = 100.F, .y = 0.F, .z = 100.F};
+	const b3BodyDef floor_def = b3DefaultBodyDef();
+	b3BodyId floor_body = b3CreateBody(physics_world, &floor_def);
+	b3BoxHull floor_box = b3MakeBoxHull(100.F, 0.F, 100.F);
+	b3ShapeDef floor_shape_def = b3DefaultShapeDef();
+	b3CreateHullShape(floor_body, &floor_shape_def, &floor_box.base);
 
-	const box_config_t floor_config = {
-		.half_extents = floor_size,
-		.friction = 15.F,
-		.body = (body_config_t){
-			.motion_type = MOTION_TYPE_STATIC,
-			.layer = OBJ_LAYER_STATIC,
-			.position = vector3f_zero(),
-			.activate = false,
-		},
-	};
-	physics_add_box(physics_engine, &floor_config);
+	// TODO: Make character mover
+	b3BodyDef player_def = b3DefaultBodyDef();
+	player_def.position = (b3Pos){.y = 1.F};
+	player_def.type = b3_dynamicBody;
+	b3BodyId player_body = b3CreateBody(physics_world, &player_def);
+	b3BoxHull player_box = b3MakeCubeHull(1.F);
+	b3ShapeDef player_shape_def = b3DefaultShapeDef();
+	player_shape_def.density = 1.F;
+	player_shape_def.baseMaterial.friction = 0.3F;
+	b3CreateHullShape(player_body, &player_shape_def, &player_box.base);
 
-	const capsule_config_t player_config = {
-		.half_height = 0.5F,
-		.radius = 1.F,
-		.allowed_dof = DOF_TRANSLATION_3D,
-		.body = (body_config_t){
-			.position = vector3f_zero(),
-			.motion_type = MOTION_TYPE_DYNAMIC,
-			.layer = OBJ_LAYER_DYNAMIC,
-			.activate = false,
-		},
-	};
-	const physics_body_id_t player_physics_id = physics_add_capsule(physics_engine, &player_config);
-	physics_body_set_position(physics_engine, player_physics_id, camera->position, true);
-
-	const ecs_entity_desc_t entity_desc = {
+	const ecs_entity_t player_entity = ecs_entity_init(ecs_world(), &(ecs_entity_desc_t){
 		.name = "Player",
-	};
-	const ecs_entity_t player_entity = ecs_entity_init(ecs_world(), &entity_desc);
+	});
 	ecs_set_id(ecs_world(), player_entity, EcsPhysicsBody,
-		sizeof(physics_body_id_t), &player_physics_id);
+		sizeof(b3BodyId), &player_body);
 
-	const vector3f_t gravity = {.y = -physics_config->gravity_y};
-	physics_set_gravity(physics_engine, gravity);
-
-	physics_optimize(physics_engine);
+	b3World_SetGravity(physics_world, (b3Vec3){
+		.y = -physics_config->gravity_y,
+	});
 }
 
 static void toggle_lock_cursor(ecs_iter_t *iter)
@@ -493,9 +484,8 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		.query.terms = {
 			(ecs_term_t){.id = EcsAssets, .inout = EcsIn},
 			(ecs_term_t){.id = EcsGpuDevice, .inout = EcsIn},
-			(ecs_term_t){.id = EcsPhysicsEngine, .inout = EcsIn},
+			(ecs_term_t){.id = EcsPhysicsWorld, .src.id = EcsPhysicsWorld, .inout = EcsIn},
 			(ecs_term_t){.id = EcsPhysicsConfig, .inout = EcsIn},
-			(ecs_term_t){.id = EcsCamera, .inout = EcsIn},
 		},
 		.events = {EcsOnSet},
 		.callback = build_scene,
@@ -522,15 +512,6 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 	const physics_config_t physics_config = physics_config_create_default();
 	ecs_set_id(ecs_world(), EcsEngine, EcsPhysicsConfig,
 		sizeof(physics_config_t), &physics_config);
-
-	physics_engine_t physics_engine;
-	if (!physics_create(&physics_engine))
-	{
-		return fatal_error("Failed to initialise physics engine");
-	}
-
-	ecs_set_id(ecs_world(), EcsEngine, EcsPhysicsEngine,
-		sizeof(physics_engine_t), &physics_engine);
 
 	const SDL_FColor clear_color = {.r = 0.12F, .g = 0.12F, .b = 0.12F, .a = 1.F};
 	ecs_set_id(ecs_world(), EcsEngine, EcsClearColor,
@@ -559,7 +540,6 @@ SDL_AppResult SDL_AppInit(void **appstate, const int argc, char **argv)
 		.query.terms = {
 			(ecs_term_t){.id = EcsNkContext, .src.id = EcsNkContext, .inout = EcsIn},
 			(ecs_term_t){.id = EcsCamera, .src.id = EcsEngine, .inout = EcsIn},
-			(ecs_term_t){.id = EcsPhysicsEngine, .src.id = EcsEngine, .inout = EcsIn},
 			(ecs_term_t){.id = EcsPhysicsBody, .src.name = "$player_body", .inout = EcsIn},
 			(ecs_term_t){.id = EcsWindow, .src.id = EcsEngine, .inout = EcsInOut},
 			(ecs_term_t){.id = EcsGpuDevice, .src.id = EcsEngine, .inout = EcsInOut},
@@ -602,18 +582,19 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
 	ecs_progress(ecs_world(), state->dt);
 
-	physics_engine_t *physics_engine = ecs_get_mut_id(ecs_world(), EcsEngine, EcsPhysicsEngine);
-	const physics_config_t *physics_config = ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsConfig);
+	const physics_config_t *physics_config = ecs_get_id(ecs_world(),
+		EcsEngine, EcsPhysicsConfig);
 
 	const ecs_entity_t player_entity = ecs_lookup(ecs_world(), "Player");
-	const physics_body_id_t player_body_id = player_entity != 0
-		? *((physics_body_id_t*) ecs_get_id(ecs_world(), player_entity, EcsPhysicsBody))
-		: 0;
+	const b3BodyId *player_body_id = player_entity != 0
+		? ecs_get_id(ecs_world(), player_entity, EcsPhysicsBody)
+		: nullptr;
 
 	SDL_Window *window = ecs_get_id_ptr(EcsWindow);
 	camera_t *camera = ecs_get_mut_id(ecs_world(), EcsEngine, EcsCamera);
 
-	if (SDL_GetWindowRelativeMouseMode(window))
+	if (SDL_GetWindowRelativeMouseMode(window)
+		&& player_body_id != nullptr)
 	{
 		vector2f_t mouse;
 		SDL_GetRelativeMouseState(&mouse.x, &mouse.y);
@@ -626,56 +607,56 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 		if (input_is_down("move_forward"))
 		{
 			const vector3f_t velocity = camera_to_z(camera, move_speed * state->dt);
-			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
+			b3Body_SetLinearVelocity(*player_body_id, cast(b3Vec3, velocity));
 		}
 
 		if (input_is_down("move_backward"))
 		{
 			const vector3f_t velocity = camera_to_z(camera, -(move_speed * state->dt));
-			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
+			b3Body_SetLinearVelocity(*player_body_id, cast(b3Vec3, velocity));
 		}
 
 		if (input_is_down("move_left"))
 		{
 			const vector3f_t velocity = camera_to_x(camera, -(move_speed * state->dt));
-			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
+			b3Body_SetLinearVelocity(*player_body_id, cast(b3Vec3, velocity));
 		}
 
 		if (input_is_down("move_right"))
 		{
 			const vector3f_t velocity = camera_to_x(camera, move_speed * state->dt);
-			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
+			b3Body_SetLinearVelocity(*player_body_id, cast(b3Vec3, velocity));
 		}
 
 		if (input_is_down("move_up"))
 		{
 			const vector3f_t velocity = camera_to_y(camera, move_speed * state->dt);
-			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
+			b3Body_SetLinearVelocity(*player_body_id, cast(b3Vec3, velocity));
 		}
 
 		if (input_is_down("move_down"))
 		{
 			const vector3f_t velocity = camera_to_y(camera, -(move_speed * state->dt));
-			physics_body_add_linear_velocity(physics_engine, player_body_id, velocity);
+			b3Body_SetLinearVelocity(*player_body_id, cast(b3Vec3, velocity));
 		}
 
 		if (input_is_pressed("jump"))
 		{
-			const vector3f_t velocity = physics_body_linear_velocity(physics_engine, player_body_id);
+			const b3Vec3 velocity = b3Body_GetLinearVelocity(*player_body_id);
 			if (velocity.y > -0.1F && velocity.y < 0.1F)
 			{
-				const vector3f_t jump_velocity = {
+				const b3Vec3 jump_velocity = {
 					.x = velocity.x,
 					.y = jump_speed,
 					.z = velocity.z,
 				};
-				physics_body_set_linear_velocity(physics_engine, player_body_id, jump_velocity);
+				b3Body_SetLinearVelocity(*player_body_id, jump_velocity);
 			}
 		}
 
 		if (input_is_pressed("shoot"))
 		{
-			static constexpr float firepower = 100.F;
+			static constexpr float firepower = 10.F;
 
 			const ecs_entity_t bullet = ecs_lookup(ecs_world(), "Model.bullet");
 			const ecs_entity_t entity = create_instance(bullet);
@@ -707,49 +688,52 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 			ecs_set_id(ecs_world(), entity, EcsRotation,
 				sizeof(rotation_t), &rotation);
 
-			const cylinder_config_t config = {
-				.half_height = 0.1F,
-				.radius = 0.5F,
-				.body = (body_config_t){
-					.position = position,
-					.motion_type = MOTION_TYPE_DYNAMIC,
-					.layer = OBJ_LAYER_DYNAMIC,
-					.activate = false,
-				},
-			};
-			const physics_body_id_t body_id = physics_add_cylinder(physics_engine, &config);
-			ecs_set_id(ecs_world(), entity, EcsPhysicsBody,
-				sizeof(physics_body_id_t), &body_id);
+			const b3WorldId *physics_world = ecs_get_id(ecs_world(),
+				EcsPhysicsWorld, EcsPhysicsWorld);
 
 			const vector3f_t forward = vector3f_normalize(vector3f_sub(camera->target, position));
 			const vector3f_t velocity = vector3f_scale(forward, firepower);
-			physics_body_set_linear_velocity(physics_engine, body_id, velocity);
-			physics_body_set_rotation(physics_engine, body_id, vector4f_normalize((vector4f_t){
-				.x = 0.5F,
-			}), true);
+
+			// TODO: Make cylinder
+			// TODO: Fix rotation
+
+			b3BodyDef body_def = b3DefaultBodyDef();
+			body_def.position = cast(b3Pos, position);
+			body_def.linearVelocity = cast(b3Vec3, velocity);
+			body_def.type = b3_dynamicBody;
+			b3BodyId body = b3CreateBody(*physics_world, &body_def);
+			b3BoxHull box = b3MakeCubeHull(1.F);
+			b3ShapeDef shape_def = b3DefaultShapeDef();
+			shape_def.density = 1.F;
+			shape_def.baseMaterial.friction = 0.3F;
+			b3CreateHullShape(body, &shape_def, &box.base);
+
+			ecs_set_id(ecs_world(), entity, EcsPhysicsBody,
+				sizeof(b3BodyId), &body);
 		}
 	}
 
-	const vector3f_t min_velocity =
+	// TODO: Set clamping during creation
+	const b3Vec3 min_velocity =
 	{
 		.x = -physics_config->max_move_speed,
 		.y = -1'000.F,
 		.z = -physics_config->max_move_speed,
 	};
-	const vector3f_t max_velocity =
+	const b3Vec3 max_velocity =
 	{
 		.x = physics_config->max_move_speed,
 		.y = 1'000.F,
 		.z = physics_config->max_move_speed,
 	};
-	const vector3f_t velocity = physics_body_linear_velocity(physics_engine, player_body_id);
-	const vector3f_t clamped_velocity = vector3f_clamp(velocity, min_velocity, max_velocity);
-	physics_body_set_linear_velocity(physics_engine, player_body_id, clamped_velocity);
+	const b3Vec3 velocity = b3Body_GetLinearVelocity(*player_body_id);
+	const b3Vec3 clamped_velocity = b3Clamp(velocity, min_velocity, max_velocity);
+	b3Body_SetLinearVelocity(*player_body_id, clamped_velocity);
 
 	// TODO: There should be a better way to do this, right?
-	const vector3f_t player_position = physics_body_position(physics_engine, player_body_id);
-	camera->target = vector3f_add(camera->target, vector3f_sub(player_position, camera->position));
-	camera->position = player_position;
+	const b3Vec3 player_position = b3Body_GetPosition(*player_body_id);
+	camera->target = vector3f_add(camera->target, vector3f_sub(cast(vector3f_t, player_position), camera->position));
+	camera->position = cast(vector3f_t, player_position);
 
 	const vector3f_t forward_n = vector3f_normalize(vector3f_sub(camera->target, camera->position));
 	const vector3f_t right_n = vector3f_normalize(vector3f_cross(forward_n, camera->up));
@@ -769,7 +753,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 				(ecs_term_t){.id = EcsRotation, .inout = EcsInOut},
 				(ecs_term_t){
 					.first.id = EcsPredEq,
-					.second = (ecs_term_ref_t){ .id = EcsIsName, .name = "Blaster"},
+					.second = (ecs_term_ref_t){.id = EcsIsName, .name = "Blaster"},
 					.inout = EcsInOutNone,
 				},
 				(ecs_term_t){
@@ -905,7 +889,6 @@ void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result)
 	ecs_query_fini(query);
 
 	assets_destroy(ecs_get_id(ecs_world(), EcsEngine, EcsAssets));
-	physics_destroy(ecs_get_id(ecs_world(), EcsEngine, EcsPhysicsEngine));
 	script_engine_destroy();
 
 	SDL_Window *window = ecs_get_id_ptr(EcsWindow);
